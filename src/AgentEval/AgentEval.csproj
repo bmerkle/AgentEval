@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    
+    <!-- NuGet Package Info -->
+    <PackageId>AgentEval</PackageId>
+    <Version>0.1.0-alpha</Version>
+    <Description>The first .NET-native AI agent testing, evaluation, and benchmarking framework. Supports Microsoft Agent Framework (MAF), with extensible adapters for other frameworks.</Description>
+    <PackageTags>ai;agent;testing;evaluation;benchmarking;maf;llm;openai;azure</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Microsoft.Extensions.AI.Evaluation.Quality" />
+    <PackageReference Include="Azure.AI.OpenAI" />
+    <PackageReference Include="System.Numerics.Tensors" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>

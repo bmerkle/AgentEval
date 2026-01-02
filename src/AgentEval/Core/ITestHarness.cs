@@ -1,0 +1,84 @@
+// Copyright (c) 2025-2026 AgentEval Contributors
+// Licensed under the MIT License.
+
+using AgentEval.Models;
+
+namespace AgentEval.Core;
+
+/// <summary>
+/// Test harness for running agent tests.
+/// </summary>
+public interface ITestHarness
+{
+    /// <summary>
+    /// Run a single test case against an agent.
+    /// </summary>
+    /// <param name="agent">The agent to test.</param>
+    /// <param name="testCase">The test case to run.</param>
+    /// <param name="options">Optional test options.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The test result.</returns>
+    Task<TestResult> RunTestAsync(
+        ITestableAgent agent,
+        TestCase testCase,
+        TestOptions? options = null,
+        CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Extended harness that supports streaming tests.
+/// </summary>
+public interface IStreamingTestHarness : ITestHarness
+{
+    /// <summary>
+    /// Run a test with streaming for detailed timing metrics.
+    /// </summary>
+    Task<TestResult> RunTestStreamingAsync(
+        IStreamableAgent agent,
+        TestCase testCase,
+        StreamingOptions? streamingOptions = null,
+        TestOptions? options = null,
+        CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Options for test execution.
+/// </summary>
+public class TestOptions
+{
+    /// <summary>Whether to track tool/function calls.</summary>
+    public bool TrackTools { get; init; } = true;
+    
+    /// <summary>Whether to track performance metrics.</summary>
+    public bool TrackPerformance { get; init; } = true;
+    
+    /// <summary>Whether to evaluate the response with AI.</summary>
+    public bool EvaluateResponse { get; init; } = true;
+    
+    /// <summary>Whether to print verbose output.</summary>
+    public bool Verbose { get; init; } = true;
+    
+    /// <summary>Model name for cost estimation.</summary>
+    public string? ModelName { get; init; }
+}
+
+/// <summary>
+/// Options for streaming test execution.
+/// </summary>
+public class StreamingOptions
+{
+    /// <summary>Callback invoked for each text chunk received.</summary>
+    public Action<string>? OnTextChunk { get; init; }
+    
+    /// <summary>Callback invoked when a tool starts executing.</summary>
+    public Action<ToolCallRecord>? OnToolStart { get; init; }
+    
+    /// <summary>Callback invoked when a tool completes.</summary>
+    public Action<ToolCallRecord>? OnToolComplete { get; init; }
+    
+    /// <summary>Callback invoked when first token is received.</summary>
+    public Action<TimeSpan>? OnFirstToken { get; init; }
+    
+    /// <summary>Callback invoked periodically with updated metrics.</summary>
+    public Action<PerformanceMetrics>? OnMetricsUpdate { get; init; }
+}

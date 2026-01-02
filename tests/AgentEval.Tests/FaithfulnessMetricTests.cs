@@ -1,0 +1,184 @@
+// Copyright (c) 2025-2026 AgentEval Contributors
+// Licensed under the MIT License.
+
+using AgentEval.Core;
+using AgentEval.Metrics.RAG;
+using AgentEval.Testing;
+using Xunit;
+
+namespace AgentEval.Tests;
+
+/// <summary>
+/// Tests for FaithfulnessMetric - an LLM-based RAG metric.
+/// </summary>
+public class FaithfulnessMetricTests
+{
+    [Fact]
+    public async Task EvaluateAsync_HighFaithfulness_ReturnsPassingScore()
+    {
+        // Arrange
+        var fakeResponse = """
+            {
+                "score": 95,
+                "faithfulClaims": ["Paris is the capital of France"],
+                "hallucinatedClaims": [],
+                "reasoning": "The response is fully supported by the context."
+            }
+            """;
+        var fakeChatClient = new FakeChatClient(fakeResponse);
+        var metric = new FaithfulnessMetric(fakeChatClient);
+        
+        var context = new EvaluationContext
+        {
+            Input = "What is the capital of France?",
+            Output = "Paris is the capital of France.",
+            Context = "France is a country in Europe. Its capital is Paris."
+        };
+        
+        // Act
+        var result = await metric.EvaluateAsync(context);
+        
+        // Assert
+        Assert.Equal("Faithfulness", result.MetricName);
+        Assert.Equal(95, result.Score);
+        Assert.True(result.Passed);
+        Assert.Single(fakeChatClient.ReceivedMessages);
+    }
+    
+    [Fact]
+    public async Task EvaluateAsync_WithHallucinations_ReturnsLowerScore()
+    {
+        // Arrange
+        var fakeResponse = """
+            {
+                "score": 40,
+                "faithfulClaims": ["Paris is a city"],
+                "hallucinatedClaims": ["Paris has 10 million people", "Paris was founded in 52 BC"],
+                "reasoning": "The response contains claims not in the context."
+            }
+            """;
+        var fakeChatClient = new FakeChatClient(fakeResponse);
+        var metric = new FaithfulnessMetric(fakeChatClient);
+        
+        var context = new EvaluationContext
+        {
+            Input = "Tell me about Paris",
+            Output = "Paris is a city. It has 10 million people and was founded in 52 BC.",
+            Context = "Paris is a city in France."
+        };
+        
+        // Act
+        var result = await metric.EvaluateAsync(context);
+        
+        // Assert
+        Assert.Equal(40, result.Score);
+        Assert.False(result.Passed); // Default passing threshold is 70
+        Assert.NotNull(result.Details);
+        Assert.Contains("hallucinatedClaims", result.Details.Keys);
+    }
+    
+    [Fact]
+    public async Task EvaluateAsync_NoContext_ReturnsFail()
+    {
+        // Arrange
+        var fakeChatClient = new FakeChatClient(); // No response needed
+        var metric = new FaithfulnessMetric(fakeChatClient);
+        
+        var context = new EvaluationContext
+        {
+            Input = "What is the capital of France?",
+            Output = "Paris is the capital of France.",
+            Context = null // No context provided
+        };
+        
+        // Act
+        var result = await metric.EvaluateAsync(context);
+        
+        // Assert
+        Assert.False(result.Passed);
+        Assert.Contains("requires context", result.Explanation, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(fakeChatClient.ReceivedMessages); // Should not call LLM
+    }
+    
+    [Fact]
+    public async Task EvaluateAsync_MalformedLlmResponse_ReturnsFail()
+    {
+        // Arrange - LLM returns invalid JSON
+        var fakeChatClient = new FakeChatClient("This is not valid JSON at all!");
+        var metric = new FaithfulnessMetric(fakeChatClient);
+        
+        var context = new EvaluationContext
+        {
+            Input = "Question",
+            Output = "Answer",
+            Context = "Some context"
+        };
+        
+        // Act
+        var result = await metric.EvaluateAsync(context);
+        
+        // Assert
+        Assert.False(result.Passed);
+        Assert.Contains("parse", result.Explanation, StringComparison.OrdinalIgnoreCase);
+    }
+    
+    [Fact]
+    public async Task EvaluateAsync_PromptContainsContextAndOutput()
+    {
+        // Arrange
+        var fakeChatClient = new FakeChatClient("""{"score": 80, "reasoning": "OK"}""");
+        var metric = new FaithfulnessMetric(fakeChatClient);
+        
+        var context = new EvaluationContext
+        {
+            Input = "UNIQUE_INPUT_12345",
+            Output = "UNIQUE_OUTPUT_67890",
+            Context = "UNIQUE_CONTEXT_ABCDE"
+        };
+        
+        // Act
+        await metric.EvaluateAsync(context);
+        
+        // Assert - verify the prompt includes our test values
+        var prompt = fakeChatClient.LastPrompt;
+        Assert.NotNull(prompt);
+        Assert.Contains("UNIQUE_CONTEXT_ABCDE", prompt);
+        Assert.Contains("UNIQUE_OUTPUT_67890", prompt);
+        Assert.Contains("UNIQUE_INPUT_12345", prompt);
+    }
+    
+    [Fact]
+    public async Task EvaluateAsync_EmptyContext_ReturnsFail()
+    {
+        // Arrange
+        var fakeChatClient = new FakeChatClient();
+        var metric = new FaithfulnessMetric(fakeChatClient);
+        
+        var context = new EvaluationContext
+        {
+            Input = "Question",
+            Output = "Answer",
+            Context = "" // Empty string context
+        };
+        
+        // Act
+        var result = await metric.EvaluateAsync(context);
+        
+        // Assert
+        Assert.False(result.Passed);
+        Assert.Contains("requires context", result.Explanation, StringComparison.OrdinalIgnoreCase);
+    }
+    
+    [Fact]
+    public async Task Properties_ReturnsCorrectMetadata()
+    {
+        // Arrange
+        var fakeChatClient = new FakeChatClient();
+        var metric = new FaithfulnessMetric(fakeChatClient);
+        
+        // Assert
+        Assert.Equal("Faithfulness", metric.Name);
+        Assert.True(metric.RequiresContext);
+        Assert.False(metric.RequiresGroundTruth);
+    }
+}

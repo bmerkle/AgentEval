@@ -416,3 +416,10 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# DocFX output
+docs/_site/
+docs/api/
+
+# Local NuGet output
+nupkgs/

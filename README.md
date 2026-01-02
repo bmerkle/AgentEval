@@ -1,6 +1,26 @@
 # AgentEval
 
-**Make agent testing feel like normal .NET testing.**
+<p align="center">
+  <img src="assets/AgentEvalLogo.png" alt="AgentEval Logo" width="200" />
+</p>
+
+<p align="center">
+  <strong>Make agent testing feel like normal .NET testing.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/joslat/AgentEval/actions/workflows/ci.yml">
+    <img src="https://github.com/joslat/AgentEval/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
+  </a>
+  <a href="https://www.nuget.org/packages/AgentEval">
+    <img src="https://img.shields.io/nuget/v/AgentEval.svg" alt="NuGet Version" />
+  </a>
+  <a href="https://github.com/joslat/AgentEval/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/joslat/AgentEval.svg" alt="License" />
+  </a>
+</p>
+
+---
 
 AgentEval is a .NET-native testing, evaluation, and benchmarking toolkit for AI agents—built first for **Microsoft Agent Framework (MAF)**. It focuses on what agentic systems actually need: **tool-call visibility**, **streaming performance metrics (TTFT)**, **cost awareness**, **benchmarks**, and **run artifacts** you can inspect and “time-travel” during debugging.
 
