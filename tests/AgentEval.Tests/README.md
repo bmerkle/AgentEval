@@ -5,6 +5,7 @@ This project contains the automated tests for AgentEval. It lives at `tests/Agen
 ## How the tests are architected for speed and low cost
 - **Pure unit focus:** Tests exercise in-memory models, assertions, and helpers—no network calls or real AI providers are hit.
 - **Deterministic fakes:** Metrics that normally depend on LLM output use `FakeChatClient` or inline stub classes (e.g., `TestMetric`, `TestPlugin`) to avoid external latency and cost.
+- **Custom chat fake over auto-mocking:** `FakeChatClient` is hand-rolled (vs. an auto-mock generator) to keep full control of responses and streaming behavior; we accept the maintenance overhead if the underlying chat client surface changes.
 - **Small fixtures:** Each file keeps local helper types close to the tests to minimize setup and cross-file coupling.
 - **Fast runners:** Asynchronous surfaces are covered with short-lived tasks; timing-sensitive checks use controlled `DateTimeOffset`/`TimeSpan` values instead of sleeps.
 
@@ -36,10 +37,6 @@ This project contains the automated tests for AgentEval. It lives at `tests/Agen
 | `EmbeddingSimilarityTests.cs` | Embedding-based similarity helpers |
 | `ScoreNormalizerTests.cs` | Score normalization utilities |
 | `ModelPricingTests.cs` | Model price tables, case-insensitive lookup, and custom pricing |
-
-## Relationship to samples
-- Samples in `samples/AgentEval.Samples` show end-to-end flows (agent harness + assertions).
-- Tests focus on the same behaviors at unit level for determinism and speed; when adding new features, consider updating both a sample (to show usage) and a unit test (to lock behavior).
 
 ## Running the suite
 From the repo root:
