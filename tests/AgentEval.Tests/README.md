@@ -15,6 +15,22 @@ This project contains the automated tests for AgentEval. It lives at `tests/Agen
 - **Metrics & scoring:** `FaithfulnessMetricTests`, `ToolSelectionMetricTests`, `ToolSuccessMetricTests`, `EmbeddingSimilarityTests`, `ScoreNormalizerTests`, and related files validate scoring logic for RAG and agentic metrics using fake responses.
 - **Cost awareness:** `ModelPricingTests` checks price tables and custom pricing hooks.
 
+## File-by-file map
+
+| File | Focus |
+| --- | --- |
+| `AgentEvalBuilderTests.cs` | Builder API, plugin lifecycle, transformers, and evaluation flow |
+| `MetricRegistryTests.cs` | Metric registration and lookup behaviors |
+| `RetryPolicyTests.cs` | Retry/backoff logic for evaluations |
+| `AgentEvalLoggerTests.cs` | Logging adapter behavior and sinks |
+| `FailureReportTests.cs` | Structured failure reports and summaries |
+| `ToolUsageReportTests.cs` / `ToolUsageAssertionsTests.cs` | Tool tracking and fluent assertions |
+| `ToolCallRecordTests.cs` / `ToolCallTimelineTests.cs` / `ToolCallAssertionTests.cs` | Tool call modeling, timelines, and assertion chaining |
+| `PerformanceMetricsTests.cs` | Performance metrics calculations and assertions (TTFT, tokens, cost) |
+| `FaithfulnessMetricTests.cs` / `ToolSelectionMetricTests.cs` / `ToolSuccessMetricTests.cs` | RAG and agentic metric scoring with fakes |
+| `EmbeddingSimilarityTests.cs` / `ScoreNormalizerTests.cs` | Embedding and score normalization helpers |
+| `ModelPricingTests.cs` | Model price tables, case-insensitive lookup, and custom pricing |
+
 ## Relationship to samples
 - Samples in `samples/AgentEval.Samples` show end-to-end flows (agent harness + assertions).
 - Tests focus on the same behaviors at unit level for determinism and speed; when adding new features, consider updating both a sample (to show usage) and a unit test (to lock behavior).
