@@ -1,5 +1,7 @@
 - name: Home
   href: index.md
+- name: Building Docs
+  href: building-docs.md
 - name: API Reference
   href: api/
 - name: GitHub
