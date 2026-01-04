@@ -11,7 +11,7 @@ This project contains the automated tests for AgentEval. It lives at `tests/Agen
 ## What’s covered (by area)
 - **Core runner & plugins:** `AgentEvalBuilderTests`, `MetricRegistryTests`, `RetryPolicyTests` validate plugin lifecycle, registry behavior, transformers, and retry policies.
 - **Logging & reporting:** `AgentEvalLoggerTests` and `FailureReportTests` ensure structured logging and failure summaries stay stable.
-- **Models & fluent assertions:** `ToolUsageReportTests`, `ToolUsageAssertionsTests`, `ToolCallRecordTests`, `ToolCallTimelineTests`, and `ToolCallAssertionTests` cover tool tracking and assertion chaining. `PerformanceMetricsTests` and `PerformanceAssertionsTests` cover latency/cost assertions.
+- **Models & fluent assertions:** `ToolUsageReportTests`, `ToolUsageAssertionsTests`, `ToolCallRecordTests`, `ToolCallTimelineTests`, and `ToolCallAssertionTests` cover tool tracking and assertion chaining. `PerformanceMetricsTests` (which also houses the `PerformanceAssertions` cases) covers latency/cost assertions.
 - **Metrics & scoring:** `FaithfulnessMetricTests`, `ToolSelectionMetricTests`, `ToolSuccessMetricTests`, `EmbeddingSimilarityTests`, `ScoreNormalizerTests`, and related files validate scoring logic for RAG and agentic metrics using fake responses.
 - **Cost awareness:** `ModelPricingTests` checks price tables and custom pricing hooks.
 
