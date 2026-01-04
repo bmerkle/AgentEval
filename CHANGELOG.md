@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.2-alpha] - 2026-01-04
+
+### Added
+- Additional test coverage for core components
+- XML documentation generation enabled in project configuration
+- DocFX build scripts (PowerShell and Batch) for automated API documentation generation
+- Comprehensive documentation guides (GENERATE-DOCS.md, DOCUMENTATION-SUMMARY.md)
+
+### Changed
+- Project now generates XML documentation files for all target frameworks (net8.0, net9.0, net10.0)
+- Suppressed CS1591 warnings for undocumented members
+
+---
+
 ## [0.1.1-alpha] - 2026-01-03
 
 ### Added
@@ -102,6 +116,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `AgentEval.Tracing` (OTel + run artifacts) - planned
 - `AgentEval.Studio` (workflow visualizer / time-travel UI) - future
 
-[Unreleased]: https://github.com/joslat/AgentEval/compare/v0.1.1-alpha...HEAD
+[Unreleased]: https://github.com/joslat/AgentEval/compare/v0.1.2-alpha...HEAD
+[0.1.2-alpha]: https://github.com/joslat/AgentEval/compare/v0.1.1-alpha...v0.1.2-alpha
 [0.1.1-alpha]: https://github.com/joslat/AgentEval/compare/v0.1.0-alpha...v0.1.1-alpha
 [0.1.0-alpha]: https://github.com/joslat/AgentEval/releases/tag/v0.1.0-alpha

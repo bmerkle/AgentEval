@@ -5,10 +5,14 @@
     
     <!-- NuGet Package Info -->
     <PackageId>AgentEval</PackageId>
-    <Version>0.1.0-alpha</Version>
+    <Version>0.1.2-alpha</Version>
     <Description>The first .NET-native AI agent testing, evaluation, and benchmarking framework. Supports Microsoft Agent Framework (MAF), with extensible adapters for other frameworks.</Description>
     <PackageTags>ai;agent;testing;evaluation;benchmarking;maf;llm;openai;azure</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    
+    <!-- XML Documentation -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
     
     <!-- SourceLink: enables stepping into source code during debugging -->
     <PublishRepositoryUrl>true</PublishRepositoryUrl>

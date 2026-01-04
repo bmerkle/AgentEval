@@ -53,7 +53,27 @@ internal static class LlmJsonParser
             if (!root.TryGetProperty("score", out var scoreProp))
                 return null;
             
-            result.Score = scoreProp.GetDouble();
+            // Handle score as number or string (some LLMs return string)
+            if (scoreProp.ValueKind == JsonValueKind.Number)
+            {
+                result.Score = scoreProp.GetDouble();
+            }
+            else if (scoreProp.ValueKind == JsonValueKind.String)
+            {
+                var scoreStr = scoreProp.GetString();
+                if (double.TryParse(scoreStr, out var parsedScore))
+                {
+                    result.Score = parsedScore;
+                }
+                else
+                {
+                    return null; // Invalid score format
+                }
+            }
+            else
+            {
+                return null; // Unsupported score type
+            }
             
             // Reasoning is optional
             if (root.TryGetProperty("reasoning", out var reasoningProp) && 
@@ -118,8 +138,14 @@ internal static class LlmJsonParser
 /// </summary>
 internal class MetricParseResult
 {
-    /// <summary>The score (0-100).</summary>
-    public double Score { get; set; }
+    private double _score;
+    
+    /// <summary>The score (0-100), clamped to valid range.</summary>
+    public double Score 
+    { 
+        get => _score; 
+        set => _score = Math.Clamp(value, 0.0, 100.0); 
+    }
     
     /// <summary>The reasoning explanation.</summary>
     public string? Reasoning { get; set; }
