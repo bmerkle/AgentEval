@@ -20,6 +20,8 @@
     href: extensibility.md
   - name: Snapshots
     href: snapshots.md
+  - name: Workflow Testing
+    href: workflows.md
 - name: API Reference
   href: api/
 - name: GitHub

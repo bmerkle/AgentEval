@@ -225,19 +225,98 @@ tests:
 
 ---
 
+### 7. BenchmarkLlm (DotNetAgents Patterns) 🆕
+
+**Source:** [github.com/dotnetagents/patterns](https://github.com/dotnetagents/patterns/tree/main/src/DotNetAgents.BenchmarkLlm)
+
+**What it does well:**
+- .NET-native benchmarking via `[BenchmarkLlm]` and `[WorkflowBenchmark]` attributes
+- OpenTelemetry-based telemetry collection (spans, tokens, latency)
+- LLM-as-Judge with 8 quality dimensions (1-5 scale)
+- Two evaluator types: Content (articles/text) and Task (tool-use agents)
+- Exporters: Console, Markdown, JSON
+- Baseline comparison for A/B testing
+- Comparative analysis across multiple benchmark runs
+
+**Key Features:**
+```csharp
+// Attribute-based benchmark discovery
+[WorkflowBenchmark("Write an article about AI")]
+public class MyBenchmarks
+{
+    [BenchmarkLlm("gpt-4")]
+    public async Task<string> Gpt4Workflow() => await RunAsync();
+    
+    [BenchmarkLlm("claude-3", Baseline = true)]
+    public async Task<string> ClaudeWorkflow() => await RunAsync();
+}
+```
+
+**Quality Dimensions (1-5 scale):**
+| Dimension | Description |
+|-----------|-------------|
+| Completeness | Coverage of topic/task completion |
+| Structure | Organization and logical flow |
+| Accuracy | Factual/decision correctness |
+| Engagement | Communication quality |
+| Evidence Quality | Use of data/tool responses |
+| Balance | Pros and cons coverage |
+| Actionability | Practical guidance |
+| Depth | Handling details/edge cases |
+
+**Gaps we fill:**
+- No per-tool timing or duration tracking
+- No tool call timeline with start/end offsets
+- No fluent assertion API
+- No streaming TTFT metrics
+- No cost estimation (tokens only)
+- No MAF ChatClient adapter
+- No xUnit/NUnit/MSTest integration
+- No workflow graph/edge traversal testing
+
+---
+
+## AgentEval vs BenchmarkLlm Feature Comparison
+
+| Feature | BenchmarkLlm | AgentEval |
+|---------|--------------|-----------|
+| **Language** | .NET ✅ | .NET ✅ |
+| **Benchmark Discovery** | `[BenchmarkLlm]` attributes | `PerformanceBenchmark` / `AgenticBenchmark` classes |
+| **Telemetry** | OpenTelemetry spans | Native `PerformanceMetrics` |
+| **Tool Tracking** | ❌ No tool calls | ✅ Full `ToolCallRecord` timeline |
+| **Tool Timing** | ❌ | ✅ Start/End/Duration per tool |
+| **Streaming TTFT** | ❌ | ✅ `TimeToFirstToken` |
+| **Cost Estimation** | ❌ | ✅ 8+ models with custom pricing |
+| **LLM-as-Judge** | ✅ 8 dimensions (1-5) | ✅ Configurable (0-100) |
+| **Evaluator Types** | Content, Task | RAG, Agentic, Custom |
+| **Fluent Assertions** | ❌ | ✅ `.Should().HaveCalledTool()` |
+| **Unit Test Integration** | ❌ | ✅ xUnit/NUnit/MSTest |
+| **MAF Integration** | ❌ | ✅ `MAFAgentAdapter` |
+| **Workflow Graphs** | ❌ | ✅ Edge assertions, conditional branches |
+| **Baseline Comparison** | ✅ A/B testing | ✅ Snapshot comparison |
+| **Export Formats** | Console, Markdown, JSON | JSON, JUnit, Markdown, TRX |
+| **CLI Tool** | ❌ | ✅ `agenteval eval` |
+| **Dataset Loaders** | ❌ | ✅ YAML/JSON/JSONL/CSV |
+| **Multi-turn Testing** | ❌ | ✅ `ConversationRunner` |
+
+**Bottom Line:** BenchmarkLlm excels at attribute-based benchmark discovery and LLM-as-Judge quality scoring for comparing model outputs. AgentEval focuses on **agentic testing** with tool tracking, streaming metrics, fluent assertions, and CI/CD integration. They are complementary - BenchmarkLlm for model comparison, AgentEval for agent testing.
+
+---
+
 ## AgentEval Unique Differentiators
 
-| Feature | DeepEval | Promptfoo | RAGAS | AgentEval |
-|---------|----------|-----------|-------|-----------|
-| .NET Native | ❌ | ❌ | ❌ | ✅ |
-| Fluent API | ❌ | ❌ | ❌ | ✅ |
-| MAF Integration | ❌ | ❌ | ❌ | ✅ |
-| Tool Tracking | ✅ | ❌ | ❌ | ✅ |
-| Streaming Timing | ❌ | ❌ | ❌ | ✅ |
-| AI Evaluation | ✅ | ✅ | ✅ | ✅ |
-| Cost Estimation | Partial | ❌ | ❌ | ✅ |
-| xUnit/NUnit/MSTest | ❌ | ❌ | ❌ | ✅ |
-| Offline/Local | ✅ | ✅ | ✅ | ✅ |
+| Feature | DeepEval | Promptfoo | RAGAS | BenchmarkLlm | AgentEval |
+|---------|----------|-----------|-------|--------------|-----------|
+| .NET Native | ❌ | ❌ | ❌ | ✅ | ✅ |
+| Fluent API | ❌ | ❌ | ❌ | ❌ | ✅ |
+| MAF Integration | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Tool Tracking | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Streaming Timing | ❌ | ❌ | ❌ | ❌ | ✅ |
+| AI Evaluation | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Cost Estimation | Partial | ❌ | ❌ | ❌ | ✅ |
+| xUnit/NUnit/MSTest | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Offline/Local | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Workflow Graphs | ❌ | ❌ | ❌ | ❌ | ✅ |
 
 ---
 

@@ -3,6 +3,7 @@
 
 using AgentEval.Core;
 using AgentEval.Metrics.Agentic;
+using AgentEval.Models;
 using AgentEval.Testing;
 using Xunit;
 
@@ -107,9 +108,9 @@ public class TaskCompletionMetricTests
         var fakeChatClient = new FakeChatClient("""{"score": 90, "reasoning": "Good"}""");
         var metric = new TaskCompletionMetric(fakeChatClient);
         
-        var toolUsage = new Models.ToolUsageReport();
-        toolUsage.AddCall(new Models.ToolCallRecord { Name = "SearchTool", CallId = "1" });
-        toolUsage.AddCall(new Models.ToolCallRecord { Name = "BookingTool", CallId = "2" });
+        var toolUsage = new ToolUsageReport();
+        toolUsage.AddCall(new ToolCallRecord { Name = "SearchTool", CallId = "1" });
+        toolUsage.AddCall(new ToolCallRecord { Name = "BookingTool", CallId = "2" });
         
         var context = new EvaluationContext
         {

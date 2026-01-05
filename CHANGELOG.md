@@ -21,6 +21,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Supports both `expected_output` and `expectedOutput` naming conventions
   - Supports `ground_truth`, `expected_tools`, and `context` fields
   - Full YAML 1.2 compliance via YamlDotNet
+- **Workflow Testing Support (Phase 6B)** - Per-executor visibility for multi-agent workflows
+  - `WorkflowExecutionResult` - Captures per-executor output, timing, and tool calls
+  - `ExecutorStep` and `WorkflowError` models for detailed workflow analysis
+  - `IWorkflowTestableAgent` - Extended interface for workflow-aware agents
+  - `MAFWorkflowAdapter` - Adapter for MAF Workflows with streaming event capture
+  - `WorkflowTestHarness` - Test harness for workflow testing with assertions
+  - `WorkflowAssertions` - Fluent assertion API for workflow execution results
+  - Supports executor order validation, step timing, tool call tracking
+  - 71 new tests for workflow components
+- **Workflow Edge/Graph Support (Phase 6B+)** - Full DAG structure for complex workflows
+  - `EdgeType` enum - Sequential, Conditional, Switch, ParallelFanOut, ParallelFanIn, Loop, Error, Terminal
+  - `WorkflowEdge` - Static edge definitions with conditions and switch labels
+  - `EdgeExecution` - Runtime edge traversal with routing decisions and data transfer
+  - `ParallelBranch` - Tracks parallel execution branches
+  - `WorkflowNode` - Node definitions with entry/exit point markers
+  - `WorkflowGraphSnapshot` - Complete DAG topology with nodes, edges, and execution path
+  - `RoutingDecision` - Captures conditional/switch routing decisions
+  - New workflow events: `EdgeTraversedEvent`, `RoutingDecisionEvent`, `ParallelBranchStartEvent`, `ParallelBranchEndEvent`
+  - Edge assertions: `HaveTraversedEdge()`, `HaveConditionalRouting()`, `HaveParallelExecution()`, `ForEdge().BeOfType()`
+  - Step edge assertions: `HaveIncomingEdge()`, `HaveBeenConditionallyRouted()`, `BeInParallelBranch()`
+  - `MAFWorkflowAdapter.WithGraph()` and `FromConditionalSteps()` factory methods
+  - 66 new tests for edge models and assertions
 
 ### Changed
 - **Test project reorganization** into logical folder structure:
@@ -41,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - YAML loader tests now use correct 4-space indentation matching YAML standards
+- Removed invalid `include-prerelease` input from CI workflow (actions/setup-dotnet@v4 compatibility)
 
 ---
 

@@ -1,3 +1,12 @@
 {
-    "chat.agent.maxRequests": 45
+    "chat.agent.maxRequests": 45,
+    
+    // YAML schema validation - suppress false positives in GitHub Actions workflows
+    // The CODECOV_TOKEN context access and github-pages environment warnings
+    // work correctly at runtime in GitHub Actions
+    "yaml.schemas": {
+        "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.yml"
+    },
+    "yaml.validate": true,
+    "yaml.schemaStore.enable": true
 }
