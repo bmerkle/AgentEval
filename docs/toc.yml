@@ -2,6 +2,8 @@
   href: index.md
 - name: Getting Started
   items:
+  - name: Quick Start
+    href: getting-started.md
   - name: Building Docs
     href: building-docs.md
 - name: Guides

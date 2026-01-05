@@ -72,6 +72,21 @@ public static class Program
                 case 5:
                     await Sample05_RAGEvaluation.RunAsync();
                     break;
+                case 6:
+                    await Sample06_Benchmarks.RunAsync();
+                    break;
+                case 7:
+                    await Sample07_SnapshotTesting.RunAsync();
+                    break;
+                case 8:
+                    await Sample08_ConversationTesting.RunAsync();
+                    break;
+                case 9:
+                    await Sample09_WorkflowTesting.RunAsync();
+                    break;
+                case 10:
+                    await Sample10_DatasetsAndExport.RunAsync();
+                    break;
                 default:
                     Console.WriteLine($"❌ Sample {sampleNumber} not found.\n");
                     break;
@@ -121,6 +136,11 @@ public static class Program
         Console.WriteLine("│  3. 🔧 Agent + Multi Tool - Tool ordering & timeline        │");
         Console.WriteLine("│  4. ⚡ Performance        - Latency, cost, TTFT metrics     │");
         Console.WriteLine("│  5. 📊 RAG Evaluation     - Faithfulness metric demo        │");
+        Console.WriteLine("│  6. 📈 Benchmarks         - Performance & agentic benchmarks│");
+        Console.WriteLine("│  7. 📸 Snapshot Testing   - Regression detection            │");
+        Console.WriteLine("│  8. 💬 Conversations      - Multi-turn testing              │");
+        Console.WriteLine("│  9. 🔀 Workflow Testing   - Multi-agent orchestration       │");
+        Console.WriteLine("│ 10. 📂 Datasets & Export  - Batch testing, JUnit export     │");
         
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("├─────────────────────────────────────────────────────────────┤");
