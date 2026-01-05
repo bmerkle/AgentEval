@@ -64,7 +64,29 @@ AgentEval answers the questions engineering teams need to ship reliably:
 
 ### ✅ Run artifacts (“time travel”)
 Store run inputs/outputs, tool calls, timings, and scores as artifacts so failures are explainable and inspectable.
+### ✅ Standard benchmark support
+- **BFCL** (Berkeley Function Calling Leaderboard) - tool selection accuracy
+- **GAIA** (General AI Assistants) - multi-step reasoning
+- **ToolBench** - complex API tool workflows
 
+---
+
+## Framework Comparison
+
+| Feature | AgentEval | DeepEval | Promptfoo | MS.Extensions.AI.Eval |
+|---------|-----------|----------|-----------|----------------------|
+| **Language** | .NET | Python | Node.js | .NET |
+| **Tool call tracking** | ✅ Full timeline | ⚠️ Basic | ⚠️ Basic | ❌ |
+| **TTFT/streaming** | ✅ | ❌ | ❌ | ⚠️ Partial |
+| **Cost estimation** | ✅ | ✅ | ✅ | ❌ |
+| **Fluent assertions** | ✅ | ❌ | ❌ | ❌ |
+| **RAG metrics** | ✅ | ✅ | ✅ | ✅ |
+| **BFCL benchmark** | ✅ | ✅ | ❌ | ❌ |
+| **Multi-turn testing** | 🚧 Planned | ✅ | ✅ | ❌ |
+| **CLI for CI/CD** | 🚧 Planned | ✅ | ✅ | ❌ |
+| **Result exporters** | 🚧 Planned | ✅ JSON | ✅ Multiple | ❌ |
+
+**AgentEval's niche:** Native .NET + deep agentic visibility + benchmark compatibility.
 ---
 
 ## Installation
@@ -122,4 +144,88 @@ result.Performance!
     .HaveTimeToFirstTokenUnder(TimeSpan.FromSeconds(2))
     .HaveEstimatedCostUnder(0.10m);
 ```
-    
+
+---
+
+## Benchmarks
+
+Run industry-standard benchmarks to compare your agent against published models:
+
+```csharp
+using AgentEval.Benchmarks;
+
+var benchmark = new AgenticBenchmark(agent);
+
+// Tool accuracy (BFCL-style)
+var toolResults = await benchmark.RunToolAccuracyBenchmarkAsync(testCases);
+Console.WriteLine($"Tool Accuracy: {toolResults.OverallAccuracy:P1}");
+
+// Multi-step reasoning (ToolBench-style)
+var stepResults = await benchmark.RunMultiStepReasoningBenchmarkAsync(multiStepCases);
+Console.WriteLine($"Step Completion: {stepResults.AverageStepCompletion:P1}");
+
+// Performance benchmarks
+var perfBenchmark = new PerformanceBenchmark(agent);
+var latency = await perfBenchmark.RunLatencyBenchmarkAsync(testCases, iterations: 10);
+Console.WriteLine($"P90 Latency: {latency.P90Latency.TotalMilliseconds}ms");
+```
+
+📖 See [docs/benchmarks.md](docs/benchmarks.md) for BFCL, GAIA, and ToolBench guides.
+
+---
+
+## CI/CD Integration (Planned)
+
+```bash
+# Install as .NET tool (coming soon)
+dotnet tool install -g agenteval-cli
+
+# Run tests and export JUnit XML for CI
+agenteval test --project ./tests --output results.xml --format junit
+
+# Compare against baseline
+agenteval test --baseline baseline.json --fail-on-regression
+```
+
+**GitHub Actions** (planned):
+```yaml
+- name: Run Agent Tests
+  run: agenteval test --format junit --output results.xml
+  
+- name: Publish Results
+  uses: dorny/test-reporter@v1
+  with:
+    name: Agent Tests
+    path: results.xml
+    reporter: java-junit
+```
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Architecture](docs/architecture.md) | Component diagrams, metric hierarchy |
+| [Benchmarks](docs/benchmarks.md) | BFCL, GAIA, ToolBench guides |
+| [Embedding Metrics](docs/embedding-metrics.md) | Semantic similarity metrics |
+| [Extensibility](docs/extensibility.md) | Custom metrics, plugins, adapters |
+| [Plan Forward](src/AgentEval/AgentEval-plan-forward.md) | Roadmap and strategic direction |
+
+---
+
+## Test Coverage
+
+AgentEval has **384 tests** covering:
+- Tool call assertions and reporting
+- RAG metrics (faithfulness, relevance, correctness)
+- Agentic metrics (tool selection, efficiency, success)
+- Performance tracking (TTFT, latency, cost)
+- Embedding similarity utilities
+- Serialization and error handling
+
+---
+
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.

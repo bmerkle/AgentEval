@@ -3,9 +3,9 @@
 > **Strategic roadmap to make AgentEval THE .NET AI Agent Evaluation Framework**
 
 **Created:** January 2026  
-**Version:** 1.1  
+**Version:** 2.0  
 **Status:** Strategic Planning  
-**Last Updated:** January 2, 2026
+**Last Updated:** January 5, 2026
 
 ---
 
@@ -13,37 +13,52 @@
 
 1. [Executive Summary](#executive-summary)
 2. [External Framework Analysis](#external-framework-analysis)
-3. [Current State Analysis](#current-state-analysis)
-4. [Code Quality Review](#code-quality-review)
-5. [Strategic Vision](#strategic-vision)
-6. [Phase 1: Polish & Publication](#phase-1-polish--publication)
-7. [Phase 2: Enterprise Features](#phase-2-enterprise-features)
-8. [Phase 3: Ecosystem & Community](#phase-3-ecosystem--community)
-9. [Phase 4: Advanced Capabilities](#phase-4-advanced-capabilities)
-10. [Technical Debt & Optimizations](#technical-debt--optimizations)
-11. [Competitive Positioning](#competitive-positioning)
-12. [Success Metrics](#success-metrics)
+3. [Competitive Deep Dive](#competitive-deep-dive)
+4. [Current State Analysis](#current-state-analysis)
+5. [Code Quality Review](#code-quality-review)
+6. [Architecture Overview](#architecture-overview)
+7. [Strategic Vision](#strategic-vision)
+8. [Phase 1: Polish & Publication](#phase-1-polish--publication)
+9. [Phase 2: Enterprise Features](#phase-2-enterprise-features)
+10. [Phase 3: Ecosystem & Community](#phase-3-ecosystem--community)
+11. [Phase 4: Advanced Capabilities](#phase-4-advanced-capabilities)
+12. [Phase 5: Production Infrastructure](#phase-5-production-infrastructure) ⭐ NEW
+13. [Benchmark Compatibility](#benchmark-compatibility) ⭐ NEW
+14. [Technical Debt & Optimizations](#technical-debt--optimizations)
+15. [Competitive Positioning](#competitive-positioning)
+16. [Success Metrics](#success-metrics)
 
 ---
 
 ## Executive Summary
 
-AgentEval is positioned to become **THE** .NET AI agent evaluation framework. With core functionality complete (210 tests passing, all major features implemented), the focus shifts to:
+AgentEval is positioned to become **THE** .NET AI agent evaluation framework. With core functionality complete (**384 tests passing**, all major features implemented), the focus shifts to:
 
 1. **Polish & Publish** - Make it production-ready and ship to NuGet
-2. **Enterprise** - Add features large organizations need
-3. **Community** - Build ecosystem and developer experience
-4. **Innovate** - Red-teaming, synthetic data, advanced safety
+2. **Production Infrastructure** - CLI tool, result exporters, snapshot testing ⭐ CRITICAL
+3. **Enterprise** - Add features large organizations need
+4. **Community** - Build ecosystem and developer experience
+5. **Innovate** - Red-teaming, synthetic data, advanced safety
 
 **Key Insight:** No other framework offers native .NET integration with this level of completeness. This is our moat.
 
 **New Insight (Jan 2026):** After analyzing Microsoft.Extensions.AI.Evaluation and kbeaugrand/KernelMemory.Evaluation, we have a unique opportunity to be the bridge between Microsoft's official evaluators and the agentic/tool-tracking features they lack.
 
-**Recent Additions (Phase 5-6 Complete):**
+**Critical Gap Identified (Jan 5, 2026):** Competitive analysis reveals four critical missing features that block enterprise adoption:
+1. **CLI Tool** - Required for CI/CD integration (Promptfoo's killer feature)
+2. **Result Exporters** - JUnit XML, Markdown, JSON for pipeline integration
+3. **Snapshot/Baseline Testing** - Regression detection without re-running agents
+4. **Dataset Loaders** - Load BFCL, GAIA, ToolBench and custom test suites
+
+**Recent Additions (Phase 5-7 Complete):**
 - ✅ Trace-first failure reporting with FailureReport and ToolCallTimeline
 - ✅ IAgentEvalLogger abstraction with ConsoleAgentEvalLogger, NullAgentEvalLogger, MicrosoftExtensionsLoggingAdapter
 - ✅ FakeChatClient for zero-dependency testing of LLM metrics
-- ✅ Metric tests for FaithfulnessMetric, ToolSelectionMetric, ToolSuccessMetric (24 tests)
+- ✅ Metric tests for FaithfulnessMetric, ToolSelectionMetric, ToolSuccessMetric
+- ✅ RAG metric tests (Relevance, ContextPrecision, ContextRecall, AnswerCorrectness)
+- ✅ Agentic metric tests (ToolArguments, TaskCompletion, ToolEfficiency)
+- ✅ Integration tests (MicrosoftEvaluatorAdapter, AgenticBenchmark, MAFTestHarness)
+- ✅ **384 total tests passing**
 
 ---
 
@@ -171,6 +186,211 @@ public class FaithfulnessEvaluator : EvaluationEngine
 | MAF support | ❌ | ✅ |
 | Non-SK framework support | ❌ | ✅ |
 
+---
+
+## Competitive Deep Dive
+
+### Promptfoo Analysis
+
+**Repository:** `github.com/promptfoo/promptfoo`  
+**Language:** TypeScript/JavaScript  
+**Focus:** LLM testing and red-teaming
+
+#### Why Teams Choose Promptfoo
+
+1. **CLI-First Design** - `promptfoo eval`, `promptfoo view`, `promptfoo share`
+2. **YAML Configuration** - No code required for basic tests
+3. **40+ Assertion Types** - `contains`, `is-json`, `similar`, `llm-rubric`, etc.
+4. **Deterministic Testing** - Snapshot/baseline comparison without LLM judge
+
+#### Promptfoo Assertion Types (Key for AgentEval to Match)
+
+```yaml
+tests:
+  - vars:
+      query: "What's the weather?"
+    assert:
+      # Exact matching
+      - type: equals
+        value: "sunny"
+      
+      # String matching
+      - type: contains
+        value: "weather"
+      - type: icontains  # case-insensitive
+        value: "WEATHER"
+      
+      # Pattern matching
+      - type: regex
+        value: "\\d+ degrees"
+      
+      # Structured output
+      - type: is-json
+      - type: contains-json
+        value: '{"tool": "get_weather"}'
+      
+      # Semantic similarity (0-1 threshold)
+      - type: similar
+        value: "The weather is nice today"
+        threshold: 0.8
+      
+      # LLM-as-judge
+      - type: llm-rubric
+        value: "Response accurately describes weather conditions"
+      
+      # Function calling validation
+      - type: is-valid-openai-function-call
+      - type: tool-call-f1
+        value: 0.9
+      
+      # Custom JavaScript
+      - type: javascript
+        value: |
+          return output.length < 500 && output.includes('sunny');
+```
+
+#### Snapshot Testing Pattern
+
+Promptfoo doesn't do traditional snapshots, but uses **expected output comparison**:
+
+```yaml
+tests:
+  - vars:
+      query: "List all products"
+    assert:
+      - type: contains-json
+        value: |
+          {
+            "products": [
+              {"name": "Widget"},
+              {"name": "Gadget"}
+            ]
+          }
+```
+
+**Key Learning:** Structured output validation is the .NET equivalent of snapshot testing.
+
+### DeepEval Analysis
+
+**Repository:** `github.com/confident-ai/deepeval`  
+**Language:** Python  
+**Focus:** LLM evaluation with enterprise features
+
+#### DeepEval Multi-Turn Conversations
+
+```python
+from deepeval.test_case import ConversationalTestCase, Turn, ToolCall
+
+# Define conversation as scripted turns
+turns = [
+    Turn(
+        role="user",
+        content="What's the weather in NYC?"
+    ),
+    Turn(
+        role="assistant",
+        content="I'll check the weather for you.",
+        tools_called=[
+            ToolCall(name="get_weather", arguments={"location": "NYC"})
+        ],
+        retrieval_context=["NYC weather data from API"]
+    ),
+    Turn(
+        role="user",
+        content="What about tomorrow?"
+    ),
+    Turn(
+        role="assistant",
+        content="Tomorrow will be sunny with highs of 75°F.",
+        tools_called=[
+            ToolCall(name="get_weather", arguments={"location": "NYC", "date": "tomorrow"})
+        ]
+    )
+]
+
+# Create test case
+test_case = ConversationalTestCase(
+    turns=turns,
+    scenario="User asking about weather in NYC",
+    expected_outcome="Agent provides accurate weather information",
+    chatbot_role="A helpful weather assistant"
+)
+```
+
+#### Conversation Completeness Metric
+
+```python
+from deepeval.metrics import ConversationCompletenessMetric
+
+# Score = Satisfied User Intentions / Total User Intentions
+metric = ConversationCompletenessMetric(
+    threshold=0.5,
+    model="gpt-4",
+    include_reason=True
+)
+
+metric.measure(test_case)
+print(f"Score: {metric.score}, Reason: {metric.reason}")
+```
+
+**Key Learning:** Multi-turn testing uses **scripted conversations** with tool calls tracked per turn.
+
+### Result Exporters Deep Dive
+
+#### Who Consumes What Format?
+
+| Format | Consumers | Use Case |
+|--------|-----------|----------|
+| **JUnit XML** | Jenkins, Azure DevOps, GitHub Actions, GitLab CI | CI/CD test tab integration |
+| **TAP** | Unix pipelines, older CI systems | Simple text streaming |
+| **JSON** | Custom dashboards, LangSmith, Weights & Biases | Programmatic analysis |
+| **Markdown** | GitHub PR comments, docs | Human-readable summaries |
+| **HTML** | Standalone reports | Detailed interactive reports |
+
+#### JUnit XML Structure
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="AgentEval Test Suite" tests="10" failures="2" time="45.23">
+  <testsuite name="ToolUsageTests" tests="5" failures="1" time="12.5">
+    <properties>
+      <property name="model" value="gpt-4"/>
+      <property name="temperature" value="0.7"/>
+    </properties>
+    
+    <testcase name="test_tool_selection" classname="AgentEval.ToolTests" time="2.34">
+      <!-- Passed test - no child elements needed -->
+    </testcase>
+    
+    <testcase name="test_tool_arguments" classname="AgentEval.ToolTests" time="3.21">
+      <failure message="Tool argument mismatch" type="AssertionError">
+        Expected: {"location": "NYC"}
+        Actual: {"city": "New York"}
+      </failure>
+    </testcase>
+    
+    <testcase name="test_skipped" classname="AgentEval.ToolTests">
+      <skipped message="API rate limit exceeded"/>
+    </testcase>
+    
+    <system-out>Model response: "I'll search for weather..."</system-out>
+  </testsuite>
+</testsuites>
+```
+
+**GitHub Actions Integration:**
+```yaml
+- name: Run AgentEval
+  run: agenteval eval --config eval.yaml --output results.xml --format junit
+
+- name: Publish Test Results
+  uses: dorny/test-reporter@v1
+  with:
+    name: Agent Tests
+    path: results.xml
+    reporter: java-junit
+```
+
 ### 3. Integration Strategy
 
 #### Option A: Use Microsoft.Extensions.AI.Evaluation as Dependency ⭐ RECOMMENDED
@@ -230,10 +450,12 @@ Take the best from each:
 | **Assertions** | Tool (12+ methods), Performance (10+ methods), Response (10+ methods) | ⭐⭐⭐⭐⭐ |
 | **RAG Metrics** | Faithfulness, Relevance, ContextPrecision, ContextRecall, AnswerCorrectness | ⭐⭐⭐⭐ |
 | **Agentic Metrics** | ToolSelection, ToolArguments, ToolSuccess, TaskCompletion, ToolEfficiency | ⭐⭐⭐⭐ |
+| **Embedding Metrics** | AnswerSimilarity, ResponseContextSimilarity, QueryContextSimilarity | ⭐⭐⭐⭐ |
 | **Benchmarks** | Latency, Throughput, Cost, ToolAccuracy, TaskCompletion, MultiStep | ⭐⭐⭐⭐ |
 | **MAF Integration** | MAFAgentAdapter, MAFTestHarness with streaming, trace-first failure reporting | ⭐⭐⭐⭐⭐ |
 | **Testing Infrastructure** | FakeChatClient for mocking IChatClient, no external dependencies | ⭐⭐⭐⭐⭐ |
-| **Tests** | 210 unit tests, all passing | ⭐⭐⭐⭐⭐ |
+| **Microsoft Adapter** | MicrosoftEvaluatorAdapter for wrapping official evaluators | ⭐⭐⭐⭐ |
+| **Tests** | **384 unit tests**, all passing | ⭐⭐⭐⭐⭐ |
 
 ### Architecture Strengths
 
@@ -242,6 +464,7 @@ Take the best from each:
 3. **Fluent API** - Intuitive `Should()` assertions with chaining
 4. **SOLID Principles** - Single responsibility, open for extension
 5. **Multi-targeting** - net8.0, net9.0, net10.0 support
+6. **Score Normalization** - ScoreNormalizer converts between 1-5 and 0-100 scales
 
 ### Lines of Code Summary
 
@@ -252,9 +475,202 @@ Take the best from each:
 | PerformanceBenchmark.cs | ~250 | Medium |
 | RAGMetrics.cs | ~350 | Medium |
 | AgenticMetrics.cs | ~300 | Medium |
+| EmbeddingMetrics.cs | ~200 | Medium |
 | ToolUsageAssertions.cs | ~200 | Low |
 | PerformanceAssertions.cs | ~100 | Low |
-| **Total** | ~2,500+ | - |
+| **Total** | ~3,000+ | - |
+
+---
+
+## Architecture Overview
+
+### Component Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                           AgentEval                                  │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │                        Core Layer                             │   │
+│  ├──────────────────────────────────────────────────────────────┤   │
+│  │  IMetric ────────┬─────────────┬──────────────────────────   │   │
+│  │       │          │             │                              │   │
+│  │  IRAGMetric  IAgenticMetric  IEmbeddingMetric                │   │
+│  │       │          │             │                              │   │
+│  │  ┌────┴────┐ ┌───┴───┐   ┌────┴────┐                         │   │
+│  │  │Faithfulness│Tool   │   │Answer   │                         │   │
+│  │  │Relevance   │Selection│ │Similarity│                        │   │
+│  │  │Context*    │Arguments│ │Context  │                         │   │
+│  │  │Correctness │Success  │ │Similarity│                        │   │
+│  │  └────────────┴────────┴──┴─────────┘                         │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+│                                                                      │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │                     Assertions Layer                          │   │
+│  ├──────────────────────────────────────────────────────────────┤   │
+│  │  ToolUsageAssertions    Should().HaveCalledTool("X")         │   │
+│  │  PerformanceAssertions  Should().HaveTotalDurationUnder(5s)  │   │
+│  │  ResponseAssertions     Should().Contain("expected")          │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+│                                                                      │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │                    Benchmarks Layer                           │   │
+│  ├──────────────────────────────────────────────────────────────┤   │
+│  │  PerformanceBenchmark   Latency, Throughput, Cost            │   │
+│  │  AgenticBenchmark       ToolAccuracy, TaskCompletion         │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+│                                                                      │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │                    Integration Layer                          │   │
+│  ├──────────────────────────────────────────────────────────────┤   │
+│  │  MAFTestHarness         Microsoft Agent Framework             │   │
+│  │  MicrosoftEvaluatorAdapter  MS.Extensions.AI.Evaluation      │   │
+│  │  ChatClientAgentAdapter Generic IChatClient wrapper           │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+│                                                                      │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │                 Production Infrastructure 🆕                  │   │
+│  ├──────────────────────────────────────────────────────────────┤   │
+│  │  IResultExporter        JUnit, Markdown, JSON (PLANNED)      │   │
+│  │  IDatasetLoader         JSONL, BFCL, HuggingFace (PLANNED)   │   │
+│  │  SnapshotTestHarness    Baseline comparison (PLANNED)        │   │
+│  │  AgentEval.CLI          dotnet tool (PLANNED)                │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Metric Hierarchy
+
+```
+IMetric (base interface)
+├── Name: string
+├── Description: string
+└── EvaluateAsync(context) -> MetricResult
+
+IRAGMetric : IMetric
+├── RequiresContext: bool
+└── RequiresGroundTruth: bool
+    ├── FaithfulnessMetric
+    ├── RelevanceMetric
+    ├── ContextPrecisionMetric
+    ├── ContextRecallMetric
+    └── AnswerCorrectnessMetric
+
+IAgenticMetric : IMetric
+├── RequiresToolUsage: bool
+    ├── ToolSelectionMetric
+    ├── ToolArgumentsMetric
+    ├── ToolSuccessMetric
+    ├── ToolEfficiencyMetric
+    └── TaskCompletionMetric
+
+IEmbeddingMetric : IMetric
+├── RequiresEmbeddings: bool
+    ├── AnswerSimilarityMetric
+    ├── ResponseContextSimilarityMetric
+    └── QueryContextSimilarityMetric
+```
+
+### Embedding-Based Metrics
+
+AgentEval includes embedding-based metrics for semantic similarity evaluation:
+
+```csharp
+// Answer Similarity - Compare response to ground truth using embeddings
+public class AnswerSimilarityMetric : IRAGMetric
+{
+    private readonly IAgentEvalEmbeddings _embeddings;
+    
+    public async Task<MetricResult> EvaluateAsync(EvaluationContext context, CancellationToken ct)
+    {
+        // Uses cosine similarity between response and ground truth embeddings
+        var similarity = await EmbeddingSimilarity.CosineSimilarity(
+            _embeddings, context.Output, context.GroundTruth!);
+        
+        return MetricResult.Pass(Name, similarity * 100, $"Similarity: {similarity:P1}");
+    }
+}
+
+// EmbeddingSimilarity utilities
+public static class EmbeddingSimilarity
+{
+    public static async Task<double> CosineSimilarity(IAgentEvalEmbeddings embeddings, string text1, string text2);
+    public static async Task<double> EuclideanDistance(IAgentEvalEmbeddings embeddings, string text1, string text2);
+    public static double DotProduct(ReadOnlySpan<float> a, ReadOnlySpan<float> b);
+    public static IEnumerable<(int Index, double Score)> TopK(IEnumerable<double> scores, int k);
+}
+```
+
+### Extensibility Patterns
+
+#### Creating Custom Metrics
+
+```csharp
+// 1. Implement IMetric for basic metrics
+public class CustomMetric : IMetric
+{
+    public string Name => "CustomMetric";
+    public string Description => "My custom evaluation metric";
+    
+    public Task<MetricResult> EvaluateAsync(EvaluationContext context, CancellationToken ct)
+    {
+        // Your evaluation logic
+        var score = CalculateScore(context.Output);
+        return Task.FromResult(MetricResult.Pass(Name, score));
+    }
+}
+
+// 2. Implement IRAGMetric for RAG-specific metrics
+public class CustomRAGMetric : IRAGMetric
+{
+    public bool RequiresContext => true;
+    public bool RequiresGroundTruth => true;
+    // ... implement EvaluateAsync
+}
+
+// 3. Implement IAgenticMetric for tool-tracking metrics
+public class CustomAgenticMetric : IAgenticMetric
+{
+    public bool RequiresToolUsage => true;
+    // ... implement EvaluateAsync
+}
+```
+
+#### Using the Metric Registry
+
+```csharp
+var registry = new MetricRegistry();
+
+// Register metrics
+registry.Register(new FaithfulnessMetric(chatClient));
+registry.Register(new ToolSelectionMetric(expectedTools));
+registry.Register("custom", new CustomMetric());
+
+// Get metrics
+var faithfulness = registry.GetRequired("Faithfulness");
+var allMetrics = registry.GetAll();
+
+// Run all metrics
+foreach (var metric in registry.GetAll())
+{
+    var result = await metric.EvaluateAsync(context);
+    Console.WriteLine($"{result.MetricName}: {result.Score}");
+}
+```
+
+#### Wrapping Microsoft Evaluators
+
+```csharp
+// Use official Microsoft evaluators through AgentEval's interface
+var msEvaluator = new CoherenceEvaluator();
+var adapter = new MicrosoftEvaluatorAdapter(msEvaluator, chatClient);
+
+// Now use it like any AgentEval metric
+var result = await adapter.EvaluateAsync(context);
+// Score is automatically normalized from 1-5 to 0-100
+```
 
 ---
 
@@ -787,6 +1203,785 @@ public class ModelComparer
 
 ---
 
+## Phase 5: Production Infrastructure ⭐ CRITICAL
+
+**Timeline:** 2-4 weeks  
+**Goal:** Enable CI/CD integration and enterprise adoption  
+**Priority:** HIGHEST - Blocks enterprise adoption without these features
+
+> **Key Insight (Jan 5, 2026):** Competitive analysis reveals that Promptfoo's success comes from its CLI + result exporters, not its evaluation metrics. These production infrastructure features are what enable teams to integrate AI testing into existing CI/CD workflows.
+
+### 5.1 CLI Tool (`AgentEval.Cli`)
+
+**Why Critical:** Without a CLI, teams must write custom harness code to integrate AgentEval into pipelines. Promptfoo's entire value proposition is `promptfoo eval` + YAML config.
+
+#### Command Structure
+
+```bash
+# Install globally
+dotnet tool install -g AgentEval.Cli
+
+# Initialize configuration
+agenteval init --framework maf --output agenteval.yaml
+
+# Run evaluation
+agenteval eval --config agenteval.yaml --output results.json
+
+# Run with specific format
+agenteval eval --config agenteval.yaml --format junit --output results.xml
+
+# Update snapshots (when behavior intentionally changes)
+agenteval snapshot update --config agenteval.yaml
+
+# View results in browser
+agenteval view --results results.json
+
+# Compare baselines
+agenteval compare --baseline baseline.json --current results.json --threshold 5
+
+# Run specific benchmark
+agenteval benchmark --suite bfcl-simple --output benchmark-results.json
+```
+
+#### Configuration File Format (agenteval.yaml)
+
+```yaml
+# agenteval.yaml
+version: "1.0"
+
+# Agent configuration
+agent:
+  type: maf  # or 'chat-client', 'custom'
+  assembly: "./bin/Debug/net8.0/MyAgent.dll"
+  class: "MyApp.WeatherAgent"
+
+# Test cases
+tests:
+  - name: "Weather Query"
+    input: "What's the weather in NYC?"
+    expected_tools:
+      - name: get_weather
+        required_params: [location]
+    assert:
+      - type: contains
+        value: "weather"
+      - type: tool-called
+        tool: get_weather
+      - type: latency-under
+        value: 5000ms
+
+  - name: "Multi-step Planning"
+    input: "Plan a trip to Paris"
+    expected_tools:
+      - name: search_flights
+      - name: search_hotels
+      - name: create_itinerary
+    assert:
+      - type: tools-in-order
+      - type: task-complete
+        threshold: 0.8
+
+# Metrics to run
+metrics:
+  - faithfulness
+  - relevance
+  - tool-selection
+  - tool-success
+
+# Output configuration  
+output:
+  format: json  # json, junit, markdown, html
+  path: ./results/
+
+# Snapshot configuration
+snapshots:
+  enabled: true
+  directory: ./.snapshots/
+  ignore_fields:
+    - "timestamp"
+    - "request_id"
+    - "token_count"
+```
+
+#### Implementation (csproj)
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    
+    <!-- Required for dotnet tool -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>agenteval</ToolCommandName>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+    
+    <!-- Package metadata -->
+    <PackageId>AgentEval.Cli</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>AgentEval Contributors</Authors>
+    <Description>CLI tool for AI agent evaluation and testing</Description>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="YamlDotNet" Version="15.1.0" />
+    <ProjectReference Include="../AgentEval/AgentEval.csproj" />
+  </ItemGroup>
+</Project>
+```
+
+#### Exit Codes (CI/CD Integration)
+
+| Code | Meaning |
+|------|---------|
+| 0 | All tests passed |
+| 1 | One or more tests failed |
+| 2 | Configuration error |
+| 3 | Runtime error |
+| 4 | Regression detected (when using --fail-on-regression) |
+
+### 5.2 Result Exporters
+
+**Why Critical:** CI/CD systems (GitHub Actions, Azure DevOps, Jenkins) consume JUnit XML to display test results in their UI. Without this, test failures are buried in console output.
+
+#### Interface Design
+
+```csharp
+public interface IResultExporter
+{
+    string Format { get; }  // "junit", "markdown", "json", "html"
+    Task ExportAsync(EvaluationReport report, Stream output, CancellationToken ct = default);
+}
+
+public interface IResultExporterFactory
+{
+    IResultExporter Create(string format);
+}
+```
+
+#### JUnit XML Exporter
+
+```csharp
+public class JUnitXmlExporter : IResultExporter
+{
+    public string Format => "junit";
+    
+    public async Task ExportAsync(EvaluationReport report, Stream output, CancellationToken ct)
+    {
+        var settings = new XmlWriterSettings { Async = true, Indent = true };
+        await using var writer = XmlWriter.Create(output, settings);
+        
+        await writer.WriteStartDocumentAsync();
+        await writer.WriteStartElementAsync(null, "testsuites", null);
+        await writer.WriteAttributeStringAsync(null, "name", null, report.Name);
+        await writer.WriteAttributeStringAsync(null, "tests", null, report.TotalTests.ToString());
+        await writer.WriteAttributeStringAsync(null, "failures", null, report.FailedTests.ToString());
+        await writer.WriteAttributeStringAsync(null, "time", null, report.TotalDuration.TotalSeconds.ToString("F2"));
+        
+        foreach (var suite in report.Suites)
+        {
+            await WriteTestSuiteAsync(writer, suite);
+        }
+        
+        await writer.WriteEndElementAsync();
+        await writer.WriteEndDocumentAsync();
+    }
+}
+```
+
+#### Markdown Exporter (GitHub PR Comments)
+
+```csharp
+public class MarkdownExporter : IResultExporter
+{
+    public string Format => "markdown";
+    
+    public async Task ExportAsync(EvaluationReport report, Stream output, CancellationToken ct)
+    {
+        using var writer = new StreamWriter(output, leaveOpen: true);
+        
+        await writer.WriteLineAsync($"# AgentEval Results: {report.Name}");
+        await writer.WriteLineAsync();
+        await writer.WriteLineAsync($"**Status:** {(report.AllPassed ? "✅ PASSED" : "❌ FAILED")}");
+        await writer.WriteLineAsync($"**Tests:** {report.PassedTests}/{report.TotalTests} passed");
+        await writer.WriteLineAsync($"**Duration:** {report.TotalDuration.TotalSeconds:F2}s");
+        await writer.WriteLineAsync();
+        
+        // Summary table
+        await writer.WriteLineAsync("| Test | Score | Status | Duration |");
+        await writer.WriteLineAsync("|------|-------|--------|----------|");
+        
+        foreach (var result in report.Results)
+        {
+            var status = result.Passed ? "✅" : "❌";
+            await writer.WriteLineAsync($"| {result.Name} | {result.Score:F1} | {status} | {result.Duration.TotalMilliseconds:F0}ms |");
+        }
+        
+        // Failures detail
+        if (report.FailedTests > 0)
+        {
+            await writer.WriteLineAsync();
+            await writer.WriteLineAsync("## Failures");
+            foreach (var failure in report.Results.Where(r => !r.Passed))
+            {
+                await writer.WriteLineAsync($"### ❌ {failure.Name}");
+                await writer.WriteLineAsync($"- **Reason:** {failure.FailureReason}");
+                await writer.WriteLineAsync($"- **Score:** {failure.Score:F1}/100");
+            }
+        }
+    }
+}
+```
+
+### 5.3 Snapshot/Baseline Testing
+
+**Why Critical:** LLM outputs are non-deterministic. Snapshot testing allows comparing structured outputs while ignoring dynamic fields (timestamps, IDs, token counts).
+
+**Storage Format:** JSON (human-readable, easy to diff in PRs)
+
+#### Snapshot Test Harness
+
+```csharp
+public class SnapshotTestHarness
+{
+    private readonly string _snapshotDirectory;
+    private readonly SnapshotOptions _options;
+    
+    public SnapshotTestHarness(string snapshotDirectory, SnapshotOptions? options = null)
+    {
+        _snapshotDirectory = snapshotDirectory;
+        _options = options ?? new SnapshotOptions();
+    }
+    
+    /// <summary>
+    /// Compare actual result against stored snapshot.
+    /// </summary>
+    public async Task<SnapshotResult> AssertMatchesSnapshotAsync(
+        string snapshotName,
+        object actual,
+        CancellationToken ct = default)
+    {
+        var snapshotPath = Path.Combine(_snapshotDirectory, $"{snapshotName}.snapshot.json");
+        
+        // Mask dynamic fields before comparison
+        var maskedActual = MaskDynamicFields(actual, _options.IgnoreFields);
+        var actualJson = JsonSerializer.Serialize(maskedActual, _jsonOptions);
+        
+        if (!File.Exists(snapshotPath))
+        {
+            if (_options.UpdateSnapshots)
+            {
+                await File.WriteAllTextAsync(snapshotPath, actualJson, ct);
+                return SnapshotResult.Created(snapshotName);
+            }
+            return SnapshotResult.Missing(snapshotName);
+        }
+        
+        var expectedJson = await File.ReadAllTextAsync(snapshotPath, ct);
+        
+        if (actualJson == expectedJson)
+        {
+            return SnapshotResult.Match(snapshotName);
+        }
+        
+        if (_options.UpdateSnapshots)
+        {
+            await File.WriteAllTextAsync(snapshotPath, actualJson, ct);
+            return SnapshotResult.Updated(snapshotName, expectedJson, actualJson);
+        }
+        
+        return SnapshotResult.Mismatch(snapshotName, expectedJson, actualJson);
+    }
+    
+    /// <summary>
+    /// Mask fields that should be ignored during comparison.
+    /// </summary>
+    private object MaskDynamicFields(object obj, IEnumerable<string> fieldsToIgnore)
+    {
+        var json = JsonSerializer.SerializeToElement(obj);
+        return MaskJsonElement(json, fieldsToIgnore.ToHashSet(StringComparer.OrdinalIgnoreCase));
+    }
+}
+
+public class SnapshotOptions
+{
+    /// <summary>Fields to ignore during comparison (e.g., "timestamp", "requestId").</summary>
+    public IReadOnlyList<string> IgnoreFields { get; init; } = new[] { "timestamp", "requestId", "tokenCount" };
+    
+    /// <summary>Whether to update snapshots when they don't match.</summary>
+    public bool UpdateSnapshots { get; init; } = false;
+    
+    /// <summary>Property matchers for partial matching.</summary>
+    public IDictionary<string, IPropertyMatcher> PropertyMatchers { get; init; } = new Dictionary<string, IPropertyMatcher>();
+}
+
+public interface IPropertyMatcher
+{
+    bool Matches(JsonElement actual);
+}
+
+public class AnyStringMatcher : IPropertyMatcher
+{
+    public bool Matches(JsonElement actual) => actual.ValueKind == JsonValueKind.String;
+}
+
+public class AnyNumberMatcher : IPropertyMatcher
+{
+    public bool Matches(JsonElement actual) => actual.ValueKind == JsonValueKind.Number;
+}
+
+public class RegexMatcher : IPropertyMatcher
+{
+    private readonly Regex _pattern;
+    public RegexMatcher(string pattern) => _pattern = new Regex(pattern);
+    public bool Matches(JsonElement actual) => 
+        actual.ValueKind == JsonValueKind.String && _pattern.IsMatch(actual.GetString()!);
+}
+```
+
+#### Snapshot File Example
+
+```json
+// .snapshots/weather-query.snapshot.json
+{
+  "testName": "Weather Query",
+  "response": {
+    "text": "The weather in NYC is currently sunny with a temperature of 72°F.",
+    "toolsCalled": [
+      {
+        "name": "get_weather",
+        "arguments": {
+          "location": "NYC"
+        }
+      }
+    ]
+  },
+  "metrics": {
+    "faithfulness": 95.0,
+    "toolSelection": 100.0
+  },
+  "_masked": {
+    "timestamp": "[MASKED]",
+    "requestId": "[MASKED]",
+    "tokenCount": "[MASKED]"
+  }
+}
+```
+
+### 5.4 Dataset Loaders
+
+**Why Critical:** Enables loading external test datasets (BFCL, GAIA, ToolBench) and team-specific test suites from files.
+
+#### Interface Design
+
+```csharp
+public interface IDatasetLoader
+{
+    Task<IReadOnlyList<TestCase>> LoadAsync(string source, CancellationToken ct = default);
+    IAsyncEnumerable<TestCase> LoadStreamingAsync(string source, CancellationToken ct = default);
+}
+
+public interface IBenchmarkDatasetLoader : IDatasetLoader
+{
+    string BenchmarkName { get; }
+    Task<IReadOnlyList<BenchmarkTestCase>> LoadBenchmarkAsync(string source, CancellationToken ct = default);
+}
+```
+
+#### JSONL Loader (Industry Standard)
+
+```csharp
+public class JsonLinesLoader : IDatasetLoader
+{
+    public async Task<IReadOnlyList<TestCase>> LoadAsync(string filePath, CancellationToken ct)
+    {
+        var results = new List<TestCase>();
+        await foreach (var testCase in LoadStreamingAsync(filePath, ct))
+        {
+            results.Add(testCase);
+        }
+        return results;
+    }
+    
+    public async IAsyncEnumerable<TestCase> LoadStreamingAsync(
+        string filePath, 
+        [EnumeratorCancellation] CancellationToken ct)
+    {
+        await foreach (var line in File.ReadLinesAsync(filePath, ct))
+        {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            
+            var parsed = JsonSerializer.Deserialize<JsonLinesTestCase>(line);
+            if (parsed != null)
+            {
+                yield return parsed.ToTestCase();
+            }
+        }
+    }
+}
+
+// JSONL format
+// {"input": "What's the weather?", "expected_output": "...", "expected_tools": ["get_weather"]}
+internal record JsonLinesTestCase(
+    string Input,
+    string? ExpectedOutput,
+    IReadOnlyList<string>? ExpectedTools,
+    string? Context,
+    string? GroundTruth
+)
+{
+    public TestCase ToTestCase() => new TestCase
+    {
+        Name = Input[..Math.Min(50, Input.Length)] + "...",
+        Input = Input,
+        ExpectedTools = ExpectedTools,
+        EvaluationCriteria = ExpectedOutput != null ? new[] { ExpectedOutput } : null
+    };
+}
+```
+
+#### BFCL Dataset Adapter
+
+```csharp
+public class BfclDatasetLoader : IBenchmarkDatasetLoader
+{
+    public string BenchmarkName => "BFCL";
+    
+    public async Task<IReadOnlyList<BenchmarkTestCase>> LoadBenchmarkAsync(string source, CancellationToken ct)
+    {
+        // Load BFCL JSON format
+        var content = await File.ReadAllTextAsync(source, ct);
+        var bfclCases = JsonSerializer.Deserialize<List<BfclTestCase>>(content);
+        
+        return bfclCases?.Select(bc => new BenchmarkTestCase
+        {
+            Id = bc.Id,
+            Input = bc.Question,
+            ExpectedTools = new[] { new ExpectedTool 
+            { 
+                Name = bc.GroundTruth.Name, 
+                RequiredParameters = bc.GroundTruth.Arguments.Keys.ToList() 
+            }},
+            GroundTruth = bc.GroundTruth,
+            Category = bc.Category
+        }).ToList() ?? new List<BenchmarkTestCase>();
+    }
+}
+
+// BFCL format
+internal record BfclTestCase(
+    string Id,
+    string Question,
+    BfclFunction Function,
+    BfclGroundTruth GroundTruth,
+    string Category
+);
+```
+
+### 5.5 Multi-Turn Conversation Support
+
+**Why Critical:** Real-world agents have conversations, not single queries. DeepEval's `ConversationalTestCase` is heavily used.
+
+**Approach:** Scripted conversations first (simpler, deterministic). LLM-as-user for Phase 4.
+
+#### Data Models
+
+```csharp
+/// <summary>
+/// A single turn in a conversation.
+/// </summary>
+public record Turn
+{
+    public required string Role { get; init; }  // "user" or "assistant"
+    public required string Content { get; init; }
+    public IReadOnlyList<ToolCallRecord>? ToolsCalled { get; init; }
+    public IReadOnlyList<string>? RetrievalContext { get; init; }
+}
+
+/// <summary>
+/// A test case for multi-turn conversation testing.
+/// </summary>
+public record ConversationalTestCase
+{
+    public required string Name { get; init; }
+    public required IReadOnlyList<Turn> Turns { get; init; }
+    public string? Scenario { get; init; }
+    public string? ExpectedOutcome { get; init; }
+    public string? ChatbotRole { get; init; }
+    public string? UserDescription { get; init; }
+}
+
+/// <summary>
+/// Result of evaluating a conversation.
+/// </summary>
+public record ConversationResult
+{
+    public required string TestCaseName { get; init; }
+    public bool Passed { get; init; }
+    public double OverallScore { get; init; }
+    public IReadOnlyList<TurnResult> TurnResults { get; init; } = [];
+    public string? Summary { get; init; }
+}
+
+public record TurnResult
+{
+    public int TurnNumber { get; init; }
+    public string Role { get; init; } = "";
+    public double? Score { get; init; }
+    public bool IntentionSatisfied { get; init; }
+}
+```
+
+#### Conversation Runner
+
+```csharp
+public class ConversationRunner
+{
+    private readonly ITestableAgent _agent;
+    private readonly IEvaluator? _evaluator;
+    
+    /// <summary>
+    /// Run a scripted conversation test where user turns are predefined.
+    /// </summary>
+    public async Task<ConversationResult> RunScriptedAsync(
+        ConversationalTestCase testCase,
+        CancellationToken ct = default)
+    {
+        var actualTurns = new List<Turn>();
+        var turnResults = new List<TurnResult>();
+        var conversationHistory = new List<string>();
+        
+        foreach (var expectedTurn in testCase.Turns)
+        {
+            if (expectedTurn.Role == "user")
+            {
+                // User turn is scripted - just add to history
+                conversationHistory.Add($"User: {expectedTurn.Content}");
+                actualTurns.Add(expectedTurn);
+            }
+            else // assistant
+            {
+                // Get actual agent response
+                var prompt = BuildConversationPrompt(conversationHistory, testCase.ChatbotRole);
+                var response = await _agent.InvokeAsync(prompt, ct);
+                var toolUsage = ToolUsageExtractor.Extract(response);
+                
+                var actualTurn = new Turn
+                {
+                    Role = "assistant",
+                    Content = response.Text,
+                    ToolsCalled = toolUsage.Calls
+                };
+                actualTurns.Add(actualTurn);
+                conversationHistory.Add($"Assistant: {response.Text}");
+                
+                // Evaluate turn
+                var turnScore = await EvaluateTurnAsync(expectedTurn, actualTurn, ct);
+                turnResults.Add(new TurnResult
+                {
+                    TurnNumber = actualTurns.Count,
+                    Role = "assistant",
+                    Score = turnScore,
+                    IntentionSatisfied = turnScore >= 70
+                });
+            }
+        }
+        
+        // Calculate overall score
+        var satisfiedIntentions = turnResults.Count(t => t.IntentionSatisfied);
+        var totalIntentions = turnResults.Count;
+        var completeness = totalIntentions > 0 ? (double)satisfiedIntentions / totalIntentions : 0;
+        
+        return new ConversationResult
+        {
+            TestCaseName = testCase.Name,
+            Passed = completeness >= 0.7,
+            OverallScore = completeness * 100,
+            TurnResults = turnResults,
+            Summary = $"Satisfied {satisfiedIntentions}/{totalIntentions} user intentions"
+        };
+    }
+}
+```
+
+#### Conversation Completeness Metric
+
+```csharp
+/// <summary>
+/// Measures what fraction of user intentions were satisfied in a conversation.
+/// Score = Satisfied Intentions / Total Intentions
+/// </summary>
+public class ConversationCompletenessMetric : IMetric
+{
+    private readonly IChatClient _chatClient;
+    
+    public string Name => "ConversationCompleteness";
+    public string Description => "Measures what fraction of user intentions were satisfied";
+    
+    public async Task<MetricResult> EvaluateAsync(EvaluationContext context, CancellationToken ct)
+    {
+        // Extract user intentions from context
+        var conversation = context.GetProperty<ConversationalTestCase>("conversation");
+        if (conversation == null)
+        {
+            return MetricResult.Fail(Name, "No conversation provided");
+        }
+        
+        // Use LLM to evaluate intention satisfaction
+        var userTurns = conversation.Turns.Where(t => t.Role == "user").ToList();
+        var assistantTurns = conversation.Turns.Where(t => t.Role == "assistant").ToList();
+        
+        var satisfiedCount = 0;
+        foreach (var (userTurn, assistantTurn) in userTurns.Zip(assistantTurns))
+        {
+            var isSatisfied = await EvaluateIntentionAsync(userTurn, assistantTurn, ct);
+            if (isSatisfied) satisfiedCount++;
+        }
+        
+        var score = userTurns.Count > 0 ? (double)satisfiedCount / userTurns.Count * 100 : 0;
+        
+        return new MetricResult
+        {
+            MetricName = Name,
+            Score = score,
+            Passed = score >= 50,
+            Explanation = $"Satisfied {satisfiedCount}/{userTurns.Count} user intentions",
+            Details = new Dictionary<string, object>
+            {
+                ["satisfiedIntentions"] = satisfiedCount,
+                ["totalIntentions"] = userTurns.Count
+            }
+        };
+    }
+}
+```
+
+---
+
+## Benchmark Compatibility ⭐ NEW
+
+### Why Benchmark Support is a Game Changer
+
+1. **Instant Credibility:** "Scores 85% on BFCL" vs "We tested it and it works"
+2. **Comparability:** Compare your agent against 100+ published models on identical tasks
+3. **Regression Detection:** Track performance changes across model versions
+4. **Gap Analysis:** Identify specific capability gaps (parallel calls vs. sequential)
+
+### Benchmark Compatibility Matrix
+
+| Benchmark | Focus | AgentEval Support | What's Needed |
+|-----------|-------|-------------------|---------------|
+| **BFCL** | Function Calling | ✅ Ready | `BfclDatasetLoader` |
+| **GAIA** | General AI Assistants | ✅ Ready | `GaiaDatasetLoader` |
+| **ToolBench** | API Tool Use | ✅ Ready | Multi-step runner exists |
+| **MINT** | Multi-turn Interaction | ⚠️ Partial | `ConversationRunner` (Phase 5) |
+| **HumanEval** | Code Generation | ❌ Out of Scope | Requires code execution |
+| **WebArena** | Web Browsing | ❌ Out of Scope | Requires browser simulation |
+| **SWE-bench** | Software Engineering | ❌ Out of Scope | Requires codebase context |
+
+### BFCL (Berkeley Function Calling Leaderboard)
+
+**What It Tests:** Function/tool calling accuracy across categories
+
+| Category | Description | AgentEval Metric |
+|----------|-------------|------------------|
+| `simple_python` | Single function calls | `ToolSelectionMetric` |
+| `parallel` | Multiple independent calls | `ToolSelectionMetric` + order check |
+| `multiple` | Sequential dependent calls | `AgenticBenchmark.MultiStep` |
+| `multi_turn_base` | Multi-turn conversations | `ConversationRunner` |
+| `live_*` | Real-world API scenarios | `AgenticBenchmark.ToolAccuracy` |
+
+**Running BFCL with AgentEval:**
+
+```csharp
+// Load BFCL dataset
+var loader = new BfclDatasetLoader();
+var testCases = await loader.LoadBenchmarkAsync("bfcl/simple_python.json", ct);
+
+// Convert to AgentEval test cases
+var toolTestCases = testCases.Select(bc => new ToolAccuracyTestCase
+{
+    Name = bc.Id,
+    Prompt = bc.Input,
+    ExpectedTools = bc.ExpectedTools
+}).ToList();
+
+// Run benchmark
+var benchmark = new AgenticBenchmark(agent);
+var results = await benchmark.RunToolAccuracyBenchmarkAsync(toolTestCases, ct);
+
+// Compare against leaderboard
+Console.WriteLine($"BFCL Simple Python: {results.OverallAccuracy:P1}");
+// Expected: GPT-4o scores ~90%, Claude-3 scores ~85%
+```
+
+### GAIA (General AI Assistants)
+
+**What It Tests:** Multi-step reasoning, tool use, web browsing
+
+```csharp
+// Load GAIA dataset
+var loader = new GaiaDatasetLoader();
+var testCases = await loader.LoadAsync("gaia/validation.jsonl", ct);
+
+// Run with task completion benchmark
+var benchmark = new AgenticBenchmark(agent, evaluator);
+var taskCases = testCases.Select(tc => new TaskCompletionTestCase
+{
+    Name = tc.Name,
+    Prompt = tc.Input,
+    CompletionCriteria = new[] { tc.ExpectedOutcome }
+}).ToList();
+
+var results = await benchmark.RunTaskCompletionBenchmarkAsync(taskCases, ct);
+Console.WriteLine($"GAIA Validation: {results.AverageScore:F1}/100");
+```
+
+### Standard Benchmark Reporting
+
+```csharp
+public class BenchmarkReport
+{
+    public required string BenchmarkName { get; init; }
+    public required string AgentName { get; init; }
+    public required string ModelVersion { get; init; }
+    public DateTimeOffset RunDate { get; init; } = DateTimeOffset.UtcNow;
+    
+    // Scores by category
+    public IReadOnlyDictionary<string, double> CategoryScores { get; init; } = new Dictionary<string, double>();
+    
+    // Overall score
+    public double OverallScore { get; init; }
+    
+    // Comparison to known baselines
+    public IReadOnlyDictionary<string, double> ComparisonToBaselines { get; init; } = new Dictionary<string, double>();
+}
+
+// Generate leaderboard-style report
+var report = new BenchmarkReport
+{
+    BenchmarkName = "BFCL v3",
+    AgentName = "MyWeatherAgent",
+    ModelVersion = "gpt-4o-2024-11-20",
+    CategoryScores = new Dictionary<string, double>
+    {
+        ["simple_python"] = 92.5,
+        ["parallel"] = 88.0,
+        ["multiple"] = 85.5,
+        ["multi_turn"] = 78.0
+    },
+    OverallScore = 86.0,
+    ComparisonToBaselines = new Dictionary<string, double>
+    {
+        ["GPT-4o (OpenAI)"] = -4.0,  // 4% below
+        ["Claude-3.5 (Anthropic)"] = +1.0  // 1% above
+    }
+};
+```
+
+---
+
 ## Technical Debt & Optimizations
 
 ### Performance Optimizations
@@ -956,7 +2151,9 @@ public class CoherenceMetric : IMetric
 
 ---
 
-## Immediate Next Steps (This Week)
+## Immediate Next Steps
+
+### ✅ COMPLETED (Jan 2-5, 2026)
 
 1. [x] **Fix critical issues:** ✅ COMPLETE
    - ✅ Extract duplicate ExtractToolUsage → `Core/ToolUsageExtractor.cs`
@@ -972,40 +2169,104 @@ public class CoherenceMetric : IMetric
    - ✅ MAFTestHarness integration - 4 call sites creating FailureReports
    - ✅ LogFailure method for trace-first output
 
-3. [x] **Metric Tests (Phase 6):** ✅ COMPLETE
+3. [x] **Metric Tests (Phase 6-7):** ✅ COMPLETE
    - ✅ FakeChatClient for zero-dependency testing (no NSubstitute needed)
    - ✅ FaithfulnessMetricTests (7 tests)
    - ✅ ToolSelectionMetricTests (9 tests)
    - ✅ ToolSuccessMetricTests (8 tests)
-   - ✅ All 210 tests passing
+   - ✅ RAG metric tests (Relevance, ContextPrecision, ContextRecall, AnswerCorrectness)
+   - ✅ Agentic metric tests (ToolArguments, TaskCompletion, ToolEfficiency)
+   - ✅ Integration tests (MicrosoftEvaluatorAdapter, AgenticBenchmark, MAFTestHarness)
+   - ✅ **All 384 tests passing**
 
-4. [ ] **Integration decision:**
-   - Decide: Use Microsoft.Extensions.AI.Evaluation as optional dependency?
-   - Create adapter layer if yes
+4. [x] **Documentation Cleanup:** ✅ COMPLETE
+   - ✅ Deleted 11 redundant documentation files from root
+   - ✅ Consolidated docs into `docs/building-docs.md`
+   - ✅ Created `scripts/` folder for build scripts
+   - ✅ Created `.github/workflows/docs.yml` for auto-publish
 
-5. [ ] **Result Exporters:** (Next Priority)
-   - [ ] MarkdownResultExporter
-   - [ ] JUnitResultExporter
-   - [ ] HtmlResultExporter
+### 🚀 PRIORITY: Phase 5 Production Infrastructure (Next 2 Weeks)
 
-6. [ ] **Prepare for publication:**
-   - Add complete XML documentation
-   - Create NuGet README
-   - Set up GitHub repository
+5. [ ] **Result Exporters:** (Week 1) ⭐ HIGH PRIORITY
+   - [ ] Create `Exporters/` folder
+   - [ ] Implement `IResultExporter` interface
+   - [ ] `JUnitXmlExporter` - CI/CD integration (GitHub Actions, Azure DevOps)
+   - [ ] `MarkdownExporter` - GitHub PR comments
+   - [ ] `JsonExporter` - Programmatic analysis
+   - [ ] Add tests for all exporters
 
-7. [ ] **Start documentation:**
-   - Getting Started guide
-   - API overview
+6. [ ] **CLI Tool:** (Week 1-2) ⭐ CRITICAL
+   - [ ] Create `AgentEval.Cli` project with `System.CommandLine`
+   - [ ] Implement `eval` command
+   - [ ] Implement `snapshot update` command
+   - [ ] Implement `view` command (open HTML report)
+   - [ ] Implement `compare` command (baseline comparison)
+   - [ ] Add YAML configuration file support
+   - [ ] Test as `dotnet tool`
 
-8. [ ] **Community prep:**
-   - Draft announcement blog post
-   - Create Twitter/X account
-   - Identify early adopters
+7. [ ] **Snapshot Testing:** (Week 2) ⭐ HIGH PRIORITY
+   - [ ] Create `Testing/SnapshotTestHarness.cs`
+   - [ ] Implement JSON storage format
+   - [ ] Property matchers (AnyString, AnyNumber, Regex)
+   - [ ] Field masking for dynamic values (timestamps, IDs)
+   - [ ] Update workflow (`--update-snapshots`)
+   - [ ] Add tests
+
+8. [ ] **Dataset Loaders:** (Week 2) ⭐ HIGH PRIORITY
+   - [ ] Create `DataLoaders/` folder
+   - [ ] Implement `IDatasetLoader` interface
+   - [ ] `JsonLinesLoader` - Industry standard format
+   - [ ] `BfclDatasetLoader` - BFCL benchmark
+   - [ ] Add tests
+
+### 📚 Documentation Updates (Parallel Track)
+
+9. [ ] **Create docs/architecture.md:**
+   - [ ] Component diagram (Mermaid)
+   - [ ] Metric hierarchy visualization
+   - [ ] Layer descriptions
+
+10. [ ] **Create docs/embedding-metrics.md:**
+    - [ ] Document AnswerSimilarityMetric
+    - [ ] Document ResponseContextSimilarityMetric
+    - [ ] Document QueryContextSimilarityMetric
+    - [ ] Usage examples
+
+11. [ ] **Create docs/extensibility.md:**
+    - [ ] Custom metrics guide
+    - [ ] Plugin system documentation
+    - [ ] Microsoft adapter usage
+
+12. [ ] **Create docs/benchmarks.md:**
+    - [ ] BFCL integration guide
+    - [ ] GAIA integration guide
+    - [ ] ToolBench integration guide
+    - [ ] How to compare against leaderboards
+
+13. [ ] **Update README.md:**
+    - [ ] Add "Supported Benchmarks" section
+    - [ ] Add CI/CD Integration section
+    - [ ] Add comparison table vs competitors
+
+### Phase 6: Multi-Turn & Advanced (After Phase 5)
+
+14. [ ] **Multi-Turn Conversations:**
+    - [ ] Add Turn and ConversationalTestCase models
+    - [ ] Implement ConversationRunner (scripted first)
+    - [ ] Implement ConversationCompletenessMetric
+    - [ ] Add tests
+
+15. [ ] **Prepare for NuGet Publication:**
+    - [ ] Complete XML documentation on all public APIs
+    - [ ] Create NuGet README
+    - [ ] Configure SourceLink
+    - [ ] Set up deterministic builds
+    - [ ] Create standalone GitHub repository
 
 ---
 
 *This is a living document. Update as priorities evolve.*
 
-**Last Updated:** January 2026  
-**Next Review:** 2 weeks  
+**Last Updated:** January 5, 2026  
+**Next Review:** 1 week  
 **Owner:** AgentEval Team

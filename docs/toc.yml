@@ -1,7 +1,19 @@
 - name: Home
   href: index.md
-- name: Building Docs
-  href: building-docs.md
+- name: Getting Started
+  items:
+  - name: Building Docs
+    href: building-docs.md
+- name: Guides
+  items:
+  - name: Architecture
+    href: architecture.md
+  - name: Benchmarks
+    href: benchmarks.md
+  - name: Embedding Metrics
+    href: embedding-metrics.md
+  - name: Extensibility
+    href: extensibility.md
 - name: API Reference
   href: api/
 - name: GitHub
