@@ -15,6 +15,39 @@ AgentEval supports running industry-standard AI agent benchmarks to:
 
 ---
 
+## Prerequisites
+
+All benchmark examples in this guide assume you have created a MAF agent. Here's the pattern:
+
+```csharp
+using Azure.AI.OpenAI;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
+
+// Create your agent with the tools it needs
+var azureClient = new AzureOpenAIClient(
+    new Uri(Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")!),
+    new Azure.AzureKeyCredential(Environment.GetEnvironmentVariable("AZURE_OPENAI_KEY")!));
+
+var chatClient = azureClient
+    .GetChatClient("gpt-4o")
+    .AsIChatClient();
+
+var agent = new ChatClientAgent(
+    chatClient,
+    new ChatClientAgentOptions
+    {
+        Name = "BenchmarkAgent",
+        Instructions = "You are a helpful assistant with access to various tools.",
+        Tools = [/* Your tools here */]
+    });
+
+// For AI-powered evaluation, create an evaluator client
+var evaluator = azureClient.GetChatClient("gpt-4o").AsIChatClient();
+```
+
+---
+
 ## Supported Benchmarks
 
 | Benchmark | Focus | Status | What It Tests |

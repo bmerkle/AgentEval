@@ -145,7 +145,43 @@ Install-Package AgentEval -Pre
 ## Quick Start (MAF)
 
 ```csharp
-// Create a test harness (with optional evaluator client)
+using Azure.AI.OpenAI;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
+using AgentEval.MAF;
+using AgentEval.Models;
+
+// ═══════════════════════════════════════════════════════════════
+// Step 1: Create your Microsoft Agent Framework (MAF) agent
+// ═══════════════════════════════════════════════════════════════
+
+// Connect to Azure OpenAI
+var azureClient = new AzureOpenAIClient(
+    new Uri(Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")!),
+    new Azure.AzureKeyCredential(Environment.GetEnvironmentVariable("AZURE_OPENAI_KEY")!));
+
+var chatClient = azureClient
+    .GetChatClient("gpt-4o")  // Your deployment name
+    .AsIChatClient();
+
+// Create a MAF agent with tools
+var myAgent = new ChatClientAgent(
+    chatClient,
+    new ChatClientAgentOptions
+    {
+        Name = "FeaturePlannerAgent",
+        Instructions = """
+            You are a software feature planning assistant.
+            Use FeatureTool to plan features and SecurityTool for security analysis.
+            """,
+        Tools = [new FeatureTool(), new SecurityTool()]  // Your AIFunction tools
+    });
+
+// ═══════════════════════════════════════════════════════════════
+// Step 2: Test the agent with AgentEval
+// ═══════════════════════════════════════════════════════════════
+
+// Create test harness
 var harness = new MAFTestHarness(verbose: true);
 
 // Wrap your MAF agent

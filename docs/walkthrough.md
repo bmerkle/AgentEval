@@ -42,8 +42,33 @@ AgentEval uses adapters to wrap different agent types. For Microsoft Agent Frame
 
 ```csharp
 using AgentEval.MAF;
+using Azure.AI.OpenAI;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
 
-// Wrap your MAF agent
+// First, create your MAF agent
+var azureClient = new AzureOpenAIClient(
+    new Uri(Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")!),
+    new Azure.AzureKeyCredential(Environment.GetEnvironmentVariable("AZURE_OPENAI_KEY")!));
+
+var chatClient = azureClient
+    .GetChatClient("gpt-4o")
+    .AsIChatClient();
+
+var myAgent = new ChatClientAgent(
+    chatClient,
+    new ChatClientAgentOptions
+    {
+        Name = "TravelPlannerAgent",
+        Instructions = "You are a travel planning assistant.",
+        Tools = [
+            AIFunctionFactory.Create(SearchFlights),
+            AIFunctionFactory.Create(SearchHotels),
+            AIFunctionFactory.Create(GetWeather)
+        ]
+    });
+
+// Then wrap it for testing
 var adapter = new MAFAgentAdapter(myAgent);
 ```
 
@@ -212,12 +237,44 @@ using AgentEval.Models;
 using AgentEval.Core;
 using AgentEval.Assertions;
 using AgentEval.Exporters;
+using Azure.AI.OpenAI;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
+using System.ComponentModel;
 
-// 1. Setup
+// ═══════════════════════════════════════════════════════════════
+// 1. Create your MAF agent with tools
+// ═══════════════════════════════════════════════════════════════
+var azureClient = new AzureOpenAIClient(
+    new Uri(Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")!),
+    new Azure.AzureKeyCredential(Environment.GetEnvironmentVariable("AZURE_OPENAI_KEY")!));
+
+var chatClient = azureClient
+    .GetChatClient("gpt-4o")
+    .AsIChatClient();
+
+var myAgent = new ChatClientAgent(
+    chatClient,
+    new ChatClientAgentOptions
+    {
+        Name = "TravelPlannerAgent",
+        Instructions = "You are a travel planning assistant. Use tools to search for flights, hotels, and weather.",
+        Tools = [
+            AIFunctionFactory.Create(SearchFlights),
+            AIFunctionFactory.Create(SearchHotels),
+            AIFunctionFactory.Create(GetWeather)
+        ]
+    });
+
+// ═══════════════════════════════════════════════════════════════
+// 2. Setup test harness and adapter
+// ═══════════════════════════════════════════════════════════════
 var harness = new MAFTestHarness(verbose: true);
 var adapter = new MAFAgentAdapter(myAgent);
 
-// 2. Define test
+// ═══════════════════════════════════════════════════════════════
+// 3. Define test case
+// ═══════════════════════════════════════════════════════════════
 var testCase = new TestCase
 {
     Name = "Travel Planning Test",
@@ -226,10 +283,14 @@ var testCase = new TestCase
     PassingScore = 70
 };
 
-// 3. Run test
+// ═══════════════════════════════════════════════════════════════
+// 4. Run test
+// ═══════════════════════════════════════════════════════════════
 var result = await harness.RunTestAsync(adapter, testCase);
 
-// 4. Assert
+// ═══════════════════════════════════════════════════════════════
+// 5. Assert
+// ═══════════════════════════════════════════════════════════════
 result.ToolUsage!
     .Should()
     .HaveCalledTool("SearchFlights")
@@ -241,12 +302,40 @@ result.Performance!
     .HaveTotalDurationUnder(TimeSpan.FromSeconds(30))
     .HaveEstimatedCostUnder(0.10m);
 
-// 5. Export
+// ═══════════════════════════════════════════════════════════════
+// 6. Export results
+// ═══════════════════════════════════════════════════════════════
 var exporter = new JUnitExporter();
 await exporter.ExportAsync(new[] { result }, "results.xml");
 
 Console.WriteLine($"✅ Test {(result.Passed ? "PASSED" : "FAILED")}");
 Console.WriteLine($"   Output: {result.ActualOutput}");
+
+// ═══════════════════════════════════════════════════════════════
+// Tool definitions
+// ═══════════════════════════════════════════════════════════════
+[Description("Search for available flights")]
+static string SearchFlights(
+    [Description("Destination city")] string destination,
+    [Description("Departure date")] string date)
+{
+    return $"Found 3 flights to {destination} on {date}: AA123, UA456, DL789";
+}
+
+[Description("Search for hotels")]
+static string SearchHotels(
+    [Description("City name")] string city,
+    [Description("Check-in date")] string checkIn)
+{
+    return $"Found hotels in {city}: Hilton ($200/night), Marriott ($180/night)";
+}
+
+[Description("Get weather forecast")]
+static string GetWeather(
+    [Description("City name")] string city)
+{
+    return $"Weather in {city}: Sunny, 72°F";
+}
 ```
 
 ---
@@ -256,29 +345,70 @@ Console.WriteLine($"   Output: {result.ActualOutput}");
 AgentEval integrates naturally with test frameworks:
 
 ```csharp
-[Fact]
-public async Task Agent_ShouldPlanTrip_WithCorrectTools()
+using AgentEval.MAF;
+using AgentEval.Models;
+using AgentEval.Assertions;
+using Azure.AI.OpenAI;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
+using Xunit;
+
+public class TravelAgentTests
 {
-    // Arrange
-    var harness = new MAFTestHarness();
-    var adapter = new MAFAgentAdapter(_agent);
-    var testCase = new TestCase
+    private readonly AIAgent _agent;
+
+    public TravelAgentTests()
     {
-        Name = "Travel Planning",
-        Input = "Plan a trip to Paris",
-        ExpectedTools = new[] { "SearchFlights" }
-    };
+        // Setup agent once per test class
+        var azureClient = new AzureOpenAIClient(
+            new Uri(Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")!),
+            new Azure.AzureKeyCredential(Environment.GetEnvironmentVariable("AZURE_OPENAI_KEY")!));
 
-    // Act
-    var result = await harness.RunTestAsync(adapter, testCase);
+        var chatClient = azureClient
+            .GetChatClient("gpt-4o")
+            .AsIChatClient();
 
-    // Assert
-    result.ToolUsage!
-        .Should()
-        .HaveCalledTool("SearchFlights")
-        .HaveNoErrors();
-    
-    Assert.True(result.Passed);
+        _agent = new ChatClientAgent(
+            chatClient,
+            new ChatClientAgentOptions
+            {
+                Name = "TravelPlannerAgent",
+                Instructions = "You are a travel planning assistant.",
+                Tools = [AIFunctionFactory.Create(SearchFlights)]
+            });
+    }
+
+    [Fact]
+    public async Task Agent_ShouldPlanTrip_WithCorrectTools()
+    {
+        // Arrange
+        var harness = new MAFTestHarness();
+        var adapter = new MAFAgentAdapter(_agent);
+        var testCase = new TestCase
+        {
+            Name = "Travel Planning",
+            Input = "Plan a trip to Paris",
+            ExpectedTools = new[] { "SearchFlights" }
+        };
+
+        // Act
+        var result = await harness.RunTestAsync(adapter, testCase);
+
+        // Assert
+        result.ToolUsage!
+            .Should()
+            .HaveCalledTool("SearchFlights")
+            .HaveNoErrors();
+        
+        Assert.True(result.Passed);
+    }
+
+    [System.ComponentModel.Description("Search for flights")]
+    private static string SearchFlights(
+        [System.ComponentModel.Description("Destination")] string destination)
+    {
+        return $"Found flights to {destination}";
+    }
 }
 ```
 

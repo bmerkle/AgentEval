@@ -16,6 +16,17 @@ Multi-turn conversation testing allows you to:
 
 ```csharp
 using AgentEval.Testing;
+using Azure.AI.OpenAI;
+using Microsoft.Extensions.AI;
+
+// First, create your IChatClient (any provider works)
+var azureClient = new AzureOpenAIClient(
+    new Uri(Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")!),
+    new Azure.AzureKeyCredential(Environment.GetEnvironmentVariable("AZURE_OPENAI_KEY")!));
+
+var chatClient = azureClient
+    .GetChatClient("gpt-4o")  // Your deployment name
+    .AsIChatClient();
 
 // Build a conversation test case using the fluent builder
 var testCase = ConversationalTestCase.Create("Customer Support Flow")
