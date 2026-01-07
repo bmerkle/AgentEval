@@ -423,3 +423,6 @@ docs/api/
 
 # Local NuGet output
 nupkgs/
+
+# Strategy documents (internal - do not publish)
+strategy/

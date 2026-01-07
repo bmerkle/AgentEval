@@ -2,10 +2,12 @@
   href: index.md
 - name: Getting Started
   items:
+  - name: Installation
+    href: installation.md
   - name: Quick Start
     href: getting-started.md
-  - name: Building Docs
-    href: building-docs.md
+  - name: Walkthrough
+    href: walkthrough.md
 - name: Guides
   items:
   - name: Architecture
@@ -24,7 +26,15 @@
     href: snapshots.md
   - name: Workflow Testing
     href: workflows.md
+- name: Roadmap
+  href: roadmap.md
 - name: API Reference
   href: api/
-- name: GitHub
-  href: https://github.com/joslat/AgentEval
+- name: Community
+  items:
+  - name: GitHub
+    href: https://github.com/joslat/AgentEval
+  - name: NuGet
+    href: https://www.nuget.org/packages/AgentEval
+  - name: Contributing
+    href: https://github.com/joslat/AgentEval/blob/main/CONTRIBUTING.md

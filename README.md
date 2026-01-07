@@ -107,11 +107,24 @@ Full command-line interface for running evaluations, benchmarks, and tests:
 
 ## Installation
 
-> NuGet packages will be published soon. Until then, clone and reference the project locally.
+Install from NuGet:
 
-Planned packages:
-- `AgentEval` (core)
-- `AgentEval.Maf` (MAF integration)
+```bash
+dotnet add package AgentEval --prerelease
+```
+
+Or via Package Manager:
+
+```powershell
+Install-Package AgentEval -Pre
+```
+
+**NuGet Package:** https://www.nuget.org/packages/AgentEval
+
+**Supported Frameworks:** .NET 8.0, 9.0, 10.0
+
+### Future Packages (Planned)
+
 - `AgentEval.TestKit` (fixtures/builders/helpers)
 - `AgentEval.Tracing` (OTel + run artifacts)
 - `AgentEval.Studio` (future: workflow visualizer / time-travel UI)
@@ -339,13 +352,13 @@ var baseline = store.Load("my-test");
 | [Embedding Metrics](docs/embedding-metrics.md) | Semantic similarity metrics |
 | [Extensibility](docs/extensibility.md) | Custom metrics, plugins, adapters |
 | [Snapshots](docs/snapshots.md) | Snapshot testing guide |
-| [Plan Forward](src/AgentEval/AgentEval-plan-forward.md) | Roadmap and strategic direction |
+| [Roadmap](docs/roadmap.md) | Future development plans |
 
 ---
 
 ## Test Coverage
 
-AgentEval has **570 tests** (1710 total across 3 target frameworks) covering:
+AgentEval has **707 tests** (2121 total across 3 target frameworks) covering:
 - Tool call assertions and reporting
 - Multi-turn conversation testing
 - Snapshot comparison and storage
@@ -356,6 +369,17 @@ AgentEval has **570 tests** (1710 total across 3 target frameworks) covering:
 - Dataset loaders (JSON, JSONL, CSV, YAML)
 - Embedding similarity utilities
 - Serialization and error handling
+
+---
+
+## Contributing
+
+Contributions are welcome! Please see:
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) - Community standards
+- [SECURITY.md](SECURITY.md) - Security policy
+
+For bug reports and feature requests, use our [GitHub issue templates](.github/ISSUE_TEMPLATE/).
 
 ---
 

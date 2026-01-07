@@ -79,7 +79,7 @@ public async Task Agent_ShouldUseWeatherTool()
     var result = await harness.RunTestAsync(adapter, testCase);
 
     // Assert: Fluent tool assertions
-    result.ToolCalls.Should()
+    result.ToolUsage!.Should()
         .HaveCalledTool("get_weather")
         .WithArgument("location", "Seattle");
     
@@ -110,7 +110,7 @@ public async Task Agent_ShouldMeetPerformanceSLAs()
     var result = await harness.RunTestAsync(adapter, testCase);
 
     // Assert: Performance metrics
-    result.Performance.Should()
+    result.Performance!.Should()
         .HaveTotalDurationUnder(TimeSpan.FromSeconds(5))
         .HaveTimeToFirstTokenUnder(TimeSpan.FromMilliseconds(500))
         .HaveEstimatedCostUnder(0.05m);
@@ -160,8 +160,8 @@ public class AdvancedAgentTests
         var result = await harness.RunTestAsync(adapter, testCase);
 
         // Assert: AI-evaluated quality
-        Assert.True(result.Passed, result.FailureReason);
-        Assert.True(result.EvaluationScore >= 0.8, $"Score was {result.EvaluationScore}");
+        Assert.True(result.Passed, result.Details);
+        Assert.True(result.Score >= 80, $"Score was {result.Score}");
     }
 }
 ```
@@ -236,7 +236,7 @@ Example `testcases.yaml`:
 
 ```csharp
 // Tool assertions
-result.ToolCalls.Should()
+result.ToolUsage!.Should()
     .HaveCalledTool("tool_name")
     .NotHaveCalledTool("forbidden_tool")
     .HaveCallCount(3)
@@ -246,14 +246,14 @@ result.ToolCalls.Should()
     .WithDurationUnder(TimeSpan.FromSeconds(1));
 
 // Performance assertions
-result.Performance.Should()
+result.Performance!.Should()
     .HaveTotalDurationUnder(TimeSpan.FromSeconds(5))
     .HaveTimeToFirstTokenUnder(TimeSpan.FromMilliseconds(500))
     .HaveTokenCountUnder(1000)
     .HaveEstimatedCostUnder(0.10m);
 
 // Response assertions
-result.Output.Should()
+result.ActualOutput!.Should()
     .Contain("expected text")
     .ContainAll("word1", "word2")
     .ContainAny("option1", "option2")

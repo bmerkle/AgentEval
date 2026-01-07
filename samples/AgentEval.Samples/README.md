@@ -23,6 +23,11 @@ You'll see an interactive menu to run each sample.
 | **03 - Agent + Multi Tools** | Tool ordering, timeline visualization | 7 min |
 | **04 - Performance Metrics** | Latency, cost, TTFT, token tracking | 5 min |
 | **05 - RAG Evaluation** | FaithfulnessMetric, hallucination detection | 5 min |
+| **06 - Benchmarks** | PerformanceBenchmark, AgenticBenchmark | 7 min |
+| **07 - Snapshot Testing** | Regression testing, JSON diff, scrubbing | 5 min |
+| **08 - Conversation Testing** | Multi-turn, ConversationRunner | 7 min |
+| **09 - Workflow Testing** | Orchestration, edge assertions | 7 min |
+| **10 - Datasets & Export** | Batch evaluation, JUnit/Markdown export | 5 min |
 
 ## 🔧 Prerequisites
 
@@ -61,12 +66,9 @@ Assert.True(result.Passed);
 Track tool calls and use fluent assertions.
 
 ```csharp
-var result = await harness.RunTestAsync(adapter, testCase, new TestOptions
-{
-    TrackTools = true
-});
+var result = await harness.RunTestAsync(adapter, testCase);
 
-result.ToolUsage
+result.ToolUsage!
     .Should()
     .HaveCalledTool("CalculatorTool")
         .WithoutError()
@@ -148,14 +150,19 @@ result.Performance.Should()
 
 ```
 AgentEval.Samples/
-├── Program.cs               # Interactive menu
-├── AIConfig.cs              # Azure OpenAI configuration
-├── Sample01_HelloWorld.cs   # Basic test setup
+├── Program.cs                        # Interactive menu
+├── AIConfig.cs                       # Azure OpenAI configuration
+├── Sample01_HelloWorld.cs            # Basic test setup
 ├── Sample02_AgentWithOneTool.cs      # Tool tracking
 ├── Sample03_AgentWithMultipleTools.cs # Tool ordering
-├── Sample04_PerformanceMetrics.cs     # Performance tracking
-├── Sample05_RAGEvaluation.cs          # RAG metrics
-└── README.md                # This file
+├── Sample04_PerformanceMetrics.cs    # Performance tracking
+├── Sample05_RAGEvaluation.cs         # RAG metrics
+├── Sample06_Benchmarks.cs            # Benchmark runners
+├── Sample07_SnapshotTesting.cs       # Snapshot/regression testing
+├── Sample08_ConversationTesting.cs   # Multi-turn conversations
+├── Sample09_WorkflowTesting.cs       # Workflow orchestration
+├── Sample10_DatasetsAndExport.cs     # Batch eval & export
+└── README.md                         # This file
 ```
 
 ## 🔗 Next Steps

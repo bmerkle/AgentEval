@@ -3,8 +3,9 @@
 > **The first .NET-native AI agent testing and evaluation framework**
 
 **Version:** 1.0.0-alpha  
-**Last Updated:** January 6, 2026  
-**Status:** ✅ Core + Production Infrastructure Complete
+**Last Updated:** January 7, 2026  
+**Status:** ✅ Launch Ready (707 tests, 10 samples)  
+**NuGet:** https://www.nuget.org/packages/AgentEval
 
 ## Executive Summary
 
@@ -66,257 +67,19 @@ AgentEval is a comprehensive testing, evaluation, and benchmarking framework des
 
 ---
 
-## Competitor Analysis
+## Key Differentiators
 
-### 0. Microsoft.Extensions.AI.Evaluation (Official .NET) 🆕
-
-**Status:** `[Experimental("AIEVAL001")]` - Active development in `dotnet/extensions`
-
-**What it does well:**
-- Official Microsoft package with enterprise backing
-- Clean IEvaluator interface with EvaluationResult
-- Quality evaluators: Fluency, Coherence, Relevance (1-5 scores)
-- RAG evaluators: Groundedness, Equivalence, Completeness, Retrieval
-- Agentic evaluators: TaskAdherence, IntentResolution, ToolCallAccuracy
-
-**Key Interface:**
-```csharp
-public interface IEvaluator
-{
-    IReadOnlyCollection<string> EvaluationMetricNames { get; }
-    ValueTask<EvaluationResult> EvaluateAsync(
-        IEnumerable<ChatMessage> messages,
-        ChatResponse modelResponse,
-        ChatConfiguration? chatConfiguration = null,
-        IEnumerable<EvaluationContext>? additionalContext = null,
-        CancellationToken cancellationToken = default);
-}
-```
-
-**Gaps we fill:**
-- No tool timing/duration tracking
-- No per-tool performance metrics
-- No fluent assertion API
-- No streaming TTFT metrics
-- No cost estimation
-- No benchmark infrastructure
-- No MAF integration
-- Uses 1-5 scale (we use 0-100)
-
----
-
-### 1. DeepEval (Python) ⭐ 12.8k GitHub Stars
-
-**What it does well:**
-- 14+ agentic metrics (tool correctness, task completion)
-- Red-teaming and vulnerability testing
-- Synthetic dataset generation
-- CI/CD integration with Confident AI platform
-
-**Key Metrics:**
-```python
-# DeepEval's agentic metrics
-- ToolCorrectnessMetric  # Did agent use right tools?
-- TaskCompletionMetric   # Did agent complete the task?
-- AgentRelevancyMetric   # Were agent actions relevant?
-```
-
-**Gaps we can fill:**
-- Python-only (no .NET support)
-- No streaming timing metrics
-- Complex setup for simple tests
-
----
-
-### 2. Promptfoo (Node.js) ⭐ 9.7k GitHub Stars
-
-**What it does well:**
-- YAML-based test configuration
-- Red-teaming with 30+ vulnerability plugins
-- Model comparison and A/B testing
-- Self-hosted with privacy focus
-
-**Architecture:**
-```yaml
-# Promptfoo's declarative approach
-prompts:
-  - "What is {{topic}}?"
-providers:
-  - openai:gpt-4
-  - anthropic:claude-3
-tests:
-  - vars: { topic: "AI safety" }
-    assert:
-      - type: contains
-        value: "alignment"
-```
-
-**Gaps we can fill:**
-- Node.js only
-- No native .NET integration
-- Config-heavy vs code-first approach
-
----
-
-### 3. RAGAS (Python) ⭐ 12k GitHub Stars
-
-**What it does well:**
-- RAG-specific metrics (faithfulness, relevance, context recall)
-- Synthetic test data generation
-- Academic rigor with published papers
-
-**Key RAG Metrics:**
-```python
-# RAGAS metrics we should port
-- Faithfulness      # Is answer grounded in context?
-- AnswerRelevancy   # Does answer address the question?
-- ContextPrecision  # Is retrieved context relevant?
-- ContextRecall     # Was all needed context retrieved?
-```
-
-**Gaps we can fill:**
-- Python-only
-- RAG-focused, less agentic
-- No tool tracking
-
----
-
-### 4. LangSmith (SaaS by LangChain)
-
-**What it does well:**
-- Production monitoring and tracing
-- Dataset management
-- Human annotation workflows
-- Beautiful UI/UX
-
-**Gaps we can fill:**
-- Paid SaaS model
-- LangChain ecosystem lock-in
-- No offline/local option
-
----
-
-### 5. Inspect AI (UK AI Safety Institute)
-
-**What it does well:**
-- Government-backed safety focus
-- Sandboxed tool execution
-- Multi-turn conversation testing
-- Agentic benchmarks
-
-**Gaps we can fill:**
-- Python-only
-- Safety-focused, less general purpose
-- Steep learning curve
-
----
-
-### 6. Braintrust
-
-**What it does well:**
-- Production evals at scale
-- Experiment tracking
-- Multi-language SDKs (including TypeScript)
-
-**Gaps we can fill:**
-- SaaS-first model
-- No native .NET SDK
-- Enterprise pricing
-
----
-
-### 7. BenchmarkLlm (DotNetAgents Patterns) 🆕
-
-**Source:** [github.com/dotnetagents/patterns](https://github.com/dotnetagents/patterns/tree/main/src/DotNetAgents.BenchmarkLlm)
-
-**What it does well:**
-- .NET-native benchmarking via `[BenchmarkLlm]` and `[WorkflowBenchmark]` attributes
-- OpenTelemetry-based telemetry collection (spans, tokens, latency)
-- LLM-as-Judge with 8 quality dimensions (1-5 scale)
-- Two evaluator types: Content (articles/text) and Task (tool-use agents)
-- Exporters: Console, Markdown, JSON
-- Baseline comparison for A/B testing
-- Comparative analysis across multiple benchmark runs
-
-**Key Features:**
-```csharp
-// Attribute-based benchmark discovery
-[WorkflowBenchmark("Write an article about AI")]
-public class MyBenchmarks
-{
-    [BenchmarkLlm("gpt-4")]
-    public async Task<string> Gpt4Workflow() => await RunAsync();
-    
-    [BenchmarkLlm("claude-3", Baseline = true)]
-    public async Task<string> ClaudeWorkflow() => await RunAsync();
-}
-```
-
-**Quality Dimensions (1-5 scale):**
-| Dimension | Description |
-|-----------|-------------|
-| Completeness | Coverage of topic/task completion |
-| Structure | Organization and logical flow |
-| Accuracy | Factual/decision correctness |
-| Engagement | Communication quality |
-| Evidence Quality | Use of data/tool responses |
-| Balance | Pros and cons coverage |
-| Actionability | Practical guidance |
-| Depth | Handling details/edge cases |
-
-**Gaps we fill:**
-- No per-tool timing or duration tracking
-- No tool call timeline with start/end offsets
-- No fluent assertion API
-- No streaming TTFT metrics
-- No cost estimation (tokens only)
-- No MAF ChatClient adapter
-- No xUnit/NUnit/MSTest integration
-- No workflow graph/edge traversal testing
-
----
-
-## AgentEval vs BenchmarkLlm Feature Comparison
-
-| Feature | BenchmarkLlm | AgentEval |
-|---------|--------------|-----------|
-| **Language** | .NET ✅ | .NET ✅ |
-| **Benchmark Discovery** | `[BenchmarkLlm]` attributes | `PerformanceBenchmark` / `AgenticBenchmark` classes |
-| **Telemetry** | OpenTelemetry spans | Native `PerformanceMetrics` |
-| **Tool Tracking** | ❌ No tool calls | ✅ Full `ToolCallRecord` timeline |
-| **Tool Timing** | ❌ | ✅ Start/End/Duration per tool |
-| **Streaming TTFT** | ❌ | ✅ `TimeToFirstToken` |
-| **Cost Estimation** | ❌ | ✅ 8+ models with custom pricing |
-| **LLM-as-Judge** | ✅ 8 dimensions (1-5) | ✅ Configurable (0-100) |
-| **Evaluator Types** | Content, Task | RAG, Agentic, Custom |
-| **Fluent Assertions** | ❌ | ✅ `.Should().HaveCalledTool()` |
-| **Unit Test Integration** | ❌ | ✅ xUnit/NUnit/MSTest |
-| **MAF Integration** | ❌ | ✅ `MAFAgentAdapter` |
-| **Workflow Graphs** | ❌ | ✅ Edge assertions, conditional branches |
-| **Baseline Comparison** | ✅ A/B testing | ✅ Snapshot comparison |
-| **Export Formats** | Console, Markdown, JSON | JSON, JUnit, Markdown, TRX |
-| **CLI Tool** | ❌ | ✅ `agenteval eval` |
-| **Dataset Loaders** | ❌ | ✅ YAML/JSON/JSONL/CSV |
-| **Multi-turn Testing** | ❌ | ✅ `ConversationRunner` |
-
-**Bottom Line:** BenchmarkLlm excels at attribute-based benchmark discovery and LLM-as-Judge quality scoring for comparing model outputs. AgentEval focuses on **agentic testing** with tool tracking, streaming metrics, fluent assertions, and CI/CD integration. They are complementary - BenchmarkLlm for model comparison, AgentEval for agent testing.
-
----
-
-## AgentEval Unique Differentiators
-
-| Feature | DeepEval | Promptfoo | RAGAS | BenchmarkLlm | AgentEval |
-|---------|----------|-----------|-------|--------------|-----------|
-| .NET Native | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Fluent API | ❌ | ❌ | ❌ | ❌ | ✅ |
-| MAF Integration | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Tool Tracking | ✅ | ❌ | ❌ | ❌ | ✅ |
-| Streaming Timing | ❌ | ❌ | ❌ | ❌ | ✅ |
-| AI Evaluation | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Cost Estimation | Partial | ❌ | ❌ | ❌ | ✅ |
-| xUnit/NUnit/MSTest | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Offline/Local | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Workflow Graphs | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Feature | Description | AgentEval Advantage |
+|---------|-------------|---------------------|
+| **.NET Native** | Built specifically for the .NET ecosystem | First comprehensive .NET framework for AI agent testing |
+| **Fluent API** | Chainable assertion methods | `Should().HaveCalledTool().BeforeTool()` - intuitive, discoverable syntax |
+| **Tool Timeline** | Complete record of all tool invocations with order, arguments, results, and errors | Enables debugging "what did my agent actually do?" |
+| **Tool Timing** | Per-tool start/end timestamps and duration measurement | Identify slow tools and optimize agent performance |
+| **Streaming TTFT** | Time-to-First-Token measurement during streaming responses | Critical for UX - measures perceived latency |
+| **Cost Estimation** | Automatic cost calculation based on token usage and model pricing | 8+ models with custom pricing support |
+| **Workflow Testing** | Test multi-agent orchestration paths and conditional routing | Edge assertions, Mermaid diagram export |
+| **MAF Integration** | First-class Microsoft Agent Framework adapter | `MAFAgentAdapter` wraps any MAF agent |
+| **CI/CD Ready** | Export test results for pipeline integration | JUnit XML, Markdown, TRX formats |
 
 ---
 
@@ -349,11 +112,15 @@ public class MyBenchmarks
 - [x] Task completion with AI evaluation
 - [x] Custom metric interface for extensibility
 
-### Phase 5: Ecosystem 🔄 IN PROGRESS
-- [ ] NuGet package publication
-- [ ] Visual Studio test integration
-- [ ] GitHub Actions templates
-- [ ] Dashboard/reporting UI
+### Phase 5: Production Infrastructure ✅ COMPLETE
+- [x] NuGet package publication (1.0.0-alpha)
+- [x] CLI tool with eval, init, list commands
+- [x] Result exporters (JSON, JUnit, Markdown, TRX)
+- [x] Dataset loaders (JSON, JSONL, CSV, YAML)
+- [x] Snapshot testing with SnapshotComparer
+- [ ] Visual Studio test integration (future)
+- [ ] GitHub Actions templates (future)
+- [ ] Dashboard/reporting UI (future)
 
 ---
 
@@ -1390,33 +1157,41 @@ public async Task FaithfulnessMetric_HighScore_WhenFullyGrounded()
 How we'll know AgentEval is successful:
 
 | Metric | Target | Current |
-|--------|--------|---------|
+|--------|--------|---------||
 | Core Features | Complete | ✅ 100% |
-| Test Coverage | 80%+ | ✅ 210 tests |
+| Test Coverage | 80%+ | ✅ 707 tests |
 | Framework Adapters | MAF | ✅ MAF Complete |
 | Target Frameworks | 3+ | ✅ net8.0, net9.0, net10.0 |
-| GitHub Stars | 500+ first year | 🔄 Not published yet |
-| NuGet Downloads | 10,000+ monthly | 🔄 Not published yet |
+| NuGet Package | Published | ✅ 1.0.0-alpha |
 
 ---
 
-## Next Steps
+## What's Next
 
-See **[AgentEval-plan-forward.md](AgentEval-plan-forward.md)** for detailed roadmap.
+### Completed ✅
 
-### Immediate Priorities
+1. ✅ Core test harness with AI evaluation
+2. ✅ Streaming support with TTFT tracking
+3. ✅ Performance metrics and assertions
+4. ✅ Benchmarking infrastructure
+5. ✅ RAG and Agentic metrics
+6. ✅ CLI tool with exporters
+7. ✅ Snapshot testing
+8. ✅ Multi-turn conversation testing
+9. ✅ Workflow testing
+10. ✅ NuGet package published
 
-1. ✅ Document design (this file)
-2. ✅ Implement streaming support
-3. ✅ Add PerformanceMetrics
-4. ✅ Implement performance assertions
-5. ✅ Add benchmarking infrastructure
-6. ✅ Port RAG metrics
-7. ✅ Implement agentic metrics
-8. 🔄 Extract to standalone repository
-9. 🔄 Publish NuGet package
+### Future Enhancements
+
+- Visual Studio test integration
+- GitHub Actions templates
+- Record/Replay for deterministic testing
+- Red-teaming and safety testing
+- Dashboard/reporting UI
+
+See [docs/roadmap.md](../../docs/roadmap.md) for the public roadmap.
 
 ---
 
-*Last Updated: January 2026*  
-*Status: ✅ Core Implementation Complete*
+*Last Updated: January 7, 2026*  
+*Status: ✅ Launch Ready*
