@@ -88,9 +88,11 @@ public static class ModelPricing
         new(StringComparer.OrdinalIgnoreCase)
     {
         // OpenAI models
+        ["gpt-5-mini"] = (0.0001m, 0.0004m),  // gpt-5-mini pricing (placeholder, similar to gpt-4o-mini)
         ["gpt-4o"] = (0.005m, 0.015m),
         ["gpt-4o-2024-11-20"] = (0.0025m, 0.01m),
         ["gpt-4o-mini"] = (0.00015m, 0.0006m),
+        ["gpt-4.1"] = (0.01m, 0.03m),  // gpt-4.1 pricing (placeholder, similar to gpt-4-turbo)
         ["gpt-4-turbo"] = (0.01m, 0.03m),
         ["gpt-4"] = (0.03m, 0.06m),
         ["gpt-3.5-turbo"] = (0.0005m, 0.0015m),

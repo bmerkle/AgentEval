@@ -59,7 +59,8 @@ public static class Sample14_StochasticTesting
         var stochasticRunner = new StochasticRunner(harness, new TestOptions
         {
             TrackTools = true,
-            TrackPerformance = true
+            TrackPerformance = true,
+            ModelName = AIConfig.ModelDeployment
         });
         Console.WriteLine("   ✓ Stochastic runner ready\n");
         
@@ -94,14 +95,11 @@ public static class Sample14_StochasticTesting
         Console.WriteLine("📝 Step 4: Results\n");
         Console.WriteLine($"   {result.Summary}\n");
         
-        // Main metrics table (using extension method)
+        // Main metrics table (now includes performance summary)
         result.PrintTable("Performance Metrics");
         
         // Tool usage summary
         result.PrintToolSummary("CalculatorTool");
-        
-        // Performance extremes (fastest/slowest)
-        result.PrintPerformanceSummary();
         
         // ═══════════════════════════════════════════════════════════════
         // STEP 5: Assertions

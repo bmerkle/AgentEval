@@ -61,9 +61,9 @@ public class OutputOptions
     public bool ShowDuration { get; set; } = true;
 
     /// <summary>
-    /// Show time to first token (TTFT). Default: false (opt-in).
+    /// Show time to first token (TTFT). Default: true.
     /// </summary>
-    public bool ShowTimeToFirstToken { get; set; } = false;
+    public bool ShowTimeToFirstToken { get; set; } = true;
 
     /// <summary>
     /// Show total token count. Default: true.

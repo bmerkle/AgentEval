@@ -35,10 +35,22 @@ public class MAFAgentAdapter : IStreamableAgent
         var thread = _thread ?? _agent.GetNewThread();
         var response = await _agent.RunAsync(prompt, thread, cancellationToken: cancellationToken);
         
+        // Extract token usage from AgentRunResponse.Usage property
+        TokenUsage? tokenUsage = null;
+        if (response.Usage != null)
+        {
+            tokenUsage = new TokenUsage
+            {
+                PromptTokens = (int)(response.Usage.InputTokenCount ?? 0),
+                CompletionTokens = (int)(response.Usage.OutputTokenCount ?? 0)
+            };
+        }
+        
         return new AgentResponse
         {
             Text = response.Text,
-            RawMessages = response.Messages.ToList()
+            RawMessages = response.Messages.ToList(),
+            TokenUsage = tokenUsage
         };
     }
     

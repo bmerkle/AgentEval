@@ -31,107 +31,124 @@ public static class TableFormatter
         {
             writer.WriteLine($"\n{indent}📊 {title}");
         }
-        writer.WriteLine($"{indent}" + new string('─', 80));
+        writer.WriteLine($"{indent}" + new string('─', 95));
         
         // Header
-        writer.WriteLine($"{indent}{{0,-25}} {{1,10}} {{2,10}} {{3,10}} {{4,10}}", 
-            "Metric", "Min", "Max", "Mean", "Samples");
-        writer.WriteLine($"{indent}" + new string('─', 80));
+        writer.WriteLine($"{indent}{{0,-25}} {{1,10}} {{2,10}} {{3,10}} {{4,10}} {{5,10}}", 
+            "Metric", "Min", "Max", "Mean", "Variance", "Samples");
+        writer.WriteLine($"{indent}" + new string('─', 95));
         
         // Score row
         if (options.ShowScore)
         {
-            writer.WriteLine($"{indent}{{0,-25}} {{1,10}} {{2,10}} {{3,10:F1}} {{4,10}}",
+            var scoreVariance = CalculateVariancePercent(result.Statistics.MinScore, result.Statistics.MaxScore, result.Statistics.MeanScore);
+            writer.WriteLine($"{indent}{{0,-25}} {{1,10}} {{2,10}} {{3,10:F1}} {{4,10}} {{5,10}}",
                 "Score",
                 result.Statistics.MinScore,
                 result.Statistics.MaxScore,
                 result.Statistics.MeanScore,
+                FormatVarianceWithColor(scoreVariance, options.UseColors),
                 result.Statistics.SampleSize);
         }
         
         // Pass Rate
         if (options.ShowPassRate)
         {
-            writer.WriteLine($"{indent}{{0,-25}} {{1,10}} {{2,10}} {{3,10:P0}} {{4,10}}",
+            writer.WriteLine($"{indent}{{0,-25}} {{1,10}} {{2,10}} {{3,10:P0}} {{4,10}} {{5,10}}",
                 "Pass Rate",
                 "-",
                 "-",
                 result.Statistics.PassRate,
+                "-",
                 result.Statistics.SampleSize);
         }
         
         // Duration
         if (options.ShowDuration)
         {
-            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F0}} {{2,10:F0}} {{3,10:F0}} {{4,10}}",
+            var durationVariance = CalculateVariancePercent(result.DurationStats.Min, result.DurationStats.Max, result.DurationStats.Mean);
+            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F0}} {{2,10:F0}} {{3,10:F0}} {{4,10}} {{5,10}}",
                 "Duration (ms)",
                 result.DurationStats.Min,
                 result.DurationStats.Max,
                 result.DurationStats.Mean,
+                FormatVarianceWithColor(durationVariance, options.UseColors),
                 result.DurationStats.SampleSize);
         }
         
         // TTFT
         if (options.ShowTimeToFirstToken && result.TimeToFirstTokenStats != null)
         {
-            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F0}} {{2,10:F0}} {{3,10:F0}} {{4,10}}",
+            var ttftVariance = CalculateVariancePercent(result.TimeToFirstTokenStats.Min, result.TimeToFirstTokenStats.Max, result.TimeToFirstTokenStats.Mean);
+            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F0}} {{2,10:F0}} {{3,10:F0}} {{4,10}} {{5,10}}",
                 "TTFT (ms)",
                 result.TimeToFirstTokenStats.Min,
                 result.TimeToFirstTokenStats.Max,
                 result.TimeToFirstTokenStats.Mean,
+                FormatVarianceWithColor(ttftVariance, options.UseColors),
                 result.TimeToFirstTokenStats.SampleSize);
         }
         
         // Tokens
         if (options.ShowTokens && result.TotalTokenStats != null && result.TotalTokenStats.Max > 0)
         {
-            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F0}} {{2,10:F0}} {{3,10:F0}} {{4,10}}",
+            var tokenVariance = CalculateVariancePercent(result.TotalTokenStats.Min, result.TotalTokenStats.Max, result.TotalTokenStats.Mean);
+            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F0}} {{2,10:F0}} {{3,10:F0}} {{4,10}} {{5,10}}",
                 "Total Tokens",
                 result.TotalTokenStats.Min,
                 result.TotalTokenStats.Max,
                 result.TotalTokenStats.Mean,
+                FormatVarianceWithColor(tokenVariance, options.UseColors),
                 result.TotalTokenStats.SampleSize);
         }
         
         if (options.ShowPromptTokens && result.PromptTokenStats != null && result.PromptTokenStats.Max > 0)
         {
-            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F0}} {{2,10:F0}} {{3,10:F0}} {{4,10}}",
+            var promptVariance = CalculateVariancePercent(result.PromptTokenStats.Min, result.PromptTokenStats.Max, result.PromptTokenStats.Mean);
+            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F0}} {{2,10:F0}} {{3,10:F0}} {{4,10}} {{5,10}}",
                 "Prompt Tokens",
                 result.PromptTokenStats.Min,
                 result.PromptTokenStats.Max,
                 result.PromptTokenStats.Mean,
+                FormatVarianceWithColor(promptVariance, options.UseColors),
                 result.PromptTokenStats.SampleSize);
         }
         
         if (options.ShowCompletionTokens && result.CompletionTokenStats != null && result.CompletionTokenStats.Max > 0)
         {
-            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F0}} {{2,10:F0}} {{3,10:F0}} {{4,10}}",
+            var completionVariance = CalculateVariancePercent(result.CompletionTokenStats.Min, result.CompletionTokenStats.Max, result.CompletionTokenStats.Mean);
+            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F0}} {{2,10:F0}} {{3,10:F0}} {{4,10}} {{5,10}}",
                 "Completion Tokens",
                 result.CompletionTokenStats.Min,
                 result.CompletionTokenStats.Max,
                 result.CompletionTokenStats.Mean,
+                FormatVarianceWithColor(completionVariance, options.UseColors),
                 result.CompletionTokenStats.SampleSize);
         }
         
         // Cost
         if (options.ShowCost && result.CostStats != null && result.CostStats.Max > 0)
         {
-            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F6}} {{2,10:F6}} {{3,10:F6}} {{4,10}}",
+            var costVariance = CalculateVariancePercent(result.CostStats.Min, result.CostStats.Max, result.CostStats.Mean);
+            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F6}} {{2,10:F6}} {{3,10:F6}} {{4,10}} {{5,10}}",
                 "Cost ($)",
                 result.CostStats.Min,
                 result.CostStats.Max,
                 result.CostStats.Mean,
+                FormatVarianceWithColor(costVariance, options.UseColors),
                 result.CostStats.SampleSize);
         }
         
         // Tool Calls
         if (options.ShowToolCalls)
         {
-            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F0}} {{2,10:F0}} {{3,10:F1}} {{4,10}}",
+            var toolCallVariance = CalculateVariancePercent(result.ToolCallCountStats.Min, result.ToolCallCountStats.Max, result.ToolCallCountStats.Mean);
+            writer.WriteLine($"{indent}{{0,-25}} {{1,10:F0}} {{2,10:F0}} {{3,10:F1}} {{4,10}} {{5,10}}",
                 "Tool Calls/Run",
                 result.ToolCallCountStats.Min,
                 result.ToolCallCountStats.Max,
                 result.ToolCallCountStats.Mean,
+                FormatVarianceWithColor(toolCallVariance, options.UseColors),
                 result.ToolCallCountStats.SampleSize);
         }
         
@@ -140,16 +157,18 @@ public static class TableFormatter
         {
             foreach (var (name, stats) in result.MetricDistributions)
             {
-                writer.WriteLine($"{indent}{{0,-25}} {{1,10:F2}} {{2,10:F2}} {{3,10:F2}} {{4,10}}",
+                var metricVariance = CalculateVariancePercent(stats.Min, stats.Max, stats.Mean);
+                writer.WriteLine($"{indent}{{0,-25}} {{1,10:F2}} {{2,10:F2}} {{3,10:F2}} {{4,10}} {{5,10}}",
                     name,
                     stats.Min,
                     stats.Max,
                     stats.Mean,
+                    FormatVarianceWithColor(metricVariance, options.UseColors),
                     stats.SampleSize);
             }
         }
         
-        writer.WriteLine($"{indent}" + new string('─', 80));
+        writer.WriteLine($"{indent}" + new string('─', 95));
     }
 
     /// <summary>
@@ -196,7 +215,7 @@ public static class TableFormatter
         var indent = options.Indent;
         
         writer.WriteLine($"\n{indent}📊 Model Comparison Results");
-        writer.WriteLine($"{indent}" + new string('═', 100));
+        writer.WriteLine($"{indent}" + new string('=', 100));
         
         // Determine column widths
         int modelColWidth = Math.Max(15, modelResults.Max(m => m.ModelName.Length) + 2);
@@ -208,43 +227,49 @@ public static class TableFormatter
         
         if (options.ShowPassRate)
         {
-            sb.Append(" │ ");
+            sb.Append(" | ");
             sb.Append("Pass%".PadLeft(6));
         }
         
         if (options.ShowScore)
         {
-            sb.Append(" │ ");
+            sb.Append(" | ");
             sb.Append("Score".PadLeft(6));
         }
         
         if (options.ShowDuration)
         {
-            sb.Append(" │ ");
+            sb.Append(" | ");
             sb.Append("Dur(ms)".PadLeft(8));
+            sb.Append(" | ");
+            sb.Append("DurVar".PadLeft(7));
         }
         
         if (options.ShowTimeToFirstToken)
         {
-            sb.Append(" │ ");
+            sb.Append(" | ");
             sb.Append("TTFT".PadLeft(6));
         }
         
         if (options.ShowTokens)
         {
-            sb.Append(" │ ");
+            sb.Append(" | ");
             sb.Append("Tokens".PadLeft(7));
+            sb.Append(" | ");
+            sb.Append("TokVar".PadLeft(7));
         }
         
         if (options.ShowCost)
         {
-            sb.Append(" │ ");
+            sb.Append(" | ");
             sb.Append("Cost($)".PadLeft(9));
+            sb.Append(" | ");
+            sb.Append("CostVar".PadLeft(8));
         }
         
         if (options.ShowToolSuccess)
         {
-            sb.Append(" │ ");
+            sb.Append(" | ");
             sb.Append("ToolOK%".PadLeft(7));
         }
         
@@ -260,12 +285,12 @@ public static class TableFormatter
         
         foreach (var metric in allMetrics)
         {
-            sb.Append(" │ ");
+            sb.Append(" | ");
             sb.Append(TruncateMetricName(metric).PadLeft(8));
         }
         
         writer.WriteLine(sb.ToString());
-        writer.WriteLine($"{indent}" + new string('─', 100));
+        writer.WriteLine($"{indent}" + new string('-', 100));
         
         // Data rows
         foreach (var (modelName, result) in modelResults)
@@ -276,46 +301,69 @@ public static class TableFormatter
             
             if (options.ShowPassRate)
             {
-                sb.Append(" │ ");
+                sb.Append(" | ");
                 sb.Append($"{result.Statistics.PassRate:P0}".PadLeft(6));
             }
             
             if (options.ShowScore)
             {
-                sb.Append(" │ ");
+                sb.Append(" | ");
                 sb.Append($"{result.Statistics.MeanScore:F1}".PadLeft(6));
             }
             
             if (options.ShowDuration)
             {
-                sb.Append(" │ ");
+                sb.Append(" | ");
                 sb.Append($"{result.DurationStats.Mean:F0}".PadLeft(8));
+                sb.Append(" | ");
+                var durVariance = CalculateVariancePercent(result.DurationStats.Min, result.DurationStats.Max, result.DurationStats.Mean);
+                sb.Append(FormatVarianceWithColor(durVariance, options.UseColors).PadLeft(7));
             }
             
             if (options.ShowTimeToFirstToken)
             {
-                sb.Append(" │ ");
+                sb.Append(" | ");
                 var ttft = result.TimeToFirstTokenStats?.Mean;
                 sb.Append(ttft.HasValue ? $"{ttft:F0}".PadLeft(6) : "N/A".PadLeft(6));
             }
             
             if (options.ShowTokens)
             {
-                sb.Append(" │ ");
+                sb.Append(" | ");
                 var tokens = result.TotalTokenStats?.Mean ?? 0;
                 sb.Append(tokens > 0 ? $"{tokens:F0}".PadLeft(7) : "N/A".PadLeft(7));
+                sb.Append(" | ");
+                if (result.TotalTokenStats != null && tokens > 0)
+                {
+                    var tokVariance = CalculateVariancePercent(result.TotalTokenStats.Min, result.TotalTokenStats.Max, result.TotalTokenStats.Mean);
+                    sb.Append(FormatVarianceWithColor(tokVariance, options.UseColors).PadLeft(7));
+                }
+                else
+                {
+                    sb.Append("N/A".PadLeft(7));
+                }
             }
             
             if (options.ShowCost)
             {
-                sb.Append(" │ ");
+                sb.Append(" | ");
                 var cost = result.CostStats?.Mean ?? 0;
                 sb.Append(cost > 0 ? $"{cost:F5}".PadLeft(9) : "N/A".PadLeft(9));
+                sb.Append(" | ");
+                if (result.CostStats != null && cost > 0)
+                {
+                    var costVariance = CalculateVariancePercent(result.CostStats.Min, result.CostStats.Max, result.CostStats.Mean);
+                    sb.Append(FormatVarianceWithColor(costVariance, options.UseColors).PadLeft(8));
+                }
+                else
+                {
+                    sb.Append("N/A".PadLeft(8));
+                }
             }
             
             if (options.ShowToolSuccess)
             {
-                sb.Append(" │ ");
+                sb.Append(" | ");
                 var toolSuccess = GetToolSuccessRate(result);
                 sb.Append(toolSuccess.HasValue ? $"{toolSuccess:P0}".PadLeft(7) : "N/A".PadLeft(7));
             }
@@ -323,7 +371,7 @@ public static class TableFormatter
             // Metric values
             foreach (var metric in allMetrics)
             {
-                sb.Append(" │ ");
+                sb.Append(" | ");
                 if (result.MetricDistributions.TryGetValue(metric, out var stats))
                 {
                     sb.Append($"{stats.Mean:F2}".PadLeft(8));
@@ -337,7 +385,7 @@ public static class TableFormatter
             writer.WriteLine(sb.ToString());
         }
         
-        writer.WriteLine($"{indent}" + new string('═', 100));
+        writer.WriteLine($"{indent}" + new string('=', 100));
     }
 
     /// <summary>
@@ -428,5 +476,45 @@ public static class TableFormatter
         
         var runsWithoutErrors = runsWithTools.Count(r => !r.ToolUsage!.Calls.Any(c => c.HasError));
         return (double)runsWithoutErrors / runsWithTools.Count;
+    }
+
+    private static string CalculateVariancePercent(double min, double max, double mean)
+    {
+        if (mean == 0 || min == max) return "0.0%";
+        var range = max - min;
+        var variance = (range / mean) * 100;
+        return $"{variance:F1}%";
+    }
+
+    private static string FormatVarianceWithColor(string varianceString, bool useColors)
+    {
+        if (!useColors || varianceString == "0.0%" || varianceString == "-")
+        {
+            return varianceString;
+        }
+
+        // Extract numeric value from "XX.X%" format
+        var numericPart = varianceString.TrimEnd('%');
+        if (!double.TryParse(numericPart, out var variance))
+        {
+            return varianceString;
+        }
+
+        // Color-code based on thresholds:
+        // > 75% = Red (high variance, less consistent)
+        // > 50% = Yellow (moderate variance)
+        // <= 50% = Green (good consistency)
+        if (variance > 75)
+        {
+            return $"\u001b[91m{varianceString}\u001b[0m"; // Bright red
+        }
+        else if (variance > 50)
+        {
+            return $"\u001b[93m{varianceString}\u001b[0m"; // Bright yellow
+        }
+        else
+        {
+            return $"\u001b[92m{varianceString}\u001b[0m"; // Bright green
+        }
     }
 }

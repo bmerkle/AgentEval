@@ -493,8 +493,204 @@ result.Performance
     .Should()
     .HaveTotalDurationUnder(TimeSpan.FromSeconds(10))
     .HaveTimeToFirstTokenUnder(TimeSpan.FromSeconds(2))
-    .HaveEstimatedCostUnder(0.05m);
+    .HaveEstimatedCost Under(0.05m);
 ```
+
+### Token Usage Extraction Architecture
+
+#### Overview
+
+AgentEval extracts token usage and cost information from agent responses to enable comprehensive performance tracking. The architecture follows a three-layer pattern:
+
+1. **Agent Framework Layer** - Captures token usage from the underlying AI framework (MAF, Semantic Kernel, etc.)
+2. **Adapter Layer** - Normalizes token usage into AgentEval's `TokenUsage` model
+3. **Harness Layer** - Populates `PerformanceMetrics` and calculates cost
+
+#### Token Usage Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Azure OpenAI / Model Provider                                  │
+│  Returns: UsageDetails (InputTokenCount, OutputTokenCount)      │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+                              v
+┌─────────────────────────────────────────────────────────────────┐
+│  Microsoft Agent Framework (MAF)                                │
+│  AgentRunResponse.Usage: UsageDetails                           │
+│  - InputTokenCount: long (prompt tokens)                        │
+│  - OutputTokenCount: long (completion tokens)                   │
+│  - TotalTokenCount: long (computed)                             │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+                              v
+┌─────────────────────────────────────────────────────────────────┐
+│  MAFAgentAdapter (Adapter Layer)                                │
+│  Extracts: response.Usage → TokenUsage                          │
+│  Converts: long → int for token counts                          │
+│  Returns: AgentResponse { TokenUsage, RawMessages, Text }       │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+                              v
+┌─────────────────────────────────────────────────────────────────┐
+│  MAFTestHarness (Harness Layer)                                 │
+│  1. Extracts: response.TokenUsage                               │
+│  2. Populates: metrics.PromptTokens, metrics.CompletionTokens   │
+│  3. Calculates: metrics.EstimatedCost via ModelPricing          │
+│  Returns: TestResult { Performance: PerformanceMetrics }        │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              v
+┌─────────────────────────────────────────────────────────────────┐
+│  StochasticRunner / Output Layer                                │
+│  Aggregates: Min/Max/Mean statistics across multiple runs       │
+│  Displays: TableFormatter shows tokens and cost in tables       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+#### Implementation Details
+
+**1. MAFAgentAdapter Token Extraction** ([MAFAgentAdapter.cs](MAF/MAFAgentAdapter.cs))
+
+```csharp
+public async Task<AgentResponse> InvokeAsync(string prompt, CancellationToken cancellationToken = default)
+{
+    var thread = _thread ?? _agent.GetNewThread();
+    var response = await _agent.RunAsync(prompt, thread, cancellationToken: cancellationToken);
+    
+    // Extract token usage from AgentRunResponse.Usage property
+    TokenUsage? tokenUsage = null;
+    if (response.Usage != null)
+    {
+        tokenUsage = new TokenUsage
+        {
+            PromptTokens = (int)(response.Usage.InputTokenCount ?? 0),
+            CompletionTokens = (int)(response.Usage.OutputTokenCount ?? 0)
+        };
+    }
+    
+    return new AgentResponse
+    {
+        Text = response.Text,
+        RawMessages = response.Messages.ToList(),
+        TokenUsage = tokenUsage  // ✅ Token usage attached to response
+    };
+}
+```
+
+**Key Points:**
+- MAF's `AgentRunResponse.Usage` property contains the `UsageDetails` object
+- Token counts are `long` in MAF but `int` in AgentEval (explicit cast required)
+- Returns `null` if no usage data available
+
+**2. MAFTestHarness Metrics Population** ([MAFTestHarness.cs](MAF/MAFTestHarness.cs))
+
+```csharp
+// Extract token usage and calculate cost
+if (metrics != null && response.TokenUsage != null)
+{
+    metrics.PromptTokens = response.TokenUsage.PromptTokens;
+    metrics.CompletionTokens = response.TokenUsage.CompletionTokens;
+    
+    // Calculate estimated cost
+    if (metrics.ModelUsed != null && metrics.PromptTokens.HasValue && metrics.CompletionTokens.HasValue)
+    {
+        metrics.EstimatedCost = ModelPricing.EstimateCost(
+            metrics.ModelUsed,
+            metrics.PromptTokens.Value,
+            metrics.CompletionTokens.Value);
+    }
+}
+```
+
+**Key Points:**
+- Populates `PerformanceMetrics` from `AgentResponse.TokenUsage`
+- Calculates cost using `ModelPricing.EstimateCost()`
+- Requires `TestOptions.ModelName` to be set for cost calculation
+- Cost estimation uses pricing from `ModelPricing` dictionary
+
+**3. Model Pricing Configuration** ([PerformanceMetrics.cs](Models/PerformanceMetrics.cs))
+
+```csharp
+private static readonly ConcurrentDictionary<string, (decimal InputPer1K, decimal OutputPer1K)> _pricing = 
+    new(StringComparer.OrdinalIgnoreCase)
+{
+    // OpenAI models
+    ["gpt-5-mini"] = (0.0001m, 0.0004m),
+    ["gpt-4o"] = (0.005m, 0.015m),
+    ["gpt-4.1"] = (0.01m, 0.03m),
+    // ... more models
+};
+```
+
+**Cost Calculation:**
+```
+cost = (promptTokens / 1000 × inputPricePer1K) + (completionTokens / 1000 × outputPricePer1K)
+```
+
+#### Configuration Requirements
+
+For token usage and cost tracking to work, ensure:
+
+1. **Enable Performance Tracking:**
+   ```csharp
+   var options = new TestOptions 
+   { 
+       TrackPerformance = true,
+       ModelName = "gpt-5-mini"  // ✅ Required for cost estimation
+   };
+   ```
+
+2. **Add Custom Model Pricing:**
+   ```csharp
+   ModelPricing.SetPricing("custom-model", inputPer1K: 0.002m, outputPer1K: 0.006m);
+   ```
+
+3. **Enable Token Display:**
+   ```csharp
+   var outputOptions = new OutputOptions
+   {
+       ShowTokens = true,        // Show total tokens
+       ShowCost = true,          // Show estimated cost
+       ShowTimeToFirstToken = true  // Show TTFT (streaming only)
+   };
+   ```
+
+#### Limitations & Considerations
+
+| Aspect | Details |
+|--------|---------|
+| **TTFT (Time To First Token)** | Only available for streaming calls. Non-streaming calls will not populate this metric. |
+| **Token Count Accuracy** | Depends on the underlying model provider returning accurate `UsageDetails`. |
+| **Cost Estimation** | Based on public pricing as of January 2026. Use `ModelPricing.SetPricing()` to update. |
+| **Model Name Matching** | Case-insensitive substring matching. "gpt-4o" matches "gpt-4o-2024-11-20". |
+| **Multi-turn Conversations** | Token usage is per-call, not cumulative across conversation turns. |
+
+#### Debugging Token Extraction
+
+If tokens/cost are not showing in output:
+
+1. **Check TestOptions.ModelName is set:**
+   ```csharp
+   var options = new TestOptions { ModelName = AIConfig.ModelDeployment };
+   ```
+
+2. **Verify model has pricing:**
+   ```csharp
+   var pricing = ModelPricing.GetPricing("your-model-name");
+   if (pricing == null) { /* Add pricing */ }
+   ```
+
+3. **Confirm adapter extracts tokens:**
+   ```csharp
+   var response = await agent.InvokeAsync(prompt);
+   Console.WriteLine($"Tokens: {response.TokenUsage?.TotalTokens}");
+   ```
+
+4. **Check output options:**
+   ```csharp
+   result.PrintTable("Metrics", OutputOptions.Full);  // Shows all columns
+   ```
 
 ---
 

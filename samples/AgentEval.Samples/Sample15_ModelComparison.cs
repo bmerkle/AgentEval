@@ -65,7 +65,8 @@ public static class Sample15_ModelComparison
         var stochasticRunner = new StochasticRunner(harness, new TestOptions
         {
             TrackTools = true,
-            TrackPerformance = true
+            TrackPerformance = true,
+            ModelName = AIConfig.ModelDeployment // Will be overridden by factory
         });
         Console.WriteLine("   ✓ Test runner ready\n");
         

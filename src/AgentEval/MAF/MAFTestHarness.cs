@@ -105,6 +105,22 @@ public class MAFTestHarness : IStreamingTestHarness
                 }
             }
             
+            // Extract token usage and calculate cost
+            if (metrics != null && response.TokenUsage != null)
+            {
+                metrics.PromptTokens = response.TokenUsage.PromptTokens;
+                metrics.CompletionTokens = response.TokenUsage.CompletionTokens;
+                
+                // Calculate estimated cost
+                if (metrics.ModelUsed != null && metrics.PromptTokens.HasValue && metrics.CompletionTokens.HasValue)
+                {
+                    metrics.EstimatedCost = ModelPricing.EstimateCost(
+                        metrics.ModelUsed,
+                        metrics.PromptTokens.Value,
+                        metrics.CompletionTokens.Value);
+                }
+            }
+            
             // Capture performance metrics
             if (metrics != null)
             {

@@ -19,7 +19,7 @@ namespace AgentEval.Samples;
 /// 
 /// This demonstrates:
 /// - Running stochastic tests across multiple models
-/// - Comparing models with statistical rigor (10 runs each)
+/// - Comparing models with statistical rigor (5 runs each)
 /// - Full metrics: performance, tokens, cost, tool usage
 /// - Side-by-side comparison of all aggregated stats
 /// 
@@ -69,7 +69,8 @@ public static class Sample16_CombinedStochasticComparison
         var stochasticRunner = new StochasticRunner(harness, new TestOptions
         {
             TrackTools = true,
-            TrackPerformance = true
+            TrackPerformance = true,
+            ModelName = AIConfig.ModelDeployment // Will be overridden by factory
         });
         Console.WriteLine("   ✓ Stochastic runner ready\n");
         
@@ -89,16 +90,16 @@ public static class Sample16_CombinedStochasticComparison
         Console.WriteLine($"   ✓ Expected result: 579\n");
         
         // ═══════════════════════════════════════════════════════════════
-        // STEP 4: Configure stochastic options (10 runs per model)
+        // STEP 4: Configure stochastic options (5 runs per model)
         // ═══════════════════════════════════════════════════════════════
-        Console.WriteLine("📝 Step 4: Configuring stochastic options (10 runs per model)...\n");
+        Console.WriteLine("📝 Step 4: Configuring stochastic options (5 runs per model)...\n");
         
         var stochasticOptions = new StochasticOptions(
-            Runs: 10,                        // 10 runs per model
+            Runs: 5,                         // 5 runs per model for demo
             SuccessRateThreshold: 0.8,       // 80% must pass
             EnableStatisticalAnalysis: true,
             MaxParallelism: 1,               // Sequential to avoid rate limiting
-            DelayBetweenRuns: TimeSpan.FromMilliseconds(500)
+            DelayBetweenRuns: TimeSpan.FromMilliseconds(1000)  // Increased for rate limits
         );
         Console.WriteLine($"   ✓ {stochasticOptions.Runs} runs per model\n");
         
@@ -156,7 +157,7 @@ public static class Sample16_CombinedStochasticComparison
             Console.WriteLine($"   📊 {modelName}");
             Console.WriteLine($"   ═══════════════════════════════════════════════════════════\n");
             
-            // Use extension methods
+            // Performance metrics table now includes summary
             result.PrintTable(modelName)
                   .PrintToolSummary("CalculatorTool");
             Console.WriteLine();
@@ -268,7 +269,7 @@ public static class Sample16_CombinedStochasticComparison
 
         ╔═══════════════════════════════════════════════════════════════╗
         ║  Sample 16: Combined Stochastic + Model Comparison            ║
-        ║  Compare models with statistical rigor (10 runs each)         ║
+        ║  Compare models with statistical rigor (5 runs each)          ║
         ╚═══════════════════════════════════════════════════════════════╝
 
         """);
