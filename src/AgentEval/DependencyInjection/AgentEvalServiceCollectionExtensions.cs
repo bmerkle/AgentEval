@@ -38,18 +38,15 @@ public static class AgentEvalServiceCollectionExtensions
         {
             case ServiceLifetime.Singleton:
                 services.TryAddSingleton<IStochasticRunner, StochasticRunner>();
-                services.TryAddSingleton<IModelComparer>(sp => 
-                    new ModelComparer(sp.GetRequiredService<IStochasticRunner>()));
+                services.TryAddSingleton<IModelComparer, ModelComparer>();
                 break;
             case ServiceLifetime.Scoped:
                 services.TryAddScoped<IStochasticRunner, StochasticRunner>();
-                services.TryAddScoped<IModelComparer>(sp => 
-                    new ModelComparer(sp.GetRequiredService<IStochasticRunner>()));
+                services.TryAddScoped<IModelComparer, ModelComparer>();
                 break;
             case ServiceLifetime.Transient:
                 services.TryAddTransient<IStochasticRunner, StochasticRunner>();
-                services.TryAddTransient<IModelComparer>(sp => 
-                    new ModelComparer(sp.GetRequiredService<IStochasticRunner>()));
+                services.TryAddTransient<IModelComparer, ModelComparer>();
                 break;
         }
 
