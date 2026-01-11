@@ -1,7 +1,7 @@
 # ADR-006: Service-Based Architecture with Dependency Injection
 
-**Status:** Proposed  
-**Date:** 2026-01-10  
+**Status:** Accepted & Implemented  
+**Date:** 2026-01-10 (Proposed) | 2026-01-11 (Implemented)  
 **Decision Makers:** AgentEval Contributors
 
 ---
@@ -362,3 +362,26 @@ public sealed class AgentEvalBuilder
 > How about having separate services created and injected for decoupling? If you think that makes sense, please analyse and propose an implementation plan as an ADR, as this changes the architecture, right?
 
 **Response:** This ADR addresses the architectural concerns raised. The gradual approach allows us to improve the architecture without breaking existing code, starting with fixing the immediate coupling issues in `ModelComparer`.
+
+---
+
+## Implementation Status
+
+**Phase 1**: ✅ **COMPLETE** (Commit b191a1b)
+- Fixed tight coupling in `ModelComparer` to receive `IStochasticRunner` via DI
+- Enhanced `StochasticRunner` to accept `IStatisticsCalculator` via DI
+- Added `[Obsolete]` and `[ActivatorUtilitiesConstructor]` attributes
+
+**Phase 2**: ✅ **COMPLETE** (Commits fa9aa58, dc8b0ed, 7b05d75)
+- Created `AgentEvalServiceCollectionExtensions` with full service registration
+- Added `AgentEvalServiceOptions` for configurable lifetimes
+- Implemented `AddAgentEval()`, `AddAgentEvalScoped()`, `AddAgentEvalSingleton()`, `AddAgentEvalTransient()`
+- Created 9 comprehensive DI tests
+- Enhanced all interfaces with complete API coverage and documentation
+- Verified 100% interface coverage across all service areas
+
+**Phase 3**: 🔄 **OPTIONAL** (Future enhancement)
+- Builder pattern enhancements can be added as needed
+- Current architecture is production-ready
+
+**Final Status**: **ACCEPTED & IMPLEMENTED** - All core objectives achieved with 100% backward compatibility.
