@@ -127,14 +127,14 @@ public class ChatClientEvaluator : IEvaluator
             var json = LlmJsonParser.ExtractJson(responseText);
             if (json == null)
             {
-                return new EvaluationResult { OverallScore = 50, Summary = "Failed to parse evaluation - no JSON found" };
+                return new EvaluationResult { OverallScore = EvaluationDefaults.DefaultFailureScore, Summary = "Failed to parse evaluation - no JSON found" };
             }
 
             var result = System.Text.Json.JsonSerializer.Deserialize<EvaluationResultDto>(json,
                 new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             
             if (result == null)
-                return new EvaluationResult { OverallScore = 50, Summary = "Failed to parse evaluation" };
+                return new EvaluationResult { OverallScore = EvaluationDefaults.DefaultFailureScore, Summary = "Failed to parse evaluation" };
 
             return new EvaluationResult
             {
@@ -151,10 +151,10 @@ public class ChatClientEvaluator : IEvaluator
         }
         catch
         {
-            // Default to passing score when parsing fails but evaluation completed
+            // Default to failure score when parsing fails
             return new EvaluationResult
             {
-                OverallScore = EvaluationDefaults.DefaultPassingScore,
+                OverallScore = EvaluationDefaults.DefaultFailureScore,
                 Summary = "Evaluation completed but result parsing had issues"
             };
         }
