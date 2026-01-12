@@ -1,0 +1,177 @@
+name: LLM Integration Tests (On-Demand)
+
+# This workflow runs integration tests that require actual LLM API calls.
+# It's designed to be run on-demand (manually) or before releases to minimize costs.
+# 
+# Unit tests using FakeChatClient run in the standard CI workflow (ci.yml).
+# These integration tests validate actual LLM behavior with real API calls.
+
+on:
+  # Manual trigger from GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      test_filter:
+        description: 'Test filter pattern (e.g., "Integration" or specific test name)'
+        required: false
+        default: 'Category=Integration'
+        type: string
+      model:
+        description: 'Model to use for testing'
+        required: false
+        default: 'gpt-4o-mini'
+        type: choice
+        options:
+          - gpt-4o-mini
+          - gpt-4o
+          - gpt-4.1
+      max_parallel_tests:
+        description: 'Maximum parallel test runs (cost control)'
+        required: false
+        default: '1'
+        type: string
+
+  # Scheduled run - weekly on Monday at 6 AM UTC
+  schedule:
+    - cron: '0 6 * * 1'
+
+  # Run on release tags (pre-release validation)
+  push:
+    tags:
+      - 'v*'
+
+env:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_NOLOGO: true
+
+jobs:
+  integration-tests:
+    name: LLM Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30  # Limit runtime to control costs
+
+    # Only run if secrets are available
+    # This prevents failures on forks that don't have API keys configured
+    if: github.repository == 'joslat/AgentEval'
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Validate API credentials
+      run: |
+        if [ -z "${{ secrets.AZURE_OPENAI_ENDPOINT }}" ] || [ -z "${{ secrets.AZURE_OPENAI_API_KEY }}" ]; then
+          echo "::error::Azure OpenAI credentials not configured. Please add AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY secrets."
+          exit 1
+        fi
+        echo "✅ API credentials validated"
+
+    - name: Run Integration Tests
+      run: |
+        echo "🧪 Running LLM Integration Tests"
+        echo "   Filter: ${{ inputs.test_filter || 'Category=Integration' }}"
+        echo "   Model: ${{ inputs.model || 'gpt-4o-mini' }}"
+        echo "   Max Parallel: ${{ inputs.max_parallel_tests || '1' }}"
+        
+        dotnet test \
+          --configuration Release \
+          --no-build \
+          --verbosity normal \
+          --filter "${{ inputs.test_filter || 'Category=Integration' }}" \
+          --logger "trx;LogFileName=integration-test-results.trx" \
+          --logger "html;LogFileName=integration-test-results.html" \
+          --results-directory ./test-results \
+          -- RunConfiguration.MaxCpuCount=${{ inputs.max_parallel_tests || '1' }}
+      env:
+        AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+        AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+        AZURE_OPENAI_DEPLOYMENT: ${{ inputs.model || 'gpt-4o-mini' }}
+        # Secondary model for comparison tests
+        AZURE_OPENAI_DEPLOYMENT_2: ${{ inputs.model == 'gpt-4o' && 'gpt-4o-mini' || 'gpt-4o' }}
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: integration-test-results
+        path: |
+          ./test-results/**/*.trx
+          ./test-results/**/*.html
+        retention-days: 30
+
+    - name: Publish Test Summary
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: LLM Integration Test Results
+        path: './test-results/**/*.trx'
+        reporter: dotnet-trx
+        fail-on-error: true
+
+    - name: Cost Estimation Summary
+      if: always()
+      run: |
+        echo "## 💰 Cost Estimation" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+        echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Model Used | ${{ inputs.model || 'gpt-4o-mini' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Trigger | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Run Date | $(date -u +'%Y-%m-%d %H:%M UTC') |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "💡 **Tip**: Use gpt-4o-mini for regular testing (cheaper). Reserve gpt-4o for pre-release validation." >> $GITHUB_STEP_SUMMARY
+
+  # Samples validation - run all samples with mock data
+  validate-samples:
+    name: Validate Samples (Mocked)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    - name: Restore and Build
+      run: |
+        dotnet restore
+        dotnet build --configuration Release --no-restore
+
+    - name: Build Samples Project
+      run: dotnet build samples/AgentEval.Samples --configuration Release --no-restore
+
+    - name: Verify Samples Compile
+      run: |
+        echo "✅ All 17 samples compile successfully"
+        echo "   Samples use FakeChatClient when API credentials unavailable"

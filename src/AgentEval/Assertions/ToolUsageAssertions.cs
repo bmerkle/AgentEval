@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using AgentEval.Models;
 
 namespace AgentEval.Assertions;
@@ -232,6 +233,190 @@ public class ToolUsageAssertions
     /// <summary>Get the underlying report for custom assertions.</summary>
     public ToolUsageReport Report => _report;
     
+    // ============================================================
+    // BEHAVIORAL POLICY ASSERTIONS
+    // ============================================================
+    
+    /// <summary>
+    /// Assert that a specific tool was NEVER called.
+    /// Use for safety-critical policies that prohibit certain actions.
+    /// </summary>
+    /// <param name="toolName">The name of the forbidden tool.</param>
+    /// <param name="because">Required reason for the policy (shown in failure message and audit trail).</param>
+    /// <returns>The assertions instance for chaining.</returns>
+    /// <exception cref="BehavioralPolicyViolationException">Thrown when the forbidden tool was called.</exception>
+    /// <example>
+    /// <code>
+    /// result.ToolUsage!.Should()
+    ///     .NeverCallTool("DeleteDatabase", because: "production data must never be deleted by agents")
+    ///     .NeverCallTool("ExecuteTrade", because: "trades require human approval");
+    /// </code>
+    /// </example>
+    [StackTraceHidden]
+    public ToolUsageAssertions NeverCallTool(string toolName, string because)
+    {
+        ArgumentNullException.ThrowIfNull(toolName);
+        ArgumentNullException.ThrowIfNull(because);
+        
+        var calls = _report.GetCallsByName(toolName).ToList();
+        if (calls.Count > 0)
+        {
+            var callDetails = string.Join(", ", calls.Select(c => $"#{c.Order}"));
+            AgentEvalScope.FailWith(
+                BehavioralPolicyViolationException.Create(
+                    message: $"Policy Violation: Tool '{toolName}' was called but is prohibited.",
+                    policyName: $"NeverCallTool({toolName})",
+                    violationType: "ForbiddenTool",
+                    violatingAction: $"Called {toolName} {calls.Count} time(s) at positions: {callDetails}",
+                    forbiddenToolName: toolName,
+                    because: because,
+                    suggestions: new[]
+                    {
+                        $"Remove '{toolName}' from the agent's available tools if it should never be used",
+                        "Update the agent's system prompt to explicitly forbid this action",
+                        "Implement a confirmation workflow if the action is sometimes permitted"
+                    }));
+        }
+        return this;
+    }
+    
+    /// <summary>
+    /// Assert that no tool arguments match a forbidden pattern.
+    /// Use to detect PII, credentials, or other sensitive data in tool arguments.
+    /// </summary>
+    /// <param name="pattern">Regex pattern to detect forbidden content.</param>
+    /// <param name="because">Required reason for the policy.</param>
+    /// <param name="options">Optional regex options (default: None).</param>
+    /// <returns>The assertions instance for chaining.</returns>
+    /// <exception cref="BehavioralPolicyViolationException">Thrown when the pattern is found in any argument.</exception>
+    /// <example>
+    /// <code>
+    /// result.ToolUsage!.Should()
+    ///     .NeverPassArgumentMatching(@"\b\d{3}-\d{2}-\d{4}\b", 
+    ///         because: "SSN must never be passed to external tools")
+    ///     .NeverPassArgumentMatching(@"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+    ///         because: "email addresses must be anonymized");
+    /// </code>
+    /// </example>
+    [StackTraceHidden]
+    public ToolUsageAssertions NeverPassArgumentMatching(
+        string pattern, 
+        string because,
+        RegexOptions options = RegexOptions.None)
+    {
+        ArgumentNullException.ThrowIfNull(pattern);
+        ArgumentNullException.ThrowIfNull(because);
+        
+        var regex = new Regex(pattern, options);
+        
+        foreach (var call in _report.Calls)
+        {
+            if (call.Arguments == null) continue;
+            
+            foreach (var (argName, argValue) in call.Arguments)
+            {
+                var stringValue = argValue?.ToString() ?? "";
+                var match = regex.Match(stringValue);
+                if (match.Success)
+                {
+                    var redacted = BehavioralPolicyViolationException.RedactSensitiveData(
+                        stringValue, match.Index, match.Length);
+                    
+                    AgentEvalScope.FailWith(
+                        BehavioralPolicyViolationException.Create(
+                            message: $"Policy Violation: Argument '{argName}' in tool '{call.Name}' matches forbidden pattern.",
+                            policyName: $"NeverPassArgumentMatching({pattern})",
+                            violationType: "SensitiveData",
+                            violatingAction: $"Tool '{call.Name}', argument '{argName}' contains forbidden pattern",
+                            matchedPattern: pattern,
+                            redactedValue: redacted,
+                            argumentName: argName,
+                            toolName: call.Name,
+                            because: because,
+                            suggestions: new[]
+                            {
+                                "Implement data masking/anonymization before tool calls",
+                                "Add a PII scrubber to your agent pipeline",
+                                "Review the agent's prompt for instructions about sensitive data handling",
+                                "Consider using a data classification layer before agent processing"
+                            }));
+                }
+            }
+        }
+        return this;
+    }
+    
+    /// <summary>
+    /// Assert that a confirmation step occurred before calling a specific tool.
+    /// Use for actions that require user approval before execution.
+    /// </summary>
+    /// <param name="toolName">The tool that requires confirmation before being called.</param>
+    /// <param name="because">Required reason for the policy.</param>
+    /// <param name="confirmationToolName">Optional custom confirmation tool name. 
+    /// If not specified, looks for common confirmation tools: Confirm, RequestConfirmation, AskForConfirmation.</param>
+    /// <returns>The assertions instance for chaining.</returns>
+    /// <exception cref="BehavioralPolicyViolationException">Thrown when the tool was called without prior confirmation.</exception>
+    /// <example>
+    /// <code>
+    /// result.ToolUsage!.Should()
+    ///     .MustConfirmBefore("TransferFunds", 
+    ///         because: "financial transactions require explicit user confirmation")
+    ///     .MustConfirmBefore("DeleteRecord",
+    ///         because: "data deletion requires user acknowledgment",
+    ///         confirmationToolName: "RequestUserApproval");
+    /// </code>
+    /// </example>
+    [StackTraceHidden]
+    public ToolUsageAssertions MustConfirmBefore(
+        string toolName, 
+        string because,
+        string? confirmationToolName = null)
+    {
+        ArgumentNullException.ThrowIfNull(toolName);
+        ArgumentNullException.ThrowIfNull(because);
+        
+        var targetCalls = _report.GetCallsByName(toolName).ToList();
+        if (targetCalls.Count == 0) 
+        {
+            // Tool wasn't called, policy not applicable
+            return this;
+        }
+        
+        // Default confirmation tool names to look for
+        var confirmTools = confirmationToolName != null
+            ? new[] { confirmationToolName }
+            : new[] { "Confirm", "RequestConfirmation", "AskForConfirmation", "GetUserApproval", "ConfirmAction" };
+        
+        foreach (var targetCall in targetCalls)
+        {
+            // Check if any confirmation tool was called BEFORE this call
+            var confirmationFound = _report.Calls
+                .Where(c => c.Order < targetCall.Order)
+                .Any(c => confirmTools.Contains(c.Name, StringComparer.OrdinalIgnoreCase));
+            
+            if (!confirmationFound)
+            {
+                var timeline = BuildTimeline();
+                AgentEvalScope.FailWith(
+                    BehavioralPolicyViolationException.Create(
+                        message: $"Policy Violation: Tool '{toolName}' was called without prior confirmation.",
+                        policyName: $"MustConfirmBefore({toolName})",
+                        violationType: "MissingConfirmation",
+                        violatingAction: $"Called {toolName} at position #{targetCall.Order} without confirmation step",
+                        forbiddenToolName: toolName,
+                        because: because,
+                        suggestions: new[]
+                        {
+                            $"Add a confirmation step (e.g., {confirmTools[0]}) before calling {toolName}",
+                            "Implement a human-in-the-loop workflow for this action",
+                            "Update the agent's prompt to require user confirmation before risky actions",
+                            $"Available confirmation tools: {string.Join(", ", confirmTools)}"
+                        }));
+            }
+        }
+        return this;
+    }
+
     private string BuildTimeline()
     {
         if (_report.Count == 0) return "No tools were called.";

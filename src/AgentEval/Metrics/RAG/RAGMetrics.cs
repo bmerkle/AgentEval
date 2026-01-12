@@ -10,7 +10,7 @@ namespace AgentEval.Metrics.RAG;
 /// Measures whether the response is faithful to the provided context.
 /// A faithful response only contains information that can be derived from the context.
 /// </summary>
-public class FaithfulnessMetric : IRAGMetric
+public class FaithfulnessMetric : IRAGMetric, IQualityMetric
 {
     private readonly IChatClient _chatClient;
     
@@ -18,6 +18,13 @@ public class FaithfulnessMetric : IRAGMetric
     public string Description => "Measures if the response is grounded in and faithful to the provided context (no hallucinations).";
     public bool RequiresContext => true;
     public bool RequiresGroundTruth => false;
+    
+    /// <inheritdoc />
+    public MetricCategory Categories => 
+        MetricCategory.RAG | 
+        MetricCategory.RequiresContext | 
+        MetricCategory.Faithfulness | 
+        MetricCategory.LLMBased;
     
     public FaithfulnessMetric(IChatClient chatClient)
     {
@@ -103,7 +110,7 @@ public class FaithfulnessMetric : IRAGMetric
 /// <summary>
 /// Measures how relevant the response is to the input query.
 /// </summary>
-public class RelevanceMetric : IRAGMetric
+public class RelevanceMetric : IRAGMetric, IQualityMetric
 {
     private readonly IChatClient _chatClient;
     
@@ -111,6 +118,12 @@ public class RelevanceMetric : IRAGMetric
     public string Description => "Measures how relevant and on-topic the response is to the user's question.";
     public bool RequiresContext => false;
     public bool RequiresGroundTruth => false;
+    
+    /// <inheritdoc />
+    public MetricCategory Categories => 
+        MetricCategory.RAG | 
+        MetricCategory.Relevance | 
+        MetricCategory.LLMBased;
     
     public RelevanceMetric(IChatClient chatClient)
     {

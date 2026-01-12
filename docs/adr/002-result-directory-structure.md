@@ -42,7 +42,7 @@ When users run multiple evaluations (A/B testing, regression testing, version co
 - No standard format for cross-run comparison tools
 - Users must manually organize output files
 
-### Competitor Approach
+### Industry Approach
 
 `ai-rag-chat-evaluator` uses a structured directory per run:
 

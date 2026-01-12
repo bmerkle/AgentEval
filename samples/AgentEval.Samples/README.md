@@ -22,7 +22,7 @@ You'll see an interactive menu to run each sample.
 | **02 - Agent + One Tool** | Tool tracking, fluent assertions | 5 min |
 | **03 - Agent + Multi Tools** | Tool ordering, timeline visualization | 7 min |
 | **04 - Performance Metrics** | Latency, cost, TTFT, token tracking | 5 min |
-| **05 - RAG Evaluation** | FaithfulnessMetric, hallucination detection | 5 min |
+| **05 - RAG Evaluation** | All 5 RAG metrics: Faithfulness, Relevance, Precision, Recall, Correctness | 8 min |
 | **06 - Benchmarks** | PerformanceBenchmark, AgenticBenchmark | 7 min |
 | **07 - Snapshot Testing** | Regression testing, JSON diff, scrubbing | 5 min |
 | **08 - Conversation Testing** | Multi-turn, ConversationRunner | 7 min |
@@ -31,6 +31,11 @@ You'll see an interactive menu to run each sample.
 | **11 - Because Assertions** | `.Because()` explanations, debugging context | 5 min |
 | **12 - Policy & Safety Testing** | Safety policies, content filters, red team testing | 7 min |
 | **13 - Trace Record & Replay** | Deterministic testing, time-travel debugging | 7 min |
+| **14 - Stochastic Testing** | Multi-run reliability, statistical analysis | 7 min |
+| **15 - Model Comparison** | Compare & rank multiple models | 7 min |
+| **16 - Combined Test** | Stochastic + Model Comparison together | 5 min |
+| **17 - Quality & Safety Metrics** | Groundedness, Coherence, Fluency metrics | 5 min |
+| **18 - Judge Calibration** | Multi-model consensus voting for reliable evaluations | 8 min |
 
 ## 🔧 Prerequisites
 
@@ -104,19 +109,78 @@ result.Performance
 ```
 
 ### Sample 05: RAG Evaluation
-Detect hallucinations with FaithfulnessMetric.
+Complete RAG evaluation with all 5 metrics.
 
 ```csharp
 var context = new EvaluationContext
 {
     Input = "What is the capital of France?",
     Context = "France's capital is Paris...",
-    Output = "The capital of France is Paris."
+    Output = "The capital of France is Paris.",
+    GroundTruth = "Paris is the capital of France."
 };
 
-var faithfulness = new FaithfulnessMetric(chatClient);
-var result = await faithfulness.EvaluateAsync(context);
-// result.Score = 95, result.Passed = true
+// All 5 RAG metrics
+var metrics = new IMetric[]
+{
+    new FaithfulnessMetric(client),      // No hallucinations
+    new RelevanceMetric(client),          // Addresses the question
+    new ContextPrecisionMetric(client),   // Retrieved context was useful
+    new ContextRecallMetric(client),      // All needed info retrieved
+    new AnswerCorrectnessMetric(client)   // Matches ground truth
+};
+
+foreach (var metric in metrics)
+{
+    var result = await metric.EvaluateAsync(context);
+    Console.WriteLine($"{metric.Name}: {result.Score}/100");
+}
+```
+
+### Sample 17: Quality & Safety Metrics
+Evaluate response quality beyond RAG accuracy.
+
+```csharp
+var context = new EvaluationContext
+{
+    Input = "What are the benefits of green tea?",
+    Context = "Green tea contains antioxidants...",
+    Output = "Based on the available information, green tea contains..."
+};
+
+// Quality & Safety metrics
+var groundedness = new GroundednessMetric(client);  // ISafetyMetric - no fabrication
+var coherence = new CoherenceMetric(client);        // IQualityMetric - logical flow
+var fluency = new FluencyMetric(client);            // IQualityMetric - grammar
+
+// Groundedness catches fabricated sources, statistics, fake citations
+var result = await groundedness.EvaluateAsync(context);
+// result.Details["fabricatedElements"] shows any invented content
+```
+
+### Sample 18: Judge Calibration
+Multi-model consensus voting for reliable LLM-as-judge evaluations.
+
+```csharp
+// Create calibrated judge with multiple LLM models
+var judge = CalibratedJudge.Create(
+    ("GPT-4o", gpt4oClient),
+    ("Claude", claudeClient),
+    ("Gemini", geminiClient));
+
+// Factory pattern - each judge gets its own metric with its own client
+var result = await judge.EvaluateAsync(context, judgeName =>
+{
+    return new FaithfulnessMetric(judges[judgeName]);
+});
+
+Console.WriteLine($"Score: {result.Score:F1}");           // Median score
+Console.WriteLine($"Agreement: {result.Agreement:F0}%");  // How much judges agree
+Console.WriteLine($"95% CI: [{result.ConfidenceLower:F1}, {result.ConfidenceUpper:F1}]");
+
+// Individual judge scores
+foreach (var (name, score) in result.JudgeScores)
+    Console.WriteLine($"  {name}: {score:F1}");
 ```
 
 ### Sample 11: Because Assertions
@@ -201,7 +265,7 @@ AgentEval.Samples/
 ├── Sample02_AgentWithOneTool.cs      # Tool tracking
 ├── Sample03_AgentWithMultipleTools.cs # Tool ordering
 ├── Sample04_PerformanceMetrics.cs    # Performance tracking
-├── Sample05_RAGEvaluation.cs         # RAG metrics
+├── Sample05_RAGEvaluation.cs         # All 5 RAG metrics
 ├── Sample06_Benchmarks.cs            # Benchmark runners
 ├── Sample07_SnapshotTesting.cs       # Snapshot/regression testing
 ├── Sample08_ConversationTesting.cs   # Multi-turn conversations
@@ -210,6 +274,11 @@ AgentEval.Samples/
 ├── Sample11_BecauseAssertions.cs     # .Because() explanations
 ├── Sample12_PolicySafetyTesting.cs   # Safety & policy testing
 ├── Sample13_TraceRecordReplay.cs     # Deterministic trace replay
+├── Sample14_StochasticTesting.cs     # Multi-run reliability testing
+├── Sample15_ModelComparison.cs       # Compare & rank models
+├── Sample16_CombinedStochasticComparison.cs # Combined testing
+├── Sample17_QualitySafetyMetrics.cs  # Groundedness, Coherence, Fluency
+├── Sample18_JudgeCalibration.cs      # Multi-model consensus voting
 └── README.md                         # This file
 ```
 

@@ -36,7 +36,7 @@ agenteval eval --output run2.json
 # User must write custom scripts or eyeball JSON files
 ```
 
-**Competitor workflow (`ai-rag-chat-evaluator`):**
+**Example workflow (ai-rag-chat-evaluator):**
 ```bash
 # View all runs
 python -m evaltools summary ./results
@@ -132,7 +132,7 @@ AnsiConsole.Write(table);
 - **Regression Detection** — Immediately spot degraded tests
 - **CI-Friendly** — `--format json` enables scripted comparison
 - **No New Dependencies** — Uses existing Spectre.Console
-- **Competitive Parity** — Matches competitor functionality
+- **Industry Best Practice** — Matches evaluation framework standards
 
 ### Negative
 
@@ -156,7 +156,7 @@ AnsiConsole.Write(table);
 ### Alternative C: VS Code Extension
 **Considered for future** — Good UX but higher effort.
 
-### Alternative D: TUI (Terminal UI) Like Competitor
+### Alternative D: TUI (Terminal UI)
 ```
 ┌──────────────────────────────────────────────────┐
 │ Question: How do I reset my password?            │

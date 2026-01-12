@@ -88,6 +88,120 @@ Failure 3:
   ...
 ```
 
+## Behavioral Policy Assertions
+
+Behavioral Policy Assertions are safety-critical assertions that enforce behavioral constraints on AI agent actions. They provide "guardrails as code" — hard pass/fail constraints that prevent agents from taking dangerous, unauthorized, or policy-violating actions.
+
+### NeverCallTool
+
+Assert that a forbidden tool was never called:
+
+```csharp
+// Block dangerous tools
+result.ToolUsage!.Should()
+    .NeverCallTool("DeleteDatabase", 
+        because: "production data must never be deleted by agents")
+    .NeverCallTool("ExecuteTrade",
+        because: "trades require human approval");
+```
+
+### NeverPassArgumentMatching
+
+Detect forbidden patterns (PII, secrets) in tool arguments using regex:
+
+```csharp
+// Detect SSN patterns in any tool argument
+result.ToolUsage!.Should()
+    .NeverPassArgumentMatching(@"\b\d{3}-\d{2}-\d{4}\b",
+        because: "SSNs must never be passed to external tools");
+
+// Detect email addresses  
+result.ToolUsage!.Should()
+    .NeverPassArgumentMatching(@"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
+        because: "email addresses are PII and must be anonymized");
+
+// With regex options
+result.ToolUsage!.Should()
+    .NeverPassArgumentMatching("password|secret|api_key",
+        because: "credentials must never appear in arguments",
+        regexOptions: RegexOptions.IgnoreCase);
+```
+
+**Automatic Redaction:** When a match is found, sensitive data is automatically redacted in the exception message (e.g., `1***9` for SSN `123-45-6789`).
+
+### MustConfirmBefore
+
+Require a confirmation step before risky actions:
+
+```csharp
+// Require confirmation before destructive actions
+result.ToolUsage!.Should()
+    .MustConfirmBefore("TransferFunds",
+        because: "financial transfers require explicit user consent",
+        confirmationToolName: "GetUserConfirmation");
+
+// Default confirmation tool is "get_confirmation" or "confirm"
+result.ToolUsage!.Should()
+    .MustConfirmBefore("DeleteUser",
+        because: "user deletion is irreversible");
+```
+
+### BehavioralPolicyViolationException
+
+When a policy is violated, a structured exception provides rich diagnostics:
+
+```csharp
+try
+{
+    result.ToolUsage!.Should()
+        .NeverCallTool("DangerousTool", because: "safety requirement");
+}
+catch (BehavioralPolicyViolationException ex)
+{
+    Console.WriteLine($"Policy: {ex.PolicyName}");           // "NeverCallTool(DangerousTool)"
+    Console.WriteLine($"Violation: {ex.ViolationType}");     // "ForbiddenTool"
+    Console.WriteLine($"Action: {ex.ViolatingAction}");      // "Called DangerousTool 2 time(s)"
+    Console.WriteLine($"Because: {ex.Because}");             // "safety requirement"
+    
+    foreach (var suggestion in ex.Suggestions ?? [])
+    {
+        Console.WriteLine($"  → {suggestion}");
+    }
+}
+```
+
+### Compliance Testing Patterns
+
+Common patterns for regulatory compliance:
+
+```csharp
+// GDPR - Data Protection
+result.ToolUsage!.Should()
+    .MustConfirmBefore("ProcessPersonalData", 
+        because: "GDPR requires explicit consent",
+        confirmationToolName: "check_consent");
+
+// HIPAA - Healthcare
+result.ToolUsage!.Should()
+    .NeverCallTool("export_raw_patient_data",
+        because: "HIPAA prohibits unencrypted PHI export")
+    .NeverPassArgumentMatching(@"\b\d{3}-\d{2}-\d{4}\b",
+        because: "SSNs are PHI under HIPAA");
+
+// PCI-DSS - Payment
+result.ToolUsage!.Should()
+    .NeverPassArgumentMatching(@"\b\d{16}\b",
+        because: "raw card numbers violate PCI-DSS");
+
+// SOX - Financial
+result.ToolUsage!.Should()
+    .MustConfirmBefore("ApproveExpense",
+        because: "SOX requires dual approval for expenses",
+        confirmationToolName: "GetManagerApproval");
+```
+
+---
+
 ## Tool Assertions
 
 ### Basic Tool Verification

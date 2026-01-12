@@ -22,7 +22,7 @@ AgentEval provides multiple types of metrics with different cost and computation
 
 1. **Cost Opacity** — Users cannot tell at a glance which metrics cost money
 2. **Selection Difficulty** — When optimizing for speed/cost, users must check implementation
-3. **Industry Divergence** — Competitors (ai-rag-chat-evaluator) prefix LLM metrics with `gpt_`, making cost obvious
+3. **Industry Divergence** — Some evaluation frameworks prefix LLM metrics with `gpt_`, making cost obvious
 
 **Forces:**
 
@@ -75,7 +75,7 @@ AgentEval provides multiple types of metrics with different cost and computation
 
 - **Cost Transparency** — Users immediately know which metrics cost money
 - **Easy Filtering** — `metrics.Where(m => m.Name.StartsWith("code_"))` for free-only
-- **Industry Alignment** — Matches competitor conventions
+- **Industry Alignment** — Matches industry conventions
 - **Better UX** — Clearer intent in test output and reports
 
 ### Negative
@@ -94,7 +94,7 @@ AgentEval provides multiple types of metrics with different cost and computation
 ### Alternative A: Keep Current Names
 **Rejected** — Cost opacity remains a problem.
 
-### Alternative B: Use `gpt_` Prefix Like Competitor
+### Alternative B: Use `gpt_` Prefix
 **Rejected** — `gpt_` is OpenAI-specific; AgentEval supports multiple LLM providers.
 
 ### Alternative C: Separate Namespaces
@@ -125,4 +125,3 @@ metric.ComputationCost // "llm", "embedding", "free"
 ## References
 
 - [ai-rag-chat-evaluator metric naming](https://github.com/Azure-Samples/ai-rag-chat-evaluator) — Uses `gpt_` prefix
-- [Competitor Analysis](../strategy/competitor-analysis.md)

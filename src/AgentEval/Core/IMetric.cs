@@ -15,6 +15,18 @@ public interface IMetric
     string Description { get; }
     
     /// <summary>
+    /// Gets the categories this metric belongs to.
+    /// Default implementation returns None for backward compatibility.
+    /// </summary>
+    MetricCategory Categories => MetricCategory.None;
+    
+    /// <summary>
+    /// Gets the estimated cost per evaluation call (in USD).
+    /// Returns null if cost is unknown or varies.
+    /// </summary>
+    decimal? EstimatedCostPerEvaluation => null;
+    
+    /// <summary>
     /// Evaluate the metric for a given context.
     /// </summary>
     /// <param name="context">The evaluation context.</param>
@@ -44,6 +56,89 @@ public interface IAgenticMetric : IMetric
 {
     /// <summary>Whether this metric requires tool usage information.</summary>
     bool RequiresToolUsage { get; }
+}
+
+/// <summary>
+/// Marker interface for quality evaluation metrics.
+/// Quality metrics assess the substantive quality of agent responses,
+/// including coherence, fluency, relevance, and correctness.
+/// </summary>
+public interface IQualityMetric : IMetric { }
+
+/// <summary>
+/// Marker interface for safety evaluation metrics.
+/// Safety metrics assess potential harms, toxicity, groundedness violations,
+/// or policy violations in agent responses.
+/// </summary>
+public interface ISafetyMetric : IMetric { }
+
+/// <summary>
+/// Marker interface for performance evaluation metrics.
+/// Performance metrics assess efficiency, latency, token usage, and cost.
+/// </summary>
+public interface IPerformanceMetric : IMetric { }
+
+/// <summary>
+/// Categories for metric classification. Can be combined using flags.
+/// </summary>
+[Flags]
+public enum MetricCategory
+{
+    /// <summary>No category specified.</summary>
+    None = 0,
+    
+    // === Data Requirements ===
+    
+    /// <summary>Metric requires retrieved context.</summary>
+    RequiresContext = 1 << 0,
+    
+    /// <summary>Metric requires ground truth answer.</summary>
+    RequiresGroundTruth = 1 << 1,
+    
+    /// <summary>Metric requires tool usage information.</summary>
+    RequiresToolUsage = 1 << 2,
+    
+    /// <summary>Metric requires embedding computations.</summary>
+    RequiresEmbeddings = 1 << 3,
+    
+    // === Evaluation Domain ===
+    
+    /// <summary>RAG (Retrieval-Augmented Generation) evaluation.</summary>
+    RAG = 1 << 4,
+    
+    /// <summary>Agentic (tool-using) evaluation.</summary>
+    Agentic = 1 << 5,
+    
+    /// <summary>Multi-turn conversation evaluation.</summary>
+    Conversation = 1 << 6,
+    
+    /// <summary>Safety and harm evaluation.</summary>
+    Safety = 1 << 7,
+    
+    // === Quality Aspects ===
+    
+    /// <summary>Evaluates faithfulness to source content.</summary>
+    Faithfulness = 1 << 8,
+    
+    /// <summary>Evaluates relevance to query.</summary>
+    Relevance = 1 << 9,
+    
+    /// <summary>Evaluates logical coherence.</summary>
+    Coherence = 1 << 10,
+    
+    /// <summary>Evaluates language fluency.</summary>
+    Fluency = 1 << 11,
+    
+    // === Computation Method ===
+    
+    /// <summary>Computed via LLM-as-judge (API cost).</summary>
+    LLMBased = 1 << 12,
+    
+    /// <summary>Computed via embeddings (low API cost).</summary>
+    EmbeddingBased = 1 << 13,
+    
+    /// <summary>Computed by code logic (free).</summary>
+    CodeBased = 1 << 14
 }
 
 /// <summary>

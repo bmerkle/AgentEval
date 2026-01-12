@@ -30,14 +30,14 @@
     href: tracing.md
   - name: Workflow Testing
     href: workflows.md
+  - name: Evaluation Guide
+    href: evaluation-guide.md
 - name: Roadmap
   href: roadmap.md
 - name: Strategy
   items:
   - name: New Features Exploration
     href: strategy/new-features-exploration.md
-  - name: Competitor Analysis
-    href: strategy/competitor-analysis.md
 - name: Architecture Decisions
   items:
   - name: Overview
@@ -48,8 +48,12 @@
     href: adr/002-result-directory-structure.md
   - name: ADR-003 CLI Review Commands
     href: adr/003-cli-review-commands.md
+  - name: ADR-007 Metrics Taxonomy
+    href: adr/007-metrics-taxonomy.md
 - name: Reference
   items:
+  - name: Metrics Reference
+    href: metrics-reference.md
   - name: Naming Conventions
     href: naming-conventions.md
 - name: API Reference

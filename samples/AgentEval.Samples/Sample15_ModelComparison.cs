@@ -150,6 +150,41 @@ public static class Sample15_ModelComparison
             Console.WriteLine("   ⚠️ No models passed the success threshold\n");
         }
         
+        // ═══════════════════════════════════════════════════════════════
+        // STEP 7: Export to Markdown (NEW!)
+        // ═══════════════════════════════════════════════════════════════
+        Console.WriteLine("📝 Step 7: Export comparison to Markdown...\n");
+        
+        // Show a preview of what ToMarkdown() produces
+        Console.WriteLine("   📄 Markdown export preview (ToGitHubComment()):\n");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("   ### 🤖 Model Comparison Results");
+        Console.WriteLine($"   **Test:** {testCase.Name}");
+        if (winner.ModelName != null)
+        {
+            Console.WriteLine($"   **Winner:** 🏆 {winner.ModelName} (Score: {winner.Result.Statistics.MeanScore:F1})");
+        }
+        Console.WriteLine();
+        Console.WriteLine("   | Model | Pass Rate | Mean Score | Avg Duration |");
+        Console.WriteLine("   |-------|-----------|------------|--------------||");
+        foreach (var (name, res) in modelResults.OrderByDescending(m => m.Result.Statistics.MeanScore))
+        {
+            Console.WriteLine($"   | {name} | {res.Statistics.PassRate:P0} | {res.Statistics.MeanScore:F1} | {res.DurationStats.Mean:F0}ms |");
+        }
+        Console.ResetColor();
+        Console.WriteLine();
+        
+        Console.WriteLine("   💡 Full Markdown export methods available:");
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine("      • result.ToMarkdown()           - Full report with all sections");
+        Console.WriteLine("      • result.ToRankingsTable()      - Compact rankings table");
+        Console.WriteLine("      • result.ToDetailedMetricsTable() - Pass rate, latency, cost");
+        Console.WriteLine("      • result.ToStatisticsTable()    - Mean, median, percentiles");
+        Console.WriteLine("      • result.ToGitHubComment()      - Collapsible PR comment");
+        Console.WriteLine("      • result.SaveToMarkdownAsync()  - Save to file");
+        Console.ResetColor();
+        Console.WriteLine();
+        
         PrintFooter(winner.ModelName ?? "None");
     }
     

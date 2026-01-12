@@ -470,8 +470,203 @@ AgentEval.Cli/               # CLI tool (planned)
 
 ---
 
+## Metrics Taxonomy
+
+AgentEval organizes metrics into a clear taxonomy to aid discovery and selection. See [ADR-007](adr/007-metrics-taxonomy.md) for the formal decision.
+
+### Categorization by Computation Method
+
+| Prefix | Method | Cost | Use Case |
+|--------|--------|------|----------|
+| `llm_` | LLM-as-judge | API cost | High-accuracy quality assessment |
+| `code_` | Code logic | Free | CI/CD, high-volume testing |
+| `embed_` | Embedding similarity | Low API cost | Cost-effective semantic checks |
+
+### Categorization by Evaluation Domain
+
+| Domain | Interface | Examples |
+|--------|-----------|----------|
+| RAG | `IRAGMetric` | Faithfulness, Relevance, Context Precision |
+| Agentic | `IAgenticMetric` | Tool Selection, Tool Success, Task Completion |
+| Conversation | Special | ConversationCompleteness |
+| Safety | `ISafetyMetric` (planned) | Toxicity, Groundedness |
+
+### Category Flags (ADR-007)
+
+Metrics can declare multiple categories via `MetricCategory` flags:
+
+```csharp
+public override MetricCategory Categories => 
+    MetricCategory.RAG | 
+    MetricCategory.RequiresContext | 
+    MetricCategory.LLMBased;
+```
+
+For complete metric documentation, see:
+- [Metrics Reference](metrics-reference.md) - Complete catalog
+- [Evaluation Guide](evaluation-guide.md) - How to choose metrics
+
+---
+
+## Calibration Layer
+
+AgentEval provides judge calibration for reliable LLM-as-judge evaluations. See [ADR-008](adr/008-calibrated-judge-multi-model.md) for design decisions.
+
+### CalibratedJudge Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           CalibratedJudge                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  Input:                                                                      │
+│  ┌─────────────────┐    ┌─────────────────────────────────────────────────┐ │
+│  │EvaluationContext│───▶│ Factory Pattern: Func<string, IMetric>          │ │
+│  └─────────────────┘    │ Each judge gets its own metric with its client  │ │
+│                         └─────────────────────────────────────────────────┘ │
+│                                              │                               │
+│  Parallel Execution:                         ▼                               │
+│  ┌───────────────┐   ┌───────────────┐   ┌───────────────┐                  │
+│  │  Judge 1      │   │  Judge 2      │   │  Judge 3      │                  │
+│  │  (GPT-4o)     │   │  (Claude)     │   │  (Gemini)     │                  │
+│  │  Score: 85    │   │  Score: 88    │   │  Score: 82    │                  │
+│  └───────────────┘   └───────────────┘   └───────────────┘                  │
+│         │                   │                   │                            │
+│         └───────────────────┼───────────────────┘                            │
+│                             ▼                                                │
+│  Aggregation:    ┌─────────────────────────────────┐                        │
+│                  │ VotingStrategy                  │                        │
+│                  │ • Median (default, robust)      │                        │
+│                  │ • Mean (equal weight)           │                        │
+│                  │ • Unanimous (require consensus) │                        │
+│                  │ • Weighted (custom weights)     │                        │
+│                  └─────────────────────────────────┘                        │
+│                             │                                                │
+│  Output:                    ▼                                                │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ CalibratedResult                                                     │    │
+│  │ • Score: 85.0 (median)                                               │    │
+│  │ • Agreement: 96.2%                                                   │    │
+│  │ • JudgeScores: {GPT-4o: 85, Claude: 88, Gemini: 82}                 │    │
+│  │ • ConfidenceInterval: [81.5, 88.5]                                   │    │
+│  │ • StandardDeviation: 3.0                                             │    │
+│  │ • HasConsensus: true                                                 │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Key Classes
+
+| Class | Purpose |
+|-------|---------|
+| `CalibratedJudge` | Coordinates multiple judges with parallel execution |
+| `CalibratedResult` | Result with score, agreement, CI, per-judge scores |
+| `VotingStrategy` | Aggregation method enum |
+| `CalibratedJudgeOptions` | Configuration for timeout, parallelism, consensus |
+| `ICalibratedJudge` | Interface for testability |
+
+---
+
+## Model Comparison Markdown Export
+
+AgentEval provides rich Markdown export for model comparison results:
+
+```csharp
+// Full report with all sections
+var markdown = result.ToMarkdown();
+
+// Compact table with medals
+var table = result.ToRankingsTable();
+
+// GitHub PR comment with collapsible details
+var comment = result.ToGitHubComment();
+
+// Save to file
+await result.SaveToMarkdownAsync("comparison.md");
+```
+
+### Export Options
+
+```csharp
+// Full report (default)
+result.ToMarkdown(MarkdownExportOptions.Default);
+
+// Minimal (rankings only)
+result.ToMarkdown(MarkdownExportOptions.Minimal);
+
+// Custom
+result.ToMarkdown(new MarkdownExportOptions
+{
+    IncludeStatistics = true,
+    IncludeScoringWeights = false,
+    HeaderEmoji = "🔬"
+});
+```
+
+---
+
+## Behavioral Policy Assertions
+
+Safety-critical assertions for enterprise compliance:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      Behavioral Policy Assertions                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  NeverCallTool("DeleteDatabase", because: "admin only")                     │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Scans all tool calls for forbidden tool name                        │    │
+│  │ Throws BehavioralPolicyViolationException with audit details        │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  NeverPassArgumentMatching(@"\d{3}-\d{2}-\d{4}", because: "SSN is PII")    │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Scans all tool arguments with regex pattern                         │    │
+│  │ Auto-redacts matched values in exception (e.g., "1***9")            │    │
+│  │ Throws BehavioralPolicyViolationException with RedactedValue        │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  MustConfirmBefore("TransferFunds", because: "requires consent")            │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │ Checks that confirmation tool was called before action              │    │
+│  │ Default confirmation tools: "get_confirmation", "confirm"           │    │
+│  │ Throws if action was called without prior confirmation              │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### BehavioralPolicyViolationException
+
+Structured exception for audit trails:
+
+```csharp
+catch (BehavioralPolicyViolationException ex)
+{
+    // Structured properties for logging/audit
+    Console.WriteLine($"Policy: {ex.PolicyName}");       // "NeverCallTool(DeleteDB)"
+    Console.WriteLine($"Type: {ex.ViolationType}");      // "ForbiddenTool"
+    Console.WriteLine($"Action: {ex.ViolatingAction}");  // "Called DeleteDB 1 time(s)"
+    Console.WriteLine($"Because: {ex.Because}");         // Developer's reason
+    
+    // For PII detection
+    Console.WriteLine($"Pattern: {ex.MatchedPattern}");  // @"\d{3}-\d{2}-\d{4}"
+    Console.WriteLine($"Value: {ex.RedactedValue}");     // "1***9" (auto-redacted)
+    
+    // Actionable suggestions
+    foreach (var s in ex.Suggestions ?? [])
+        Console.WriteLine($"  → {s}");
+}
+```
+
+---
+
 ## See Also
 
 - [Extensibility Guide](extensibility.md) - Creating custom metrics and plugins
 - [Embedding Metrics](embedding-metrics.md) - Semantic similarity evaluation
 - [Benchmarks Guide](benchmarks.md) - Running standard benchmarks
+- [Metrics Reference](metrics-reference.md) - Complete metric catalog
+- [Evaluation Guide](evaluation-guide.md) - Metric selection guidance

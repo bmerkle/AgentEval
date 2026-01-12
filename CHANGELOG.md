@@ -8,6 +8,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Behavioral Policy Assertions** - Safety-critical assertions for enterprise compliance
+  - `NeverCallTool(toolName, because)` - Assert forbidden tools were never called
+  - `NeverPassArgumentMatching(pattern, because, options)` - Detect PII/secrets via regex with automatic redaction
+  - `MustConfirmBefore(toolName, because, confirmationToolName)` - Require confirmation before risky actions
+  - `BehavioralPolicyViolationException` with structured properties (PolicyName, ViolationType, ViolatingAction, RedactedValue)
+  - 16 unit tests for behavioral policy assertions
+  - Updated Sample12 with new behavioral policy examples
+  - See [ADR-008](docs/adr/008-calibrated-judge-multi-model.md) for design decisions
+- **Judge Calibration** - Multi-model consensus for reliable LLM-as-judge evaluations
+  - `CalibratedJudge` - Wrapper for running evaluations with multiple LLM judges
+  - `VotingStrategy` enum: Median, Mean, Unanimous, Weighted
+  - `CalibratedResult` with Agreement %, Confidence Intervals, per-judge scores
+  - `ICalibratedJudge` interface for testability
+  - `CalibratedJudgeOptions` with configurable timeouts, parallelism, consensus tolerance
+  - Factory pattern: `metricFactory(judgeName)` for per-judge metric instantiation
+  - Parallel judge execution with graceful degradation
+  - 17 unit tests for calibrated judge
+  - Sample18_JudgeCalibration demonstration
+  - See [ADR-008](docs/adr/008-calibrated-judge-multi-model.md) for design decisions
+- **Model Comparison Markdown Export** - Shareable comparison reports
+  - `ToMarkdown()` extension for `ModelComparisonResult` - Full report with all sections
+  - `ToRankingsTable()` - Compact table with medal emojis (🥇🥈🥉)
+  - `ToDetailedMetricsTable()` - Pass rate, latency, cost metrics
+  - `ToStatisticsTable()` - Mean, median, percentiles, confidence intervals
+  - `ToGitHubComment()` - Collapsible PR comment format
+  - `SaveToMarkdownAsync()` - File export
+  - `MarkdownExportOptions` with Default and Minimal presets
+  - Batch comparison support for multiple test cases
+  - 20 unit tests for markdown export
+  - Updated Sample15 with markdown export demonstration
 - **Trace Record & Replay (Phase 8)** - Deterministic testing and time-travel debugging
   - `TraceRecordingAgent` - Wraps any agent to capture all executions with full fidelity
   - `TraceReplayingAgent` - Replays recorded traces deterministically without LLM calls

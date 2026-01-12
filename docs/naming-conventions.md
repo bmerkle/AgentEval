@@ -8,17 +8,29 @@ This document defines naming conventions for AgentEval APIs, metrics, and code.
 
 ## Metric Names
 
-> **ADR:** [001-metric-naming-prefixes.md](adr/001-metric-naming-prefixes.md)
+> **ADR:** [001-metric-naming-prefixes.md](adr/001-metric-naming-prefixes.md)  
+> **ADR:** [007-metrics-taxonomy.md](adr/007-metrics-taxonomy.md)
 
 ### Prefix Convention
 
 Metrics use prefixes to indicate their computation method and cost:
 
-| Prefix | Computation | Cost | Examples |
-|--------|-------------|------|----------|
-| `llm_` | LLM-evaluated via prompt | $$$ (API calls) | `llm_faithfulness`, `llm_relevance` |
-| `code_` | Computed by code logic | Free | `code_tool_success`, `code_tool_efficiency` |
-| `embed_` | Computed via embeddings | $ (embedding API) | `embed_answer_similarity` |
+| Prefix | Computation | Cost | MetricCategory Flag |
+|--------|-------------|------|---------------------|
+| `llm_` | LLM-evaluated via prompt | $$$ (API calls) | `MetricCategory.LLMBased` |
+| `code_` | Computed by code logic | Free | `MetricCategory.CodeBased` |
+| `embed_` | Computed via embeddings | $ (embedding API) | `MetricCategory.EmbeddingBased` |
+
+### Domain Categories
+
+Metrics are also categorized by evaluation domain:
+
+| Domain | Interface | MetricCategory Flag | Examples |
+|--------|-----------|---------------------|----------|
+| RAG | `IRAGMetric` | `MetricCategory.RAG` | Faithfulness, Relevance |
+| Agentic | `IAgenticMetric` | `MetricCategory.Agentic` | Tool Selection, Tool Success |
+| Conversation | Special | `MetricCategory.Conversation` | ConversationCompleteness |
+| Safety | `ISafetyMetric` | `MetricCategory.Safety` | Toxicity (planned) |
 
 ### Complete Metric Reference
 
@@ -142,6 +154,14 @@ agenteval <command> [subcommand] [options]
 
 - Use `--kebab-case` for multi-word options
 - Use short forms for common options: `-o` (output), `-c` (config), `-v` (verbose)
+
+---
+
+## See Also
+
+- [Metrics Reference](metrics-reference.md) - Complete metric catalog with usage guidance
+- [Evaluation Guide](evaluation-guide.md) - How to choose the right metrics
+- [Architecture](architecture.md) - System design and metric hierarchy
 
 ---
 

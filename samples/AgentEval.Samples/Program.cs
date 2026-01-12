@@ -105,6 +105,12 @@ public static class Program
                 case 16:
                     await Sample16_CombinedStochasticComparison.RunAsync();
                     break;
+                case 17:
+                    await Sample17_QualitySafetyMetrics.RunAsync();
+                    break;
+                case 18:
+                    await Sample18_JudgeCalibration.RunAsync();
+                    break;
                 default:
                     Console.WriteLine($"❌ Sample {sampleNumber} not found.\n");
                     break;
@@ -153,7 +159,7 @@ public static class Program
         Console.WriteLine("│  2. 🔧 Agent + One Tool   - Tool tracking assertions        │");
         Console.WriteLine("│  3. 🔧 Agent + Multi Tool - Tool ordering & timeline        │");
         Console.WriteLine("│  4. ⚡ Performance        - Latency, cost, TTFT metrics     │");
-        Console.WriteLine("│  5. 📊 RAG Evaluation     - Faithfulness metric demo        │");
+        Console.WriteLine("│  5. 📊 RAG Evaluation     - All 5 RAG metrics demo        │");
         Console.WriteLine("│  6. 📈 Benchmarks         - Performance & agentic benchmarks│");
         Console.WriteLine("│  7. 📸 Snapshot Testing   - Regression detection            │");
         Console.WriteLine("│  8. 💬 Conversations      - Multi-turn testing              │");
@@ -165,6 +171,8 @@ public static class Program
         Console.WriteLine("│ 14. 🎲 Stochastic Testing - Multi-run reliability           │");
         Console.WriteLine("│ 15. ⚖️ Model Comparison   - Compare & rank models           │");
         Console.WriteLine("│ 16. 🔀 Combined Test      - Stochastic + Model Comparison   │");
+        Console.WriteLine("│ 17. 🛡️ Quality & Safety   - Groundedness, Coherence, Fluency│");
+        Console.WriteLine("│ 18. ⚖️ Judge Calibration  - Multi-model consensus voting   │");
         
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("├─────────────────────────────────────────────────────────────┤");

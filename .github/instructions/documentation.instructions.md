@@ -83,7 +83,7 @@ Brief introduction paragraph.
 
 Link to related docs:
 ```markdown
-See [Architecture Guide](architecture.md) for component details.
+See [Architecture Guide](../../docs/architecture.md) for component details.
 ```
 
 ## Version Notes
