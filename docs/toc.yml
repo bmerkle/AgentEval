@@ -20,6 +20,8 @@
     href: model-comparison.md
   - name: Trace Recording
     href: tracing.md
+  - name: Rich Test Output
+    href: rich-test-output-guide.md
   - name: Metrics Reference
     href: metrics-reference.md
 - name: Advanced Guides
@@ -28,6 +30,8 @@
     href: architecture.md
   - name: Benchmarks
     href: benchmarks.md
+  - name: CI/CD Integration
+    href: ci-cd-integration.md
   - name: CLI Reference
     href: cli.md
   - name: Conversations
