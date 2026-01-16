@@ -28,6 +28,7 @@
         "Out-File": true,
         "dotnet build": true,
         "dotnet test": true,
-        "Set-Content": true
+        "Set-Content": true,
+        "git add": true
     }
 }

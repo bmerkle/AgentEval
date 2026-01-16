@@ -17,7 +17,7 @@ This folder contains AI agent instructions for GitHub Copilot in VS Code.
 │   ├── samples.instructions.md     # → samples/**/*.cs
 │   ├── tracing.instructions.md     # → src/AgentEval/Tracing/**/*.cs
 │   └── documentation.instructions.md # → **/*.md
-└── README.md                  # This file
+└── COPILOT-SETUP.md          # This file
 ```
 
 ---
