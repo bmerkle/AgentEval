@@ -52,6 +52,10 @@
         "1..18": true,
         "ForEach-Object": true,
         "git -C \"c:\\git\\joslat\\AgentEval\"": true,
-        "nslookup": true
+        "nslookup": true,
+        "/^Get-Item \"docs\\\\why-agenteval\\.md\" \\| Select-Object FullName, Length, LastWriteTime$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }

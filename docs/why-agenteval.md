@@ -1,31 +1,31 @@
-# Success Stories & Use Cases
+# Use Cases
 
-> **Real teams, real results.** See how organizations use AgentEval to ship AI agents with confidence.
+> **Who is AgentEval for and what can you achieve?**
 
 ---
 
-## Who Uses AgentEval?
+## Target Users
 
-### 🏢 Enterprise AI Teams
+### 🏢 .NET Teams Building AI Agents
 
-Teams building production AI agents for customer service, internal automation, and document processing. AgentEval helps them:
+If you're building production AI agents in .NET and need to:
 
-- **Catch regressions** before they hit production
-- **Enforce SLAs** on response time and cost
-- **Compare models** to make data-driven decisions
-- **Run tests in CI/CD** without paying for API calls every build
+- **Verify tool usage** - Did the agent call the right tools in the right order?
+- **Enforce SLAs** - Is response time and cost within acceptable limits?
+- **Handle non-determinism** - How often does the agent actually succeed?
+- **Compare models** - Which model gives the best quality for the cost?
 
 ### 🚀 Microsoft Agent Framework (MAF) Developers
 
-Developers using MAF who need native tooling that understands their stack:
+Native integration with MAF concepts:
 
-- First-class integration with `AIAgent`, `IChatClient`, `IStreamingChatClient`
+- `AIAgent`, `IChatClient`, `IStreamingChatClient` support
 - Automatic tool call tracking from `AIFunctionContext`
 - Performance metrics with token usage and cost estimation
 
 ### 📊 ML Engineers Evaluating LLM Quality
 
-Data scientists and ML engineers who need rigorous evaluation:
+Rigorous evaluation capabilities:
 
 - RAG metrics: Faithfulness, Relevance, Context Precision
 - Embedding-based similarity metrics
@@ -33,123 +33,95 @@ Data scientists and ML engineers who need rigorous evaluation:
 
 ---
 
-## What You Can Achieve
+## Common Scenarios
 
-### Catch Regressions Before Production
+### Scenario 1: Model Upgrade Testing
 
-When upgrading models (GPT-4 → GPT-4o), stochastic testing reveals the true impact:
+You're upgrading from GPT-4 to GPT-4o. Will it break anything?
 
 ```csharp
-// Run same test 20 times, measure actual success rate
+// Run tests across both models with statistical significance
 var result = await stochasticRunner.RunStochasticTestAsync(
-    agent, testCase, 
+    gpt4oAgent, testCase, 
     new StochasticOptions(Runs: 20, SuccessRateThreshold: 0.85));
 
-// See if the new model maintains quality
+// Compare: Did success rate drop?
 Console.WriteLine($"Success rate: {result.Statistics.SuccessRate:P1}");
-// Output: "Success rate: 72.0%" ← Regression detected!
 ```
 
-### Express Tests as Requirements
+### Scenario 2: Tool Chain Verification
 
-AgentEval's fluent syntax reads like requirements, making tests self-documenting:
+Your financial agent must verify identity BEFORE transferring funds:
 
 ```csharp
 result.ToolUsage!.Should()
     .HaveCalledTool("VerifyIdentity")
-        .BeforeTool("TransferFunds")
+        .BeforeTool("TransferFunds")  // Order enforcement
         .WithArgument("method", "TwoFactor")
     .HaveNoErrors();
 ```
 
-### Debug with Trace Recording
+### Scenario 3: Performance SLA Enforcement
 
-Record agent executions for later analysis and debugging:
+Production requires responses under 5 seconds and cost under $0.05:
 
 ```csharp
-// Record execution for debugging
-var recorder = new TraceRecordingAgent(realAgent);
-await recorder.ExecuteAsync("Book a flight to Paris");
-TraceSerializer.Save(recorder.GetTrace(), "debug-trace.json");
-
-// Later: replay and inspect what happened
-var trace = TraceSerializer.Load("debug-trace.json");
-// Examine tool calls, timing, responses without re-running
+result.Performance!.Should()
+    .HaveTotalDurationUnder(TimeSpan.FromSeconds(5))
+    .HaveEstimatedCostUnder(0.05m);
 ```
 
----
+### Scenario 4: Compliance Testing
 
-## From "It Works on My Machine" to "It Works in Production"
-
-| Stage | Without AgentEval | With AgentEval |
-|-------|-------------------|----------------|
-| **Development** | Manual testing, hope for the best | Fluent assertions, immediate feedback |
-| **PR Review** | "Did you test it?" | CI runs 1,000+ tests automatically |
-| **Model Upgrade** | 🙏 Fingers crossed | Stochastic tests reveal true impact |
-| **Production** | Users report bugs | Regressions caught before deployment |
-| **Cost Management** | Surprise bills | Cost SLAs in every test |
-
----
-
-## What Teams Evaluate
-
-### 🛠️ Tool Usage
-- Did the agent call the right tools?
-- In the right order?
-- With the right arguments?
-- How many retries did it need?
-
-### 📊 RAG Quality
-- **Faithfulness**: Is the response grounded in the provided context?
-- **Relevance**: Does the response actually answer the question?
-- **Context Precision**: Did we retrieve the right documents?
-
-### ⚡ Performance
-- **TTFT**: Time to first token (streaming responsiveness)
-- **Total Duration**: End-to-end response time
-- **Token Usage**: Input/output token counts
-- **Cost Estimation**: Dollars per request
-
-### 🛡️ Behavioral Compliance
+Your agent must never call certain tools or reveal sensitive data:
 
 ```csharp
-// Enforce behavioral guardrails
 result.Should()
-    .NeverMentionCompetitors()
-    .NotRevealSystemPrompt()
-    .FollowPolicy(HIPAAPolicy);
+    .NeverCallTool("DeleteAccount")
+    .NeverPassArgumentMatching(@"\b\d{3}-\d{2}-\d{4}\b");  // No SSNs
+```
+
+### Scenario 5: Debug Past Failures
+
+Something went wrong. Record and analyze:
+
+```csharp
+// Record execution
+var recorder = new TraceRecordingAgent(agent);
+await recorder.ExecuteAsync(userInput);
+TraceSerializer.Save(recorder.GetTrace(), "incident-trace.json");
+
+// Later: load and inspect tool calls, timing, responses
+var trace = TraceSerializer.Load("incident-trace.json");
 ```
 
 ---
 
-## Start Your Success Story
+## What AgentEval Evaluates
+
+| Category | What It Measures |
+|----------|------------------|
+| **Tool Usage** | Tools called, order, arguments, errors, retries |
+| **Performance** | Duration, TTFT, token usage, cost estimation |
+| **RAG Quality** | Faithfulness, Relevance, Context Precision/Recall |
+| **Compliance** | Forbidden tools, PII detection, policy violations |
+
+---
+
+## Next Steps
 
 <div class="grid cards" markdown>
 
--   :rocket: **[Get Started in 60 Seconds](getting-started.md)**
+-   :rocket: **[Get Started](getting-started.md)**
 
-    From zero to running tests in minutes
+    Install and write your first test in 5 minutes
 
 -   :books: **[Migration Guide](comparison.md)**
 
     Coming from Python? CLI tools? We've got you covered.
 
--   :test_tube: **[Assertion Reference](assertions.md)**
+-   :test_tube: **[Assertions Reference](assertions.md)**
 
-    Complete guide to fluent assertions
-
--   :art: **[Code Gallery](showcase/code-gallery.md)**
-
-    "Code You've Been Dreaming Of"
-
-</div>
-
----
-
-<div align="center">
-
-**Join the teams shipping AI agents with confidence.**
-
-[Get Started →](getting-started.md){ .md-button .md-button--primary }
+    Complete fluent assertion API
 
 </div>

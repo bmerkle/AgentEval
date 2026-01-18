@@ -5,7 +5,7 @@
 
 - name: Getting Started
   items:
-  - name: Success Stories
+  - name: Use Cases
     href: why-agenteval.md
   - name: Installation
     href: installation.md
