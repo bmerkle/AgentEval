@@ -10,7 +10,7 @@
     
     <!-- NuGet Package Info -->
     <PackageId>AgentEval.Cli</PackageId>
-    <Version>0.1.3-alpha</Version>
+    <Version>0.2.0-beta</Version>
     <Description>CLI tool for AgentEval - run AI agent evaluations from the command line. Integrates with CI/CD pipelines via JUnit XML, Markdown, and JSON output formats.</Description>
     <PackageTags>ai;agent;testing;evaluation;cli;cicd;devops</PackageTags>
     

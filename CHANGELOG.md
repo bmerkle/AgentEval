@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+- CodeQL integration for advanced code analysis
+- NuGet package signing
+- SBOM (Software Bill of Materials) generation
+- Plugin sandboxing for enterprise deployments
+
+---
+
+## [0.2.0-beta] - 2026-01-25
+
+**AgentEval Public Beta Release** 🎉
+
+This release marks the transition from alpha to beta. The framework is now feature-complete for core scenarios and ready for community feedback.
+
 ### Added
 - **Codecov Badge** - Coverage visibility in README.md
 - **NuGet Consumer Sample** (`samples/AgentEval.NuGetConsumer/`) - Standalone project showcasing all major features
@@ -19,15 +33,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Model comparison patterns
   - Agentic metrics overview
   - Works offline with mock data - no Azure OpenAI required
+- **Custom Domain** - AgentEval.dev documentation site with GitHub Pages
+- **Comprehensive Documentation** - 25+ documentation pages with zero DocFX warnings
+- **Security Scanning** - Enhanced pipeline with secret detection and dependency scanning
 
 ### Changed
 - Updated README test count badge to 3000+ (reflecting 1000+ tests × 3 TFMs)
+- Documentation navigation reorganized with improved feature grouping
+- Security scanning patterns refined to reduce false positives
+- Version bumped from 0.1.3-alpha to 0.2.0-beta signaling production readiness
 
-### Planned
-- CodeQL integration for advanced code analysis
-- NuGet package signing
-- SBOM (Software Bill of Materials) generation
-- Plugin sandboxing for enterprise deployments
+### Documentation
+- Getting Started, Assertions, Metrics Reference, Model Comparison guides
+- Trace Record & Replay, Stochastic Testing, Benchmarks documentation
+- CI/CD Integration guide with GitHub Actions examples
+- Migration guide for Python/Node.js developers
 
 ---
 
@@ -290,7 +310,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `AgentEval.Tracing` (OTel + run artifacts) - planned
 - `AgentEval.Studio` (workflow visualizer / time-travel UI) - future
 
-[Unreleased]: https://github.com/joslat/AgentEval/compare/v0.1.3-alpha...HEAD
+[Unreleased]: https://github.com/joslat/AgentEval/compare/v0.2.0-beta...HEAD
+[0.2.0-beta]: https://github.com/joslat/AgentEval/compare/v0.1.3-alpha...v0.2.0-beta
 [0.1.3-alpha]: https://github.com/joslat/AgentEval/compare/v0.1.2-alpha...v0.1.3-alpha
 [0.1.2-alpha]: https://github.com/joslat/AgentEval/compare/v0.1.1-alpha...v0.1.2-alpha
 [0.1.1-alpha]: https://github.com/joslat/AgentEval/compare/v0.1.0-alpha...v0.1.1-alpha

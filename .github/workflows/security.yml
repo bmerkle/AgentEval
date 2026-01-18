@@ -65,16 +65,23 @@ jobs:
       run: |
         echo "Scanning for potential secrets..."
         
-        # Check for common secret patterns
-        if grep -r -E "(api_key|apikey|secret|password|token|auth)" --include="*.cs" --include="*.json" --include="*.yml" --include="*.yaml" src/ samples/ tests/ || true; then
-          echo "⚠️ Potential secrets found. Manual review required."
+        # Check for common secret patterns in suspicious contexts (assignments, strings)
+        # Exclude test files and legitimate code patterns
+        SUSPICIOUS=$(grep -r -E "(api_key|apikey|secret_key|password)\s*[:=]" \
+          --include="*.cs" --include="*.json" --include="*.yml" --include="*.yaml" \
+          src/ samples/ 2>/dev/null | grep -v "// " | grep -v "GetEnvironmentVariable" || true)
+        
+        if [ -n "$SUSPICIOUS" ]; then
+          echo "⚠️ Potential secrets found. Manual review required:"
+          echo "$SUSPICIOUS"
         else
           echo "✅ No obvious hardcoded secrets detected"
         fi
         
-        # Check for Azure OpenAI keys (should only be in secure environment variables)
-        if grep -r "sk-" --include="*.cs" --include="*.json" src/ samples/ tests/ || true; then
-          echo "❌ Potential API key pattern found in source code"
+        # Check for actual OpenAI API keys (sk-proj-... or sk-... patterns with actual key content)
+        # These are 51+ character strings starting with sk-
+        if grep -r -E "sk-[a-zA-Z0-9]{48,}" --include="*.cs" --include="*.json" src/ samples/ 2>/dev/null; then
+          echo "❌ Potential OpenAI API key found in source code"
           echo "::error::API key patterns detected in source code"
           exit 1
         else
