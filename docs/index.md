@@ -1,128 +1,269 @@
-# AgentEval Documentation
-
-Welcome to the **AgentEval** documentation. AgentEval is the first .NET-native AI agent testing, evaluation, and benchmarking framework.
+# AgentEval
 
 <p align="center">
+  <img src="https://raw.githubusercontent.com/joslat/AgentEval/main/assets/AgentEval_bounded.png" alt="AgentEval Logo" width="400" />
+</p>
+
+<p align="center">
+  <strong>Your AI agent works great... until it doesn't.<br/>AgentEval catches the failures before your users do.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/joslat/AgentEval/actions/workflows/ci.yml">
+    <img src="https://github.com/joslat/AgentEval/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
+  </a>
+  <a href="https://codecov.io/gh/joslat/AgentEval">
+    <img src="https://codecov.io/gh/joslat/AgentEval/graph/badge.svg?token=Y28TAK3LNH" alt="Code Coverage" />
+  </a>
   <a href="https://www.nuget.org/packages/AgentEval">
     <img src="https://img.shields.io/nuget/v/AgentEval.svg" alt="NuGet Version" />
   </a>
-  <a href="https://github.com/joslat/AgentEval">
-    <img src="https://img.shields.io/github/stars/joslat/AgentEval.svg" alt="GitHub Stars" />
-  </a>
+  <img src="https://img.shields.io/badge/tests-3000%2B-brightgreen" alt="Test Count" />
 </p>
 
 ---
 
-## Quick Install
+## Make Agent Testing Feel Like Normal .NET Testing
+
+AgentEval is the **first .NET-native AI agent testing framework**, built for **Microsoft Agent Framework (MAF)**. Write tests for your AI agents with the same fluent syntax you know and love.
+
+> **For years, agentic developers have imagined writing tests like this. Today, they can.**
+
+---
+
+## The Code You've Been Dreaming Of
+
+### Assert on Tool Chains Like Requirements
+
+```csharp
+result.ToolUsage!.Should()
+    .HaveCalledTool("AuthenticateUser", because: "security first")
+        .BeforeTool("FetchUserData")
+        .WithArgument("method", "OAuth2")
+    .And()
+    .HaveCalledTool("SendNotification")
+        .AtLeastTimes(1)
+    .And()
+    .HaveNoErrors();
+```
+
+**No more regex parsing logs. No more "did it call that function?"**
+
+### Performance SLAs as Executable Tests
+
+```csharp
+result.Performance!.Should()
+    .HaveFirstTokenUnder(TimeSpan.FromMilliseconds(500),
+        because: "streaming responsiveness matters")
+    .HaveTotalDurationUnder(TimeSpan.FromSeconds(5))
+    .HaveEstimatedCostUnder(0.05m,
+        because: "stay within budget");
+```
+
+**Know before production if your agent is too slow or too expensive.**
+
+### Stochastic Testing: Because LLMs Aren't Deterministic
+
+```csharp
+var result = await stochasticRunner.RunStochasticTestAsync(
+    agent, testCase,
+    new StochasticOptions(Runs: 10, SuccessRateThreshold: 0.85));
+
+result.Statistics.SuccessRate.Should().BeGreaterThan(0.85);
+result.Statistics.StandardDeviation.Should().BeLessThan(10);
+```
+
+**Run the same test 10 times. Know your actual success rate, not your lucky-run rate.**
+
+### Compare Models, Get a Winner
+
+```csharp
+var result = await comparer.CompareModelsAsync(
+    factories: new[] { gpt4o, gpt4oMini, claude },
+    testCases: testSuite,
+    metrics: new[] { new ToolSuccessMetric(), new RelevanceMetric(eval) },
+    options: new ComparisonOptions(RunsPerModel: 5));
+
+Console.WriteLine(result.ToMarkdown());
+```
+
+**Output:**
+```markdown
+| Rank | Model         | Tool Accuracy | Relevance | Cost/1K Req |
+|------|---------------|---------------|-----------|-------------|
+| 🥇   | GPT-4o        | 94.2%         | 91.5      | $0.0150     |
+| 🥈   | GPT-4o Mini   | 87.5%         | 84.2      | $0.0003     |
+
+**Recommendation:** GPT-4o - Highest accuracy
+**Best Value:** GPT-4o Mini - 87.5% accuracy at 50x lower cost
+```
+
+### Record Once, Replay Forever (No API Costs)
+
+```csharp
+// RECORD once (live API call)
+var recorder = new TraceRecordingAgent(realAgent);
+await recorder.ExecuteAsync("Book a flight to Paris");
+TraceSerializer.Save(recorder.GetTrace(), "booking-trace.json");
+
+// REPLAY forever (no API call, instant, free)
+var replayer = new TraceReplayingAgent(trace);
+var response = await replayer.ReplayNextAsync();  // Identical every time
+```
+
+**Save API costs. Run tests in CI. Get consistent results.**
+
+---
+
+## 60-Second Quick Start
+
+### 1. Install
 
 ```bash
 dotnet add package AgentEval --prerelease
 ```
 
-**NuGet:** https://www.nuget.org/packages/AgentEval
-
----
-
-## Getting Started
-
-| Guide | Description |
-|-------|-------------|
-| [Installation](installation.md) | Install AgentEval and verify setup |
-| [Quick Start](getting-started.md) | Run your first agent test in 5 minutes |
-| [Walkthrough](walkthrough.md) | Step-by-step tutorial with examples |
-
----
-
-## Features
-
-### Tool Usage Assertions
-Assert on tool calls, order, arguments, results, errors, and duration with a fluent API.
+### 2. Write Your First Test
 
 ```csharp
-result.ToolUsage!
-    .Should()
-    .HaveCalledTool("SearchFlights")
-        .BeforeTool("BookFlight")
-        .WithArgument("destination", "Paris")
-    .And()
-    .HaveNoErrors();
+[Fact]
+public async Task Agent_ShouldHandleBookingRequest()
+{
+    var harness = new MAFTestHarness();
+    var testCase = new TestCase { Input = "Book a flight to Paris" };
+
+    var result = await harness.RunTestAsync(agent, testCase);
+
+    result.ToolUsage!.Should()
+        .HaveCalledTool("SearchFlights")
+        .And()
+        .HaveCalledTool("CreateBooking");
+
+    result.Performance!.Should()
+        .HaveTotalDurationUnder(TimeSpan.FromSeconds(10));
+}
 ```
 
-### Performance Metrics
-Track latency, TTFT (Time To First Token), tokens, estimated cost, and per-tool timing.
+### 3. Run
 
-```csharp
-result.Performance!
-    .Should()
-    .HaveTotalDurationUnder(TimeSpan.FromSeconds(10))
-    .HaveTimeToFirstTokenUnder(TimeSpan.FromSeconds(2))
-    .HaveEstimatedCostUnder(0.10m);
+```bash
+dotnet test
 ```
 
-### Multi-Turn Conversation Testing
-Test complex multi-turn conversations with the `ConversationalTestCase` builder and `ConversationRunner`. See [Conversations](conversations.md).
+**That's it.** No complex setup. No external services. No Python.
 
-### Workflow Testing
-Test multi-agent orchestration with edge assertions, conditional routing, and Mermaid diagram export. See [Workflow Testing](workflows.md).
-
-### Snapshot Testing
-Compare agent responses against saved baselines with JSON diff, field ignoring, pattern scrubbing, and semantic similarity. See [Snapshots](snapshots.md).
-
-### RAG Metrics
-Evaluate faithfulness, relevance, context precision/recall, and answer correctness.
-
-### Agentic Metrics
-Measure tool selection accuracy, tool arguments, tool success, task completion, and efficiency.
-
-### Benchmarks
-Run latency, throughput, cost, and agentic benchmarks with percentile statistics (p50/p90/p95/p99). See [Benchmarks](benchmarks.md).
-
-### CLI Tool
-Full command-line interface for CI/CD integration with multiple output formats (JSON, JUnit XML, Markdown) and dataset loaders (JSON, JSONL, CSV, YAML). See [CLI Reference](cli.md).
+[Get Started →](getting-started.md)
 
 ---
 
-## Guides
+## Why AgentEval?
 
-| Guide | Description |
-|-------|-------------|
-| [Architecture](architecture.md) | Component diagrams and metric hierarchy |
-| [Benchmarks](benchmarks.md) | BFCL, GAIA, ToolBench guides |
-| [CLI Reference](cli.md) | Command-line tool usage |
-| [Conversations](conversations.md) | Multi-turn testing guide |
-| [Embedding Metrics](embedding-metrics.md) | Semantic similarity metrics |
-| [Extensibility](extensibility.md) | Custom metrics, plugins, adapters |
-| [Snapshots](snapshots.md) | Snapshot testing guide |
-| [Tracing & Record/Replay](tracing.md) | Deterministic testing with trace capture |
-| [Workflow Testing](workflows.md) | Multi-agent orchestration testing |
-| [Roadmap](roadmap.md) | Future development plans |
+| Challenge | How AgentEval Solves It |
+|-----------|------------------------|
+| "What tools did my agent call?" | **Full tool timeline** with arguments, results, timing |
+| "Tests fail randomly!" | **Stochastic testing** - assert on pass *rate*, not single run |
+| "Which model should I use?" | **Model comparison** with cost/quality recommendations |
+| "Is my agent compliant?" | **Behavioral policies** - guardrails as code |
+| "Is my RAG hallucinating?" | **Faithfulness metrics** - grounding verification |
+| "How do I debug CI failures?" | **Trace replay** - capture and reproduce executions |
 
 ---
 
-## API Reference
+## Feature Highlights
 
-API documentation is auto-generated from XML comments. Browse the **API Reference** section in the navigation menu for detailed type documentation.
+<div class="grid cards" markdown>
+
+-   **🎯 Fluent Assertions**
+    
+    Tool chains, performance, responses - all with `Should()` syntax
+
+-   **⚡ Performance Metrics**
+    
+    TTFT, latency, tokens, cost estimation with 8+ model pricing
+
+-   **🔬 Stochastic Testing**
+    
+    Run N times, get statistics, assert on pass rates
+
+-   **🤖 Model Comparison**
+    
+    Compare models side-by-side with recommendations
+
+-   **🎬 Trace Record/Replay**
+    
+    Deterministic tests without API calls
+
+-   **🛡️ Behavioral Policies**
+    
+    NeverCallTool, MustConfirmBefore, PII detection
+
+-   **📊 RAG Metrics**
+    
+    Faithfulness, Relevance, Context Precision/Recall
+
+-   **🔄 Multi-Turn Testing**
+    
+    Full conversation flow testing
+
+</div>
 
 ---
 
-## Test Coverage
+## Documentation
 
-AgentEval has **1,000+ tests** (3,000+ across 3 target frameworks) covering all major features.
+| Getting Started | Features | Advanced |
+|-----------------|----------|----------|
+| [Installation](installation.md) | [Assertions](assertions.md) | [Stochastic Testing](stochastic-testing.md) |
+| [Quick Start](getting-started.md) | [Metrics Reference](metrics-reference.md) | [Model Comparison](model-comparison.md) |
+| [Walkthrough](walkthrough.md) | [Benchmarks](benchmarks.md) | [Trace Record/Replay](tracing.md) |
+| [CLI Tool](cli.md) | [Workflows](workflows.md) | [Architecture](architecture.md) |
+
+---
+
+## The .NET Advantage
+
+| Feature | AgentEval | Python Alternatives |
+|---------|-----------|---------------------|
+| **Language** | Native C#/.NET | Python only |
+| **Type Safety** | Compile-time errors | Runtime exceptions |
+| **IDE Support** | Full IntelliSense | Variable |
+| **MAF Integration** | First-class | None |
+| **Fluent Assertions** | `Should().HaveCalledTool()` | N/A |
+| **Trace Replay** | Built-in | Manual |
+
+---
+
+## Test Coverage: 67%+ | 3,000+ Tests
+
+AgentEval has **1,000+ tests** running across **3 target frameworks** (net8.0, net9.0, net10.0), totaling **3,000+ test executions** per CI run.
+
+[![codecov](https://codecov.io/gh/joslat/AgentEval/graph/badge.svg?token=Y28TAK3LNH)](https://codecov.io/gh/joslat/AgentEval)
 
 ---
 
 ## Community
 
-- **GitHub:** https://github.com/joslat/AgentEval
-- **NuGet:** https://www.nuget.org/packages/AgentEval
-- **Issues:** https://github.com/joslat/AgentEval/issues
-- **Discussions:** https://github.com/joslat/AgentEval/discussions
+- **GitHub:** [github.com/joslat/AgentEval](https://github.com/joslat/AgentEval)
+- **NuGet:** [nuget.org/packages/AgentEval](https://www.nuget.org/packages/AgentEval)
+- **Issues:** [Report bugs or request features](https://github.com/joslat/AgentEval/issues)
+- **Discussions:** [Ask questions](https://github.com/joslat/AgentEval/discussions)
 
 ---
 
-## Contributing
+## Forever Open Source
 
-Contributions are welcome! Please read:
-- [Contributing Guide](https://github.com/joslat/AgentEval/blob/main/CONTRIBUTING.md)
-- [Code of Conduct](https://github.com/joslat/AgentEval/blob/main/CODE_OF_CONDUCT.md)
-- [Security Policy](https://github.com/joslat/AgentEval/blob/main/SECURITY.md)
+AgentEval is **MIT licensed** and will remain open source forever.
+
+- ✅ **No license changes** - MIT today, MIT forever
+- ✅ **No "open core"** - All features are open source
+- ✅ **Community first** - Built for the .NET AI community
+
+---
+
+<p align="center">
+  <strong>Stop guessing if your AI agent works. Start proving it.</strong>
+</p>
+
+<p align="center">
+  <a href="getting-started.md"><strong>Get Started →</strong></a>
+</p>

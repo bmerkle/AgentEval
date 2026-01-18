@@ -50,6 +50,8 @@
         "dotnet run": true,
         "2..18": true,
         "1..18": true,
-        "ForEach-Object": true
+        "ForEach-Object": true,
+        "git -C \"c:\\git\\joslat\\AgentEval\"": true,
+        "nslookup": true
     }
 }
