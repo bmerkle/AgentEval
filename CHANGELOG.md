@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Planned
+- CodeQL integration for advanced code analysis
+- NuGet package signing
+- SBOM (Software Bill of Materials) generation
+- Plugin sandboxing for enterprise deployments
+
+---
+
+## [0.1.3-alpha] - 2026-01-18
+
+### Added
+- **Security Scanning Pipeline** - Comprehensive automated security analysis
+  - DevSkim static analysis integrated into CI/CD
+  - NuGet dependency vulnerability scanning
+  - Secret detection to prevent credential leaks
+  - SARIF output to GitHub Security tab
+  - Weekly scheduled scans plus on push/PR triggers
+- **CLI Baseline Comparison** - Compare against golden files
+  - `--baseline` option for snapshot testing workflow
+  - Human-readable diff output with color coding
+  - Exit code 2 for baseline mismatches (distinct from test failures)
+- **Security Documentation** - Comprehensive security guidance
+  - [SECURITY.md](SECURITY.md) - Vulnerability reporting process
+  - [docs/security-scanning.md](docs/security-scanning.md) - Tech stack and architecture
+  - [strategy/Implementation-Plan-Security-Hardening.md](strategy/Implementation-Plan-Security-Hardening.md) - Security roadmap
+- **Input Validation Hardening** - Defense against path traversal attacks
+  - CLI file path validation with directory allowlist
+  - Path normalization and canonicalization
+  - Extension validation for dataset files
+- **Security Workflow** (`.github/workflows/security.yml`)
+  - Runs on all pushes to main/develop branches
+  - Runs on all pull requests
+  - Scheduled weekly Monday scans for dependency updates
+
+### Changed
+- Project version bumped to 0.1.3-alpha across all packages
+- Enhanced CI/CD with security gate requirements
+
+### Security
+- Implemented OWASP Top 10 mitigations for web-adjacent attack vectors
+- Added anti-glassworm protections in development workflow
+- PII detection in `NeverPassArgumentMatching` uses redaction by default
+
+---
+
+## [0.1.2-alpha] - 2026-01-04
+
 ### Added
 - **Behavioral Policy Assertions** - Safety-critical assertions for enterprise compliance
   - `NeverCallTool(toolName, because)` - Assert forbidden tools were never called
@@ -227,7 +274,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `AgentEval.Tracing` (OTel + run artifacts) - planned
 - `AgentEval.Studio` (workflow visualizer / time-travel UI) - future
 
-[Unreleased]: https://github.com/joslat/AgentEval/compare/v0.1.2-alpha...HEAD
+[Unreleased]: https://github.com/joslat/AgentEval/compare/v0.1.3-alpha...HEAD
+[0.1.3-alpha]: https://github.com/joslat/AgentEval/compare/v0.1.2-alpha...v0.1.3-alpha
 [0.1.2-alpha]: https://github.com/joslat/AgentEval/compare/v0.1.1-alpha...v0.1.2-alpha
 [0.1.1-alpha]: https://github.com/joslat/AgentEval/compare/v0.1.0-alpha...v0.1.1-alpha
 [0.1.0-alpha]: https://github.com/joslat/AgentEval/releases/tag/v0.1.0-alpha

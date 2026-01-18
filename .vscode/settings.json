@@ -38,6 +38,8 @@
         "start": true,
         "Copy-Item": true,
         "Test-Path": true,
-        "New-Item": true
+        "New-Item": true,
+        "gh": true,
+        "dotnet pack": true
     }
 }
