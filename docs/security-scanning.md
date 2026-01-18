@@ -14,13 +14,136 @@ AgentEval implements comprehensive automated security scanning to protect agains
 
 ## Security Scanning Tech Stack
 
-| Tool | Purpose | Coverage |
-|------|---------|----------|
-| **Microsoft DevSkim** | Static analysis for security anti-patterns | Source code, config files |
-| **NuGet Vulnerability Scanner** | Dependency vulnerability detection | All transitive packages |
-| **GitHub CodeQL** | Advanced semantic code analysis | C# source code |
-| **Secret Scanner** | Hardcoded credential detection | All file types |
-| **SARIF Integration** | GitHub Security tab integration | Unified reporting |
+| Tool | Purpose | Coverage | Status |
+|------|---------|----------|--------|
+| **Microsoft DevSkim** | Static analysis for security anti-patterns | Source code, config files | ✅ Active |
+| **NuGet Vulnerability Scanner** | Dependency vulnerability detection | All transitive packages | ✅ Active |
+| **Secret Scanner** | Hardcoded credential detection | All file types | ✅ Active |
+| **SARIF Integration** | GitHub Security tab integration | Unified reporting | ✅ Active |
+| **GitHub CodeQL** | Advanced semantic code analysis | C# source code | 🔲 Planned |
+| **Codecov** | Code coverage tracking & reporting | Test coverage | 🔲 Setup Required |
+
+---
+
+## Tool Deep-Dives
+
+### Microsoft DevSkim
+
+**What is DevSkim?**
+
+[DevSkim](https://github.com/microsoft/DevSkim) is Microsoft's open-source security linter that provides IDE plugins, CLI tools, and GitHub Actions to detect security vulnerabilities during development. It's like ESLint/StyleCop but specifically for security issues.
+
+**What It Detects:**
+- 🔒 SQL injection vulnerabilities
+- 🔒 Cross-site scripting (XSS) patterns
+- 🔒 Command injection risks
+- 🔒 Path traversal vulnerabilities
+- 🔒 Hardcoded credentials and secrets
+- 🔒 Weak cryptographic algorithms (MD5, SHA1, DES)
+- 🔒 Insecure random number generation
+- 🔒 XML external entity (XXE) injection
+- 🔒 Insecure deserialization patterns
+- 🔒 SSL/TLS misconfigurations
+
+**How We Use It:**
+
+AgentEval uses the [DevSkim GitHub Action](https://github.com/microsoft/DevSkim-Action) to scan all source code on every push and PR:
+
+```yaml
+- name: Run Security DevSkim Analyzer
+  uses: microsoft/DevSkim-Action@v1
+  with:
+    directory-to-scan: .
+    output-filename: devskim-results.sarif
+```
+
+**Results Visibility:**
+
+DevSkim findings appear in:
+1. **GitHub Security Tab** → Repository → Security → Code scanning alerts
+2. **Pull Request Checks** → Annotations on affected lines
+3. **Artifacts** → `devskim-results.sarif` downloadable from workflow runs
+
+**Local DevSkim Usage:**
+
+```bash
+# Install DevSkim CLI globally
+dotnet tool install --global Microsoft.CST.DevSkim.CLI
+
+# Run locally
+devskim analyze --source-code . --output-file results.sarif
+
+# Or with Docker
+docker run -v $(pwd):/src mcr.microsoft.com/devskim analyze --source-code /src
+```
+
+---
+
+### Codecov (Code Coverage)
+
+**What is Codecov?**
+
+[Codecov](https://codecov.io) is a code coverage reporting service that integrates with GitHub to show which lines of code are covered by tests. It provides PR comments, coverage badges, and trend analysis.
+
+**Current Status:** 🔲 **Setup Required**
+
+Codecov requires a `CODECOV_TOKEN` to authenticate uploads. This token is not yet configured for the AgentEval repository.
+
+#### How to Set Up Codecov
+
+**Step 1: Sign Up for Codecov**
+
+1. Go to [codecov.io/signup](https://app.codecov.io/signup)
+2. Sign in with your GitHub account
+3. Install the [Codecov GitHub App](https://github.com/apps/codecov) for your organization/account
+4. Grant access to the `joslat/AgentEval` repository
+
+**Step 2: Get Your Repository Token**
+
+1. Go to [app.codecov.io](https://app.codecov.io)
+2. Select the `joslat/AgentEval` repository
+3. Click "Setup repo" or navigate to Settings → General
+4. Copy the **Repository Upload Token**
+
+**Step 3: Add Token to GitHub Secrets**
+
+1. Go to GitHub → `joslat/AgentEval` → Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Name: `CODECOV_TOKEN`
+4. Value: (paste the token from Step 2)
+5. Click "Add secret"
+
+**Step 4: Add Codecov to CI Workflow**
+
+Once the token is configured, add to `.github/workflows/ci.yml`:
+
+```yaml
+- name: Run tests with coverage
+  run: dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
+
+- name: Upload coverage to Codecov
+  uses: codecov/codecov-action@v4
+  with:
+    token: ${{ secrets.CODECOV_TOKEN }}
+    files: ./coverage/**/coverage.cobertura.xml
+    fail_ci_if_error: false
+    verbose: true
+```
+
+**Step 5: Add Coverage Badge to README**
+
+Once configured, add this badge to README.md:
+
+```markdown
+[![codecov](https://codecov.io/gh/joslat/AgentEval/graph/badge.svg?token=YOUR_BADGE_TOKEN)](https://codecov.io/gh/joslat/AgentEval)
+```
+
+**Coverage Reports Will Show:**
+- Overall project coverage percentage
+- Per-file coverage breakdown  
+- Coverage changes on each PR
+- Historical coverage trends
+- Uncovered lines highlighted in PR diffs
 
 ---
 
@@ -68,25 +191,21 @@ Security scanning runs automatically on:
 
 ### 3. DevSkim Static Analysis
 
-**What It Detects:**
-- SQL injection vulnerabilities
-- Cross-site scripting (XSS) patterns
-- Command injection risks
-- Path traversal vulnerabilities
-- Hardcoded credentials
-- Weak cryptographic algorithms
-- Insecure random number generation
-- XML external entity (XXE) injection
+DevSkim is integrated via the official [DevSkim GitHub Action](https://github.com/microsoft/DevSkim-Action).
 
 **Configuration:**
 ```yaml
 - name: Run Security DevSkim Analyzer
-  uses: microsoft/security-devskim-action@v1.0.14
+  uses: microsoft/DevSkim-Action@v1
   with:
     directory-to-scan: .
     output-filename: devskim-results.sarif
-    output-format: sarif
 ```
+
+**Where to View Results:**
+- **GitHub Security Tab:** Repository → Security → Code scanning alerts
+- **PR Annotations:** Inline comments on affected code
+- **Workflow Artifacts:** Download `devskim-results.sarif`
 
 ### 4. Dependency Vulnerability Scanning
 
@@ -280,7 +399,7 @@ jobs:
       - run: dotnet restore
       
       # DevSkim static analysis
-      - uses: microsoft/security-devskim-action@v1.0.14
+      - uses: microsoft/DevSkim-Action@v1
         with:
           directory-to-scan: .
           output-filename: devskim-results.sarif

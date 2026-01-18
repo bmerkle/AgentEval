@@ -32,11 +32,10 @@ jobs:
       run: dotnet restore
 
     - name: Run Security DevSkim Analyzer
-      uses: microsoft/security-devskim-action@v1.0.14
+      uses: microsoft/DevSkim-Action@v1
       with:
         directory-to-scan: .
         output-filename: devskim-results.sarif
-        output-format: sarif
 
     - name: Upload DevSkim scan results to GitHub Security tab
       if: always()
