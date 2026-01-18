@@ -20,22 +20,22 @@
     href: assertions.md
   - name: Stochastic Testing
     href: stochastic-testing.md
+  - name: Model Comparison
+    href: model-comparison.md
   - name: Conversations
     href: conversations.md
   - name: Workflow Testing
     href: workflows.md
   - name: Snapshots
     href: snapshots.md
+  - name: Trace Recording
+    href: tracing.md
   - name: Evaluation Guide
     href: evaluation-guide.md
   - name: Metrics Reference
     href: metrics-reference.md
   - name: Embedding Metrics
     href: embedding-metrics.md
-  - name: Model Comparison
-    href: model-comparison.md
-  - name: Trace Recording
-    href: tracing.md
   - name: Benchmarks
     href: benchmarks.md
 
@@ -47,6 +47,8 @@
     href: cli.md
   - name: Rich Test Output
     href: rich-test-output-guide.md
+  - name: Security Scanning
+    href: security-scanning.md
 
 - name: API Reference
   href: api/

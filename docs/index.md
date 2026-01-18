@@ -101,7 +101,7 @@ Full command-line interface for CI/CD integration with multiple output formats (
 
 ## API Reference
 
-API documentation is auto-generated from XML comments. See the [API Reference](api/index.md) section.
+API documentation is auto-generated from XML comments. Browse the **API Reference** section in the navigation menu for detailed type documentation.
 
 ---
 

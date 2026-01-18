@@ -88,7 +88,7 @@ AgentEval is in **alpha** with all core features complete and ready for producti
 - [ ] Synthetic dataset generation
 - [ ] AgentEval Studio (visual workflow editor)
 
-> 📖 See [New Features Exploration](strategy/new-features-exploration.md) for detailed feature specifications and premium strategy.
+> � Premium and Enterprise features are planned for future releases. Watch the [GitHub Releases](https://github.com/joslat/AgentEval/releases) for announcements.
 
 ---
 

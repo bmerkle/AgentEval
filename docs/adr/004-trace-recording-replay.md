@@ -221,12 +221,12 @@ agenteval trace show ./traces/weather_test.trace.json
 ## Implementation
 
 ### Phase 1: Core Classes ✅ IMPLEMENTED
-- `AgentTrace` — Data model for recorded traces ([AgentTrace.cs](../../src/AgentEval/Tracing/AgentTrace.cs))
+- `AgentTrace` — Data model for recorded traces ([AgentTrace.cs](https://github.com/joslat/AgentEval/blob/main/src/AgentEval/Tracing/AgentTrace.cs))
 - `TraceEntry` — Individual request/response entry
-- `TraceRecordingAgent` — Wrapper that records ([TraceRecordingAgent.cs](../../src/AgentEval/Tracing/TraceRecordingAgent.cs))
-- `TraceReplayingAgent` — Mock that replays ([TraceReplayingAgent.cs](../../src/AgentEval/Tracing/TraceReplayingAgent.cs))
-- `TraceSerializer` — JSON serialization ([TraceSerializer.cs](../../src/AgentEval/Tracing/TraceSerializer.cs))
-- Tests: 17 tests in [TraceRecordingAndReplayTests.cs](../../tests/AgentEval.Tests/Tracing/TraceRecordingAndReplayTests.cs)
+- `TraceRecordingAgent` — Wrapper that records ([TraceRecordingAgent.cs](https://github.com/joslat/AgentEval/blob/main/src/AgentEval/Tracing/TraceRecordingAgent.cs))
+- `TraceReplayingAgent` — Mock that replays ([TraceReplayingAgent.cs](https://github.com/joslat/AgentEval/blob/main/src/AgentEval/Tracing/TraceReplayingAgent.cs))
+- `TraceSerializer` — JSON serialization ([TraceSerializer.cs](https://github.com/joslat/AgentEval/blob/main/src/AgentEval/Tracing/TraceSerializer.cs))
+- Tests: 17 tests in [TraceRecordingAndReplayTests.cs](https://github.com/joslat/AgentEval/blob/main/tests/AgentEval.Tests/Tracing/TraceRecordingAndReplayTests.cs)
 
 ### Phase 2: Integration (Pending)
 - Test harness integration (`TestOptions.TraceRecorder`)

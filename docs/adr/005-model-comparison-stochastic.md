@@ -2,8 +2,7 @@
 
 > **Status:** Accepted  
 > **Date:** January 8, 2026  
-> **Decision Makers:** AgentEval Core Team  
-> **Related Implementation:** [Implementation Plan](../../strategy/Implementation-Plan-ModelComparison-And-Stochastic-Testing.md)
+> **Decision Makers:** AgentEval Core Team
 
 ---
 
@@ -237,9 +236,10 @@ This decision will be validated by:
 
 ## Related Documents
 
-- [Implementation Plan](../../strategy/Implementation-Plan-ModelComparison-And-Stochastic-Testing.md)
-- [AgentEval-NewFeatures-Exploration.md](../../strategy/AgentEval-NewFeatures-Exploration.md) — Sections 11 and 14
-- [TODO.md](../../strategy/TODO.md) — Priority items E.4 and Model Comparison
+- [Model Comparison Guide](../model-comparison.md)
+- [Stochastic Testing Guide](../stochastic-testing.md)
+- [Sample14: Stochastic Testing](https://github.com/joslat/AgentEval/blob/main/samples/AgentEval.Samples/Sample14_StochasticTesting.cs)
+- [Sample15: Model Comparison](https://github.com/joslat/AgentEval/blob/main/samples/AgentEval.Samples/Sample15_ModelComparison.cs)
 
 ---
 

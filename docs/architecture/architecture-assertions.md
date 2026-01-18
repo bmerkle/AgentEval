@@ -9,10 +9,9 @@
 1. [Current Architecture Overview](#current-architecture-overview)
 2. [xUnit Integration Analysis](#xunit-integration-analysis)
 3. [Comparison with Industry Standards](#comparison-with-industry-standards)
-4. [Key Question: Framework-Specific Exceptions](#key-question-framework-specific-exceptions)
-5. [Gap Analysis](#gap-analysis)
-6. [Service Architecture Integration](#service-architecture-integration)
-7. [Recommendations](#recommendations)
+4. [Gap Analysis](#gap-analysis)
+5. [Service Architecture Integration](#service-architecture-integration)
+6. [Recommendations](#recommendations)
 
 ---
 

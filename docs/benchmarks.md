@@ -416,7 +416,7 @@ OVERALL SCORE: 90.0/100
 - ❓ SWE-bench (requires git/code editing capabilities)
 - ❓ WebArena (requires browser automation)
 
-> 📖 See [Implementation Plan: Benchmarks](../strategy/Implementation-Plan-Benchmarks.md) for detailed implementation guidance.
+> � Want to contribute to benchmark implementation? See our [Contributing Guide](https://github.com/joslat/AgentEval/blob/main/CONTRIBUTING.md).
 
 ---
 

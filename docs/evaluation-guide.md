@@ -296,8 +296,8 @@ var compositeScore = scores.Average(s => s.Score);
 ## See Also
 
 - [Metrics Reference](metrics-reference.md) - Complete metric catalog
-- [Stochastic Testing](../samples/AgentEval.Samples/Sample14_StochasticTesting.cs) - Handle LLM variability
-- [Model Comparison](../samples/AgentEval.Samples/Sample15_ModelComparison.cs) - Compare models
+- [Stochastic Testing](stochastic-testing.md) - Handle LLM variability
+- [Model Comparison](model-comparison.md) - Compare models
 
 ---
 

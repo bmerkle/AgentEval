@@ -369,7 +369,7 @@ docker run -v $(pwd):/src mcr.microsoft.com/devskim analyze --source-code /src
 
 ### Security Bug in AgentEval Code
 
-1. Report via [SECURITY.md](../SECURITY.md) process
+1. Report via [SECURITY.md](https://github.com/joslat/AgentEval/blob/main/SECURITY.md) process
 2. Acknowledge within 24 hours
 3. Patch and release within 7 days (critical) or 30 days (moderate)
 
@@ -437,7 +437,6 @@ jobs:
 
 ## Related Documentation
 
-- [SECURITY.md](../SECURITY.md) - Vulnerability reporting process
-- [CONTRIBUTING.md](../CONTRIBUTING.md) - Contribution guidelines
-- [ADR-009: Security Architecture](adr/009-security-architecture.md) - Design decisions
+- [SECURITY.md](https://github.com/joslat/AgentEval/blob/main/SECURITY.md) - Vulnerability reporting process
+- [CONTRIBUTING.md](https://github.com/joslat/AgentEval/blob/main/CONTRIBUTING.md) - Contribution guidelines
 

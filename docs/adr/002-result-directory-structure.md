@@ -197,4 +197,3 @@ If user provides a config file, copy it for reproducibility.
 
 - [ai-rag-chat-evaluator result structure](https://github.com/Azure-Samples/ai-rag-chat-evaluator)
 - [JSON Lines specification](https://jsonlines.org/)
-- [Competitor Analysis](../strategy/competitor-analysis.md)

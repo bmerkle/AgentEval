@@ -208,7 +208,6 @@ Keep flat structure, rely on documentation.
 - [ADR-001: Metric Naming Prefixes](001-metric-naming-prefixes.md)
 - [Metrics Reference](../metrics-reference.md)
 - [Evaluation Guide](../evaluation-guide.md)
-- [Implementation Plan](../../strategy/Implementation-Plan-Metrics-Evaluators.md)
 
 ---
 
