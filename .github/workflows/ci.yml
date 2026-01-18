@@ -51,6 +51,16 @@ jobs:
         AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
         AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
 
+    - name: Security Scan - .NET Dependency Check
+      if: matrix.dotnet-version == '10.0.x'
+      run: |
+        dotnet list package --vulnerable --include-transitive 2>&1 | tee vulnerability-report.txt
+        if grep -q 'has the following vulnerable packages' vulnerability-report.txt; then
+          echo "::error::Vulnerable dependencies found"
+          cat vulnerability-report.txt
+          exit 1
+        fi
+
     - name: Upload coverage reports
       if: matrix.dotnet-version == '10.0.x'
       uses: codecov/codecov-action@v4

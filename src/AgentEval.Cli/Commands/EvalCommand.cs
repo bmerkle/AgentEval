@@ -3,6 +3,7 @@
 
 using System.CommandLine;
 using System.Diagnostics;
+using System.Text.Json;
 using AgentEval.DataLoaders;
 using AgentEval.Exporters;
 
@@ -142,6 +143,12 @@ public static class EvalCommand
     {
         Console.WriteLine("AgentEval - Running evaluations...");
         Console.WriteLine();
+
+        // Security validation
+        ValidateFilePath(config?.FullName, "configuration");
+        ValidateFilePath(dataset?.FullName, "dataset");
+        ValidateFilePath(output?.FullName, "output");
+        ValidateFilePath(baseline?.FullName, "baseline");
 
         // Validate inputs
         if (config != null && !config.Exists)
@@ -290,8 +297,7 @@ public static class EvalCommand
         // Check for regressions
         if (baseline != null && failOnRegression)
         {
-            // TODO: Implement actual baseline comparison
-            Console.WriteLine("Baseline comparison: No regressions detected");
+            await PerformBaselineComparison(baseline, report, overallScore);
         }
 
         return passed ? 0 : 1;
@@ -380,5 +386,143 @@ public static class EvalCommand
             return "RAG";
 
         return "General";
+    }
+
+    /// <summary>
+    /// Performs baseline comparison and reports regressions.
+    /// </summary>
+    private static async Task PerformBaselineComparison(FileInfo baseline, EvaluationReport currentReport, double currentScore)
+    {
+        try
+        {
+            if (!baseline.Exists)
+            {
+                ConsoleHelper.WriteLineColored($"⚠️  Baseline file not found: {baseline.FullName}", ConsoleColor.Yellow);
+                ConsoleHelper.WriteLineColored("   Creating baseline for future comparisons...", ConsoleColor.Yellow);
+                
+                // Save current results as new baseline
+                var jsonExporter = new JsonExporter();
+                await using var baselineStream = baseline.Create();
+                await jsonExporter.ExportAsync(currentReport, baselineStream);
+                
+                ConsoleHelper.WriteLineColored($"✅ Baseline created: {baseline.FullName}", ConsoleColor.Green);
+                return;
+            }
+
+            // Load baseline report
+            await using var stream = baseline.OpenRead();
+            using var reader = new StreamReader(stream);
+            var baselineJson = await reader.ReadToEndAsync();
+            var baselineReport = JsonSerializer.Deserialize<EvaluationReport>(baselineJson);
+
+            if (baselineReport == null)
+            {
+                ConsoleHelper.WriteLineColored("❌ Failed to parse baseline file", ConsoleColor.Red);
+                return;
+            }
+
+            var baselineScore = baselineReport.OverallScore;
+            var scoreDifference = currentScore - baselineScore;
+            
+            Console.WriteLine();
+            Console.WriteLine("📊 Baseline Comparison:");
+            Console.WriteLine($"   Baseline Score: {baselineScore:F1}%");
+            Console.WriteLine($"   Current Score:  {currentScore:F1}%");
+            
+            if (scoreDifference >= 0)
+            {
+                ConsoleHelper.WriteLineColored($"   Difference:     +{scoreDifference:F1}% ✅ IMPROVEMENT", ConsoleColor.Green);
+            }
+            else if (Math.Abs(scoreDifference) < 2.0) // Allow 2% tolerance
+            {
+                ConsoleHelper.WriteLineColored($"   Difference:     {scoreDifference:F1}% ⚠️  MINOR REGRESSION (within tolerance)", ConsoleColor.Yellow);
+            }
+            else
+            {
+                ConsoleHelper.WriteLineColored($"   Difference:     {scoreDifference:F1}% ❌ SIGNIFICANT REGRESSION", ConsoleColor.Red);
+                throw new InvalidOperationException($"Regression detected: {scoreDifference:F1}% decrease from baseline");
+            }
+
+            // Compare individual test results
+            var currentTests = currentReport.TestResults.ToDictionary(r => r.Name, r => r);
+            var baselineTests = baselineReport.TestResults.ToDictionary(r => r.Name, r => r);
+            
+            var regressions = new List<string>();
+            foreach (var testPair in currentTests)
+            {
+                var testName = testPair.Key;
+                var currentResult = testPair.Value;
+                if (baselineTests.TryGetValue(testName, out var baselineResult))
+                {
+                    var testDifference = currentResult.Score - baselineResult.Score;
+                    if (testDifference < -5.0) // 5% regression threshold per test
+                    {
+                        regressions.Add($"{testName}: {testDifference:F1}%");
+                    }
+                }
+            }
+
+            if (regressions.Any())
+            {
+                Console.WriteLine();
+                Console.WriteLine("⚠️  Individual test regressions:");
+                foreach (var regression in regressions)
+                {
+                    ConsoleHelper.WriteLineColored($"   - {regression}", ConsoleColor.Yellow);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            ConsoleHelper.WriteLineColored($"❌ Baseline comparison failed: {ex.Message}", ConsoleColor.Red);
+            throw; // Re-throw to fail the build if fail-on-regression is enabled
+        }
+    }
+
+    /// <summary>
+    /// Validates file paths to prevent path traversal attacks.
+    /// </summary>
+    private static void ValidateFilePath(string? filePath, string pathType)
+    {
+        if (string.IsNullOrEmpty(filePath))
+            return;
+
+        // Check for path traversal attempts
+        if (filePath.Contains("..") || 
+            filePath.Contains("~") ||
+            Path.IsPathRooted(filePath) && !IsAllowedRootPath(filePath))
+        {
+            throw new ArgumentException($"Invalid {pathType} file path. Path traversal attempts are not allowed.", nameof(filePath));
+        }
+
+        // Validate file extension allowlist
+        var extension = Path.GetExtension(filePath)?.ToLowerInvariant();
+        var allowedExtensions = new[] { ".json", ".jsonl", ".yaml", ".yml", ".csv", ".xml", ".md", ".txt" };
+        
+        if (!string.IsNullOrEmpty(extension) && !allowedExtensions.Contains(extension))
+        {
+            throw new ArgumentException($"File extension '{extension}' is not allowed for {pathType} files.", nameof(filePath));
+        }
+    }
+
+    /// <summary>
+    /// Checks if the root path is in an allowed location.
+    /// </summary>
+    private static bool IsAllowedRootPath(string filePath)
+    {
+        try
+        {
+            var fullPath = Path.GetFullPath(filePath);
+            var currentDirectory = Environment.CurrentDirectory;
+            var tempPath = Path.GetTempPath();
+            
+            // Allow files in current directory or subdirectories, and temp directory
+            return fullPath.StartsWith(currentDirectory, StringComparison.OrdinalIgnoreCase) ||
+                   fullPath.StartsWith(tempPath, StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false; // If path resolution fails, deny access
+        }
     }
 }

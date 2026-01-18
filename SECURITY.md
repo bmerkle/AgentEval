@@ -107,7 +107,23 @@ Use secrets management in CI/CD:
 
 ## Known Issues
 
-No known security vulnerabilities at this time.
+**None currently identified.**
+
+### Security Scanning
+
+AgentEval includes automated security scanning in CI/CD:
+
+- **Dependency Vulnerability Scanning**: Checks for known vulnerabilities in NuGet packages
+- **DevSkim Static Analysis**: Microsoft's security-focused static analysis tool
+- **Secret Detection**: Scans for hardcoded secrets and API keys
+- **Path Traversal Protection**: CLI validates file paths to prevent directory traversal attacks
+
+### Regular Security Reviews
+
+The project undergoes security reviews:
+- Weekly automated dependency scans
+- Manual security audits before major releases
+- Community-driven vulnerability reporting via GitHub Security Advisories
 
 Check [Security Advisories](https://github.com/joslat/AgentEval/security/advisories) for updates.
 
