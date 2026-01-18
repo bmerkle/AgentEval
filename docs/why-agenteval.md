@@ -33,48 +33,26 @@ Data scientists and ML engineers who need rigorous evaluation:
 
 ---
 
-## Real-World Results
+## What You Can Achieve
 
-### Model Upgrade Regression Detection
+### Catch Regressions Before Production
 
-> **"We caught a 15% regression in tool selection accuracy when upgrading from GPT-4 to GPT-4o. Would have been a production incident."**
-> 
-> — *Engineering team at enterprise customer*
+When upgrading models (GPT-4 → GPT-4o), stochastic testing reveals the true impact:
 
-**The situation:** A team was preparing to upgrade their customer service agent from GPT-4 to GPT-4o for cost savings.
+```csharp
+// Run same test 20 times, measure actual success rate
+var result = await stochasticRunner.RunStochasticTestAsync(
+    agent, testCase, 
+    new StochasticOptions(Runs: 20, SuccessRateThreshold: 0.85));
 
-**The discovery:** AgentEval's stochastic testing revealed that while GPT-4o was faster and cheaper, it had a 15% lower accuracy in selecting the correct support tools.
+// See if the new model maintains quality
+Console.WriteLine($"Success rate: {result.Statistics.SuccessRate:P1}");
+// Output: "Success rate: 72.0%" ← Regression detected!
+```
 
-**The outcome:** The team added targeted prompt improvements and re-tested until they achieved equivalent accuracy, then deployed confidently.
+### Express Tests as Requirements
 
----
-
-### CI/CD Cost Reduction
-
-> **"Trace replay saved us $2,000/month in API costs for our CI pipeline."**
-> 
-> — *Startup using AgentEval in GitHub Actions*
-
-**The problem:** Running comprehensive agent tests on every PR was costing thousands per month in API calls.
-
-**The solution:** Using AgentEval's trace record/replay feature:
-1. Record representative traces once (with real API calls)
-2. Replay deterministically in CI (no API calls, instant, free)
-3. Re-record periodically to stay current
-
-**The savings:** 95% reduction in CI API costs while maintaining test coverage.
-
----
-
-### Accelerated Onboarding
-
-> **"The fluent assertions let our junior developers write meaningful agent tests on day one."**
-> 
-> — *Tech lead at financial services company*
-
-**The challenge:** New team members struggled to understand what to test in AI agents and how to express those tests.
-
-**The approach:** AgentEval's fluent syntax reads like requirements:
+AgentEval's fluent syntax reads like requirements, making tests self-documenting:
 
 ```csharp
 result.ToolUsage!.Should()
@@ -84,7 +62,20 @@ result.ToolUsage!.Should()
     .HaveNoErrors();
 ```
 
-**The result:** Junior developers productive on agent testing within their first week.
+### Debug with Trace Recording
+
+Record agent executions for later analysis and debugging:
+
+```csharp
+// Record execution for debugging
+var recorder = new TraceRecordingAgent(realAgent);
+await recorder.ExecuteAsync("Book a flight to Paris");
+TraceSerializer.Save(recorder.GetTrace(), "debug-trace.json");
+
+// Later: replay and inspect what happened
+var trace = TraceSerializer.Load("debug-trace.json");
+// Examine tool calls, timing, responses without re-running
+```
 
 ---
 
