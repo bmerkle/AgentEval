@@ -122,7 +122,7 @@ Once the token is configured, add to `.github/workflows/ci.yml`:
   run: dotnet test --collect:"XPlat Code Coverage" --results-directory ./coverage
 
 - name: Upload coverage to Codecov
-  uses: codecov/codecov-action@v4
+  uses: codecov/codecov-action@v5
   with:
     token: ${{ secrets.CODECOV_TOKEN }}
     files: ./coverage/**/coverage.cobertura.xml
@@ -130,13 +130,19 @@ Once the token is configured, add to `.github/workflows/ci.yml`:
     verbose: true
 ```
 
-**Step 5: Add Coverage Badge to README**
+**Step 5: Add Coverage Badge to README (Private Repos)**
 
-Once configured, add this badge to README.md:
+For **private repositories**, badges require a graph token:
+
+1. Go to [app.codecov.io](https://app.codecov.io) → Select your repo → Settings → Badge
+2. Copy the **graph token** from the badge URL (the `?token=XXXX` part)
+3. Add this badge to README.md:
 
 ```markdown
-[![codecov](https://codecov.io/gh/joslat/AgentEval/graph/badge.svg?token=YOUR_BADGE_TOKEN)](https://codecov.io/gh/joslat/AgentEval)
+[![codecov](https://codecov.io/gh/joslat/AgentEval/graph/badge.svg?token=YOUR_GRAPH_TOKEN)](https://codecov.io/gh/joslat/AgentEval)
 ```
+
+> **Note:** The graph token is different from `CODECOV_TOKEN`. It's safe to expose in README - it only allows reading the badge, not uploading data.
 
 **Coverage Reports Will Show:**
 - Overall project coverage percentage

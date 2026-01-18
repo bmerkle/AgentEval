@@ -63,11 +63,13 @@ jobs:
 
     - name: Upload coverage reports
       if: matrix.dotnet-version == '10.0.x'
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       with:
-        directory: coverage
+        # Find all coverage files in the coverage directory
+        files: ./coverage/**/coverage.cobertura.xml
         fail_ci_if_error: false
-        # CODECOV_TOKEN is configured as a repository secret
+        verbose: true
+        # CODECOV_TOKEN is required for private repositories
         # See: Repository Settings > Secrets and variables > Actions
         token: ${{ secrets.CODECOV_TOKEN }}
 
