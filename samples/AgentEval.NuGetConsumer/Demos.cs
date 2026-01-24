@@ -274,7 +274,8 @@ public static class Demos
         {
             // Core properties
             Name = "Complete Travel Booking Demo",
-            Input = "Search for flights to Tokyo for March 20, 2026, book the cheapest one under $800, and send confirmation.",
+            Input = "Search for flights to Tokyo for March 20, 2026, book the cheapest one under $800, and send confirmation. Do not ask me the email, the tool already knows it, not needed.",
+            // Note: Model for cost calculation is set in TestOptions.ModelName (not here!)
             
             // Quick validations (no LLM cost)
             ExpectedOutputContains = "Tokyo",
@@ -508,6 +509,15 @@ public static class Demos
             
             Console.WriteLine();
             ShowPass("🎯 ALL ASSERTIONS PASSED! Complete AgentEval demonstration successful.");
+            
+            // === AUTOMATIC AGENTEVAL OUTPUT ===
+            Console.WriteLine("   ═══════════════════════════════════════════════════════════════════════════════");
+            Console.WriteLine("   📋 AUTOMATIC OUTPUT (Built-in TestOutputWriter)");
+            Console.WriteLine("   ═══════════════════════════════════════════════════════════════════════════════\n");
+            Console.WriteLine("   This is what AgentEval generates automatically - no manual formatting needed!\n");
+            
+            var writer = new TestOutputWriter(new VerbositySettings { Level = VerbosityLevel.Detailed });
+            writer.WriteTestResult(result);
             
         }
         catch (Exception ex)

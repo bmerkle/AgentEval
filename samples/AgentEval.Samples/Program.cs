@@ -111,6 +111,9 @@ public static class Program
                 case 18:
                     await Sample18_JudgeCalibration.RunAsync();
                     break;
+                case 19:
+                    await Sample19_StreamingVsAsyncPerformance.RunAsync();
+                    break;
                 default:
                     Console.WriteLine($"❌ Sample {sampleNumber} not found.\n");
                     break;
@@ -173,6 +176,7 @@ public static class Program
         Console.WriteLine("│ 16. 🔀 Combined Test      - Stochastic + Model Comparison   │");
         Console.WriteLine("│ 17. 🛡️ Quality & Safety   - Groundedness, Coherence, Fluency│");
         Console.WriteLine("│ 18. ⚖️ Judge Calibration  - Multi-model consensus voting   │");
+        Console.WriteLine("│ 19. ⚡ Streaming vs Async - Performance comparison          │");
         
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("├─────────────────────────────────────────────────────────────┤");
