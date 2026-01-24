@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing to AgentEval! 🎉
 
-AgentEval is the first .NET-native AI agent testing, evaluation, and benchmarking framework, and community contributions are essential to its success.
+AgentEval is **the .NET evaluation toolkit for AI agents**—evaluation, testing, and benchmarking for agentic AI, built first for Microsoft Agent Framework (MAF). Community contributions are essential to its success.
 
 ## Ways to Contribute
 

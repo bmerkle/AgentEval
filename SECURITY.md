@@ -6,7 +6,8 @@ AgentEval is currently in alpha. Security updates are provided for the following
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.0.0-alpha   | :white_check_mark: |
+| 0.2.0-beta    | :white_check_mark: |
+| 0.1.x-alpha   | :white_check_mark: |
 
 Once AgentEval reaches stable release (1.0.0), we will support:
 - Current major version (e.g., 1.x)

@@ -2,7 +2,7 @@
 
 > Demonstrates how to work with the **published AgentEval NuGet package** in real applications.
 
-This sample showcases **advanced, production-ready usage patterns** for AI agent testing and evaluation using AgentEval as an external dependency.
+This sample showcases **advanced, production-ready usage patterns** for AI agent evaluation and testing using AgentEval as an external dependency.
 
 ## 🚀 Quick Start
 

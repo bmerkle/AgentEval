@@ -34,7 +34,7 @@ assignees: ''
 
 ## Environment
 
-- **AgentEval Version**: <!-- e.g., 1.0.0-alpha -->
+- **AgentEval Version**: <!-- e.g., 0.2.0-beta -->
 - **.NET Version**: <!-- e.g., .NET 8.0, .NET 9.0 -->
 - **OS**: <!-- e.g., Windows 11, macOS 14, Ubuntu 22.04 -->
 - **IDE**: <!-- e.g., Visual Studio 2022, VS Code, Rider -->

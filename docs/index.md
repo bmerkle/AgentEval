@@ -18,14 +18,17 @@
   <a href="https://www.nuget.org/packages/AgentEval">
     <img src="https://img.shields.io/nuget/v/AgentEval.svg" alt="NuGet Version" />
   </a>
+  <a href="https://github.com/joslat/AgentEval/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/joslat/AgentEval.svg" alt="License" />
+  </a>
   <img src="https://img.shields.io/badge/tests-3000%2B-brightgreen" alt="Test Count" />
 </p>
 
 ---
 
-## Make Agent Testing Feel Like Normal .NET Testing
+## The .NET Evaluation Toolkit for AI Agents
 
-AgentEval is the **first .NET-native AI agent testing framework**, built for **Microsoft Agent Framework (MAF)**. Write tests for your AI agents with the same fluent syntax you know and love.
+AgentEval is **the comprehensive .NET toolkit for AI agent evaluation**—tool usage validation, RAG quality metrics, stochastic testing, and model comparison—built for **Microsoft Agent Framework (MAF)**. What RAGAS and DeepEval do for Python, AgentEval does for .NET.
 
 > **For years, agentic developers have imagined writing tests like this. Today, they can.**
 
@@ -206,6 +209,34 @@ dotnet test
     Full conversation flow testing
 
 </div>
+
+---
+
+## Who Is AgentEval For?
+
+### 🏢 .NET Teams Building AI Agents
+
+If you're building production AI agents in .NET and need to verify tool usage, enforce SLAs, handle non-determinism, or compare models—AgentEval is for you.
+
+### 🚀 Microsoft Agent Framework (MAF) Developers
+
+Native integration with MAF concepts: `AIAgent`, `IChatClient`, automatic tool call tracking, and performance metrics with token usage and cost estimation.
+
+### 📊 ML Engineers Evaluating LLM Quality
+
+Rigorous evaluation capabilities: RAG metrics (Faithfulness, Relevance, Context Precision), embedding-based similarity, and calibrated judge patterns for consistent evaluation.
+
+---
+
+## CLI Tool & Samples
+
+**CLI for CI/CD:**
+```bash
+dotnet tool install -g AgentEval.Cli
+agenteval eval --dataset tests.yaml --format junit -o results.xml
+```
+
+**18 runnable samples** included—from Hello World to Model Comparison. [View Samples →](https://github.com/joslat/AgentEval/tree/main/samples/AgentEval.Samples)
 
 ---
 

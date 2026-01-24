@@ -1,6 +1,6 @@
 # AgentEval
 
-> **The first .NET-native AI agent testing, evaluation, and benchmarking framework**
+> **The .NET Evaluation Toolkit for AI Agents**
 
 ## Features
 
@@ -77,7 +77,7 @@ Suggestions:
 
 ## Test Coverage
 
-- **2100+ unit tests** covering all core functionality
+- **3000+ unit tests** covering all core functionality
 - Tests for all assertions, metrics, models, and adapters
 - All tests passing ✅
 

@@ -4,11 +4,12 @@ This file provides instructions for AI agents working with the AgentEval codebas
 
 ## Project Overview
 
-AgentEval is a .NET-native AI agent testing framework for Microsoft Agent Framework (MAF). It provides:
-- Fluent assertions for tool usage, performance, and responses
-- RAG and agentic evaluation metrics
-- Stochastic testing and model comparison
-- Trace record/replay for deterministic testing
+AgentEval is **the comprehensive .NET evaluation toolkit for AI agents**, built first for Microsoft Agent Framework (MAF). What RAGAS and DeepEval do for Python, AgentEval does for .NET:
+- Tool usage validation with fluent assertions
+- RAG quality metrics (faithfulness, relevance, groundedness)
+- Stochastic testing and statistical model comparison
+- Behavioral policies (NeverCallTool, MustConfirmBefore)
+- Trace record/replay for deterministic CI testing
 - CLI tool for CI/CD integration
 
 ## Quick Reference

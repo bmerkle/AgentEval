@@ -5,8 +5,6 @@
 
 - name: Getting Started
   items:
-  - name: Use Cases
-    href: why-agenteval.md
   - name: Installation
     href: installation.md
   - name: Quick Start

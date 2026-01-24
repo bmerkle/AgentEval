@@ -1,94 +1,65 @@
-# Roadmap
+﻿# Roadmap
 
-AgentEval is actively developed. This page outlines completed features and planned enhancements.
+AgentEval is actively developed. This page outlines completed features and what's coming next.
 
-## Current Status: v1.0.0-alpha
+## Current Status: v0.2.0-beta
 
-AgentEval is in **alpha** with all core features complete and ready for production use.
+AgentEval is in **beta** with all core features complete and ready for production use.
 
 ---
 
-## ✅ Completed Features
+## What's Shipped
 
-### Core Testing (v1.0.0-alpha)
-- [x] Test harness for AI agents (`MAFTestHarness`, `ITestHarness`)
-- [x] Fluent assertions for tool usage, performance, and responses
-- [x] Multi-turn conversation testing (`ConversationRunner`)
-- [x] Snapshot testing for regression detection (`SnapshotComparer`)
-- [x] Workflow testing for multi-agent orchestration
+### Core Evaluation & Testing
+- **Test harness** for AI agents (`MAFTestHarness`, `ITestHarness`)
+- **Fluent assertions** for tool usage, performance, and responses
+- **Stochastic testing** - run N times, assert on pass rates
+- **Model comparison** with statistical significance
+- **Multi-turn conversation testing** (`ConversationRunner`)
+- **Workflow testing** for multi-agent orchestration
+- **Snapshot testing** for regression detection
 
 ### Metrics & Evaluation
-- [x] RAG metrics: Faithfulness, Relevance, Context Precision/Recall, Answer Correctness
-- [x] Agentic metrics: Tool Selection, Tool Arguments, Tool Success, Task Completion, Efficiency
-- [x] Embedding-based similarity metrics
-- [x] AI-powered response evaluation
+- **RAG metrics:** Faithfulness, Relevance, Context Precision/Recall, Answer Correctness
+- **Agentic metrics:** Tool Selection, Tool Arguments, Tool Success, Task Completion, Efficiency
+- **Embedding-based similarity** metrics
+- **Calibrated judges** with confidence intervals and voting strategies
 
 ### Performance & Observability
-- [x] Streaming support with real-time callbacks
-- [x] Time to First Token (TTFT) tracking
-- [x] Per-tool timing and execution waterfall
-- [x] Token counting and cost estimation (8+ models)
-- [x] Performance benchmarks (latency, throughput, cost)
+- **Streaming support** with real-time callbacks
+- **Time to First Token (TTFT)** tracking
+- **Per-tool timing** and execution waterfall
+- **Token counting and cost estimation** (8+ models)
+- **Performance benchmarks** (latency, throughput, cost)
+- **Trace record/replay** - capture and reproduce executions deterministically
+
+### Behavioral Policies
+- `NeverCallTool()` - forbid specific tool calls
+- `NeverPassArgumentMatching()` - forbid argument patterns (PII, etc.)
+- `MustConfirmBefore()` - require confirmation before sensitive operations
 
 ### CI/CD Integration
-- [x] CLI tool (`agenteval eval`, `agenteval init`, `agenteval list`)
-- [x] Result exporters: JSON, JUnit XML, Markdown, TRX
-- [x] Dataset loaders: JSON, JSONL, CSV, YAML
+- **CLI tool** (`agenteval eval`, `agenteval init`, `agenteval list`)
+- **Result exporters:** JSON, JUnit XML, Markdown, TRX
+- **Dataset loaders:** JSON, JSONL, CSV, YAML
+- **Rich test output** with verbosity levels and trace artifacts
 
 ### Framework Support
-- [x] Microsoft Agent Framework (MAF) adapter
-- [x] Generic `IChatClient` adapter
-- [x] Microsoft.Extensions.AI.Evaluation integration
+- **Microsoft Agent Framework (MAF)** adapter
+- **Generic `IChatClient`** adapter
+- **Microsoft.Extensions.AI.Evaluation** integration
 
 ---
 
-## 🔄 In Progress
+## What's Next
 
-### Documentation & Community
-- [x] Community files (CONTRIBUTING, CODE_OF_CONDUCT, SECURITY)
-- [x] GitHub issue and PR templates
-- [x] Installation and walkthrough documentation
-- [ ] Complete API reference documentation (auto-generated from XML docs)
-- [ ] Video tutorials and walkthroughs
-- [ ] Community Discord server (deferred until 50+ active users)
+We're focused on making AgentEval the most comprehensive evaluation toolkit for AI agents in .NET. Upcoming areas include:
 
----
-
-## 📋 Planned Features
-
-### Short-term (Q1 2026)
-- [x] Workflow assertions P0 enhancements (`because`, structured exceptions)
-- [ ] CLI `summary` command — tabular view of runs in directory
-- [ ] CLI `diff` command — side-by-side answer comparison
-- [ ] Standardized result directory structure (eval_results.jsonl, summary.json)
-- [ ] Console visualization enhancements (Spectre.Console tables, progress)
-- [ ] Visual assertion reports (ASCII diagrams)
-- [ ] GitHub Actions workflow templates
-- [ ] Visual Studio test integration
-- [ ] Additional framework adapters (Semantic Kernel)
-
-### Medium-term (Q2 2026)
-- [ ] Code metrics (ResponseLength, HasCitation, CitationMatch)
-- [ ] Refusal quality metric ("dontknowness" for unanswerable questions)
-- [ ] Multi-agent orchestration contracts
-- [ ] Assertion telemetry (local storage)
-- [ ] Self-healing assertions (rule-based)
-- [ ] Record/Replay for deterministic testing
-- [ ] Experiment management and A/B testing
-- [ ] Baseline comparison dashboard
-
-### Long-term (Q3-Q4 2026)
-- [ ] Visual assertion reports (HTML/interactive) — *Premium*
-- [ ] Assertion telemetry (cloud dashboard) — *Premium*
-- [ ] Self-healing assertions (LLM-powered) — *Premium*
-- [ ] Assertion-driven prompt optimization — *Premium*
-- [ ] Self-hosted dashboard & baseline comparison — *Enterprise Self-Host*
-- [ ] AgentEval Studio (self-hosted option) — *Enterprise Self-Host*
-- [ ] Red-teaming and safety testing
-- [ ] Synthetic dataset generation
-- [ ] AgentEval Studio (visual workflow editor)
-
-> � Premium and Enterprise features are planned for future releases. Watch the [GitHub Releases](https://github.com/joslat/AgentEval/releases) for announcements.
+- **CLI enhancements** - summary views, diff comparisons, visualization
+- **Additional framework adapters** - Semantic Kernel, LangChain.NET
+- **Visual reporting** - HTML reports, interactive diagrams
+- **Experiment management** - A/B testing, baseline comparison
+- **Safety testing** - red-teaming, adversarial inputs
 
 ---
 
@@ -96,12 +67,15 @@ AgentEval is in **alpha** with all core features complete and ready for producti
 
 Have a feature request? [Open an issue](https://github.com/joslat/AgentEval/issues/new?template=feature_request.md) on GitHub!
 
+We prioritize based on community needs and contributions.
+
 ---
 
 ## Version History
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| 1.0.0-alpha | Jan 2026 | Initial public release with core features |
+| 0.2.0-beta | Jan 2026 | Evaluation toolkit, stochastic testing, model comparison, trace replay |
+| 0.1.x-alpha | Jan 2026 | Initial alpha releases |
 
 See [CHANGELOG.md](https://github.com/joslat/AgentEval/blob/main/CHANGELOG.md) for detailed release notes.

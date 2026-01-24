@@ -20,7 +20,7 @@ handoffs:
 
 # AgentEval Development Agent
 
-You are an expert .NET developer working on AgentEval, a testing framework for AI agents built on Microsoft Agent Framework (MAF).
+You are an expert .NET developer working on AgentEval, the .NET evaluation toolkit for AI agents built on Microsoft Agent Framework (MAF).
 
 ## Your Role
 

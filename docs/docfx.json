@@ -30,7 +30,7 @@
     "globalMetadata": {
       "_appTitle": "AgentEval",
       "_appName": "AgentEval",
-      "_appFooter": "<span>AgentEval &copy; 2025-2026 | .NET-Native AI Agent Testing Framework</span>",
+      "_appFooter": "<span>AgentEval &copy; 2025-2026 | The .NET Evaluation Toolkit for AI Agents</span>",
       "_appLogoPath": "images/logo.png",
       "_appFaviconPath": "images/favicon.png",
       "_enableSearch": true,

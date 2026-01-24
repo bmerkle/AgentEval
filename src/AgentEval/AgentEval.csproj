@@ -6,8 +6,8 @@
     <!-- NuGet Package Info -->
     <PackageId>AgentEval</PackageId>
     <Version>0.2.0-beta</Version>
-    <Description>The first .NET-native AI agent testing, evaluation, and benchmarking framework. Supports Microsoft Agent Framework (MAF), with extensible adapters for other frameworks.</Description>
-    <PackageTags>ai;agent;testing;evaluation;benchmarking;maf;llm;openai;azure</PackageTags>
+    <Description>The .NET evaluation toolkit for AI agents—tool usage validation, RAG quality metrics, stochastic testing, and model comparison. Built for Microsoft Agent Framework (MAF) with fluent assertion APIs.</Description>
+    <PackageTags>ai;agent;evaluation;testing;benchmarking;maf;llm;openai;azure;rag;agentic</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     
     <!-- XML Documentation -->

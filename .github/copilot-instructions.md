@@ -1,6 +1,6 @@
 # AgentEval - AI Coding Agent Instructions
 
-AgentEval is a .NET-native testing, evaluation, and benchmarking framework for AI agents, built primarily for **Microsoft Agent Framework (MAF)**.
+AgentEval is **the comprehensive .NET evaluation toolkit for AI agents**, built primarily for **Microsoft Agent Framework (MAF)**. What RAGAS and DeepEval do for Python, AgentEval does for .NET—plus tool chain evaluation, behavioral policies, and calibrated multi-judge scoring.
 
 ## Architecture Overview
 

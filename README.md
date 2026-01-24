@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>Make agent testing feel like normal .NET testing.</strong>
+  <strong>The .NET Evaluation Toolkit for AI Agents</strong>
 </p>
 
 <p align="center">
@@ -26,7 +26,7 @@
 
 ---
 
-AgentEval is a **.NET-native testing, evaluation, and benchmarking toolkit for AI agents**  built first for **Microsoft Agent Framework (MAF)**. It brings the testing experience you know and love from .NET to the world of agentic AI.
+AgentEval is **the comprehensive .NET toolkit for AI agent evaluation**—tool usage validation, RAG quality metrics, stochastic testing, and model comparison—built first for **Microsoft Agent Framework (MAF)**. What RAGAS and DeepEval do for Python, AgentEval does for .NET, with the fluent assertion APIs .NET developers expect.
 
 > **For years, agentic developers have imagined writing tests like this. Today, they can.**
 
@@ -279,6 +279,29 @@ public class MyAgentTests : AgentEvalTestBase
 | "What's the latency/cost?" | **Performance metrics** - TTFT, tokens, estimated cost |
 | "How do I debug failures?" | **Trace recording** - capture executions for step-by-step analysis |
 | "CI tests pass locally but fail in CI?" | **Rich test output** - detailed logs and trace artifacts |
+
+---
+
+## Who Is AgentEval For?
+
+**🏢 .NET Teams Building AI Agents** — If you're building production AI agents in .NET and need to verify tool usage, enforce SLAs, handle non-determinism, or compare models—AgentEval is for you.
+
+**🚀 Microsoft Agent Framework (MAF) Developers** — Native integration with MAF concepts: `AIAgent`, `IChatClient`, automatic tool call tracking, and performance metrics with token usage and cost estimation.
+
+**📊 ML Engineers Evaluating LLM Quality** — Rigorous evaluation capabilities: RAG metrics (Faithfulness, Relevance, Context Precision), embedding-based similarity, and calibrated judge patterns for consistent evaluation.
+
+---
+
+## The .NET Advantage
+
+| Feature | AgentEval | Python Alternatives |
+|---------|-----------|---------------------|
+| **Language** | Native C#/.NET | Python only |
+| **Type Safety** | Compile-time errors | Runtime exceptions |
+| **IDE Support** | Full IntelliSense | Variable |
+| **MAF Integration** | First-class | None |
+| **Fluent Assertions** | `Should().HaveCalledTool()` | N/A |
+| **Trace Replay** | Built-in | Manual setup |
 
 ---
 
