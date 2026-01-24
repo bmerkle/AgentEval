@@ -20,7 +20,7 @@ public class MAFTestHarness : IStreamingTestHarness
     /// Create a test harness without AI-powered evaluation using console logging.
     /// </summary>
     public MAFTestHarness(bool verbose = true)
-        : this(evaluator: null, verbose ? new ConsoleAgentEvalLogger() : NullAgentEvalLogger.Instance)
+        : this(evaluator: null, verbose ? new ConsoleAgentEvalLogger(LogLevel.Debug) : NullAgentEvalLogger.Instance)
     {
     }
     
@@ -30,7 +30,7 @@ public class MAFTestHarness : IStreamingTestHarness
     /// <param name="evaluatorClient">Chat client to use for AI evaluation.</param>
     /// <param name="verbose">Whether to print verbose output.</param>
     public MAFTestHarness(IChatClient evaluatorClient, bool verbose = true)
-        : this(new ChatClientEvaluator(evaluatorClient), verbose ? new ConsoleAgentEvalLogger() : NullAgentEvalLogger.Instance)
+        : this(new ChatClientEvaluator(evaluatorClient), verbose ? new ConsoleAgentEvalLogger(LogLevel.Debug) : NullAgentEvalLogger.Instance)
     {
     }
     
@@ -47,7 +47,7 @@ public class MAFTestHarness : IStreamingTestHarness
     /// Create a test harness with a custom evaluator (uses console logger).
     /// </summary>
     public MAFTestHarness(IEvaluator evaluator, bool verbose = true)
-        : this(evaluator, verbose ? new ConsoleAgentEvalLogger() : NullAgentEvalLogger.Instance)
+        : this(evaluator, verbose ? new ConsoleAgentEvalLogger(LogLevel.Debug) : NullAgentEvalLogger.Instance)
     {
     }
     
@@ -280,6 +280,22 @@ public class MAFTestHarness : IStreamingTestHarness
                         });
                         
                         streamingOptions?.OnToolComplete?.Invoke(existingRecord);
+                    }
+                }
+                
+                // Extract token usage from final chunk
+                if (chunk.IsComplete && chunk.Usage != null)
+                {
+                    metrics.PromptTokens = chunk.Usage.PromptTokens;
+                    metrics.CompletionTokens = chunk.Usage.CompletionTokens;
+                    
+                    // Calculate cost now that we have tokens
+                    if (metrics.ModelUsed != null)
+                    {
+                        metrics.EstimatedCost = ModelPricing.EstimateCost(
+                            metrics.ModelUsed,
+                            metrics.PromptTokens.Value,
+                            metrics.CompletionTokens.Value);
                     }
                 }
             }

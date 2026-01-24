@@ -100,6 +100,19 @@ public static class AgentFactory
         };
     }
 
+    /// <summary>
+    /// Creates a chat client for LLM-as-a-judge evaluation.
+    /// </summary>
+    public static IChatClient CreateEvaluatorChatClient()
+    {
+        if (!Config.IsConfigured)
+            throw new InvalidOperationException("Azure OpenAI is not configured. Set environment variables.");
+
+        var azureClient = new AzureOpenAIClient(Config.Endpoint, Config.KeyCredential);
+        // Use the primary model for evaluation (could also use a separate evaluator model)
+        return azureClient.GetChatClient(Config.Model).AsIChatClient();
+    }
+
     private static string GetModelDisplayName(string deployment) => deployment switch
     {
         "gpt-4o" => "GPT-4o",

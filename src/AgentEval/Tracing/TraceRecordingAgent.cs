@@ -230,6 +230,16 @@ public sealed class TraceRecordingAgent : ITestableAgent, IStreamableAgent, IAsy
                     }
                 }
 
+                // Capture token usage from final chunk
+                if (chunk.IsComplete && chunk.Usage != null)
+                {
+                    responseEntry.TokenUsage = new TraceTokenUsage
+                    {
+                        PromptTokens = chunk.Usage.PromptTokens,
+                        CompletionTokens = chunk.Usage.CompletionTokens
+                    };
+                }
+                
                 previousChunkTime = currentTime;
                 yield return chunk;
             }

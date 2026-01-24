@@ -21,23 +21,99 @@ var useMock = SelectMode();
 SafeClear();
 ShowHeader(useMock);
 
-// Run all demos
-await Demos.RunToolAssertionsDemo(useMock);
-await Demos.RunPerformanceAssertionsDemo(useMock);
-await Demos.RunBehavioralPoliciesDemo(useMock);
-await Demos.RunResponseAssertionsDemo(useMock);
-
-// Stochastic testing only in real mode (requires actual LLM variability)
-if (!useMock)
-{
-    await Demos.RunStochasticTestingDemo();
-}
-else
-{
-    Demos.ShowStochasticExplanation();
-}
+// Interactive menu for demo selection
+await ShowDemoMenu(useMock);
 
 ShowSummary(useMock);
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Demo Menu System
+// ═══════════════════════════════════════════════════════════════════════════════
+
+static async Task ShowDemoMenu(bool useMock)
+{
+    while (true)
+    {
+        Console.WriteLine("""
+        ═══════════════════════════════════════════════════════════════════════════════
+          Select Demo to Run:
+        ═══════════════════════════════════════════════════════════════════════════════
+        
+        """);
+        
+        Console.WriteLine("  🎯 [0] COMPLETE EXAMPLE - All AgentEval features in one comprehensive demo");
+        Console.WriteLine("  🛡️  [1] BEHAVIORAL POLICIES - LLM-as-a-judge evaluation + safety guardrails");
+        Console.WriteLine("  📊 [2] STOCHASTIC MODEL COMPARISON - Statistical analysis across models");
+        Console.WriteLine("  🏃 [3] Run ALL Demos");
+        Console.WriteLine("  ❌ [Q] Quit");
+        Console.WriteLine();
+        
+        Console.ForegroundColor = ConsoleColor.DarkGray;
+        Console.WriteLine("      💡 Basic demos (Tool Chain, Performance, Response) available in AgentEval.Samples");
+        Console.ResetColor();
+        Console.WriteLine();
+        
+        Console.Write("  Enter choice [0-3/Q]: ");
+        
+        var choice = Console.ReadKey(intercept: true).KeyChar.ToString().ToUpper();
+        Console.WriteLine(choice);
+        Console.WriteLine();
+        
+        try
+        {
+            switch (choice)
+            {
+                case "0":
+                    await Demos.RunCompleteExample(useMock);
+                    break;
+                case "1":
+                    await Demos.RunBehavioralPoliciesDemo(useMock);
+                    break;
+                case "2":
+                    if (!useMock)
+                    {
+                        await Demos.RunStochasticTestingDemo();
+                    }
+                    else
+                    {
+                        Demos.ShowStochasticExplanation();
+                    }
+                    break;
+                case "3":
+                    await Demos.RunCompleteExample(useMock);
+                    await Demos.RunBehavioralPoliciesDemo(useMock);
+                    if (!useMock)
+                    {
+                        await Demos.RunStochasticTestingDemo();
+                    }
+                    else
+                    {
+                        Demos.ShowStochasticExplanation();
+                    }
+                    ShowSummary(useMock);
+                    return; // Exit menu after running all
+                case "Q":
+                    return;
+                default:
+                    Console.WriteLine("  Invalid choice. Please try again.");
+                    await Task.Delay(1000);
+                    continue;
+            }
+            
+            Console.WriteLine("\n  Press any key to return to menu...");
+            Console.ReadKey(intercept: true);
+            Console.WriteLine();
+        }
+        catch (Exception ex)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"  ❌ Error: {ex.Message}");
+            Console.ResetColor();
+            Console.WriteLine("\n  Press any key to continue...");
+            Console.ReadKey(intercept: true);
+        }
+    }
+}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // UI Methods
@@ -138,25 +214,26 @@ static void ShowSummary(bool useMock)
     Console.WriteLine("""
 
     ╔════════════════════════════════════════════════════════════════════════════════╗
-    ║                         ✅ ALL FEATURES DEMONSTRATED!                          ║
+    ║                         ✅ ADVANCED AGENTEVAL FEATURES!                       ║
     ╠════════════════════════════════════════════════════════════════════════════════╣
     ║                                                                                ║
-    ║   ✅ Tool Chain Assertions    - HaveCalledTool, WithArgument, BeforeTool       ║
-    ║   ✅ Performance Assertions   - Duration, TTFT, Cost, Token limits             ║
-    ║   ✅ Behavioral Policies      - NeverCallTool, MustConfirmBefore               ║
-    ║   ✅ Response Assertions      - Contain, NotContain, Length validation         ║
+    ║   🎯 Complete Example         - ALL TestCase, TestOptions, StreamingOptions    ║
+    ║   🧑‍⚖️  LLM-as-a-Judge           - Behavioral policies + evaluation criteria    ║
     """);
     
     if (!useMock)
     {
-        Console.WriteLine("║   ✅ Stochastic Testing       - Real statistical analysis over 5 runs         ║");
+        Console.WriteLine("║   📊 Model Comparison         - Real statistical analysis across models       ║");
     }
     else
     {
-        Console.WriteLine("║   ℹ️  Stochastic Testing       - Run in REAL mode to see actual stats          ║");
+        Console.WriteLine("║   ℹ️  Model Comparison         - Run in REAL mode for live comparison         ║");
     }
     
     Console.WriteLine("""
+    ║                                                                                ║
+    ║   💡 For basic demos (Tool Chain, Performance, Response):                     ║
+    ║      See AgentEval.Samples project with 18 targeted examples                  ║
     ║                                                                                ║
     ╠════════════════════════════════════════════════════════════════════════════════╣
     ║   📦 Install: dotnet add package AgentEval --prerelease                        ║

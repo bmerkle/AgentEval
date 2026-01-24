@@ -16,178 +16,21 @@ namespace AgentEval.NuGetConsumer;
 /// </summary>
 public static class Demos
 {
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 1. TOOL CHAIN ASSERTIONS
-    // ═══════════════════════════════════════════════════════════════════════════════
 
-    public static async Task RunToolAssertionsDemo(bool useMock)
-    {
-        ShowSection("1️⃣  TOOL CHAIN ASSERTIONS", "Verify agent tool usage with fluent API");
 
-        ToolUsageReport toolUsage;
-        string response;
 
-        if (useMock)
-        {
-            // MOCK: Use pre-built test data
-            toolUsage = MockDataFactory.CreateTravelBookingToolUsage();
-            response = MockDataFactory.CreateAgentResponse();
-        }
-        else
-        {
-            // REAL: Execute actual agent with STREAMING for full metrics
-            var agent = AgentFactory.CreateTravelAgent(useMock: false);
-            var harness = new MAFTestHarness(verbose: true);
-            var testCase = new TestCase
-            {
-                Name = "Travel Booking Flow",
-                Input = "Search for flights to Paris on March 15th, 2026, book the cheapest one, and send confirmation to user@example.com"
-            };
-            
-            // Use streaming to capture TTFT and per-tool timing
-            var result = await harness.RunTestStreamingAsync(
-                agent, 
-                testCase,
-                streamingOptions: new StreamingOptions
-                {
-                    OnFirstToken = ttft => Console.WriteLine($"      ⚡ First token: {ttft.TotalMilliseconds:F0}ms"),
-                    OnToolStart = tool => Console.WriteLine($"      🔧 Tool started: {tool.Name}"),
-                    OnToolComplete = tool => Console.WriteLine($"      ✓ Tool done: {tool.Name} ({tool.Duration?.TotalMilliseconds:F0}ms)")
-                },
-                options: new TestOptions 
-                { 
-                    TrackTools = true, 
-                    TrackPerformance = true,
-                    ModelName = Config.Model  // For cost estimation
-                });
-            
-            toolUsage = result.ToolUsage ?? new ToolUsageReport();
-            response = result.ActualOutput ?? "";
-        }
-
-        try
-        {
-            // THE ICONIC AGENTEVAL ASSERTION CHAIN ✨
-            toolUsage.Should()
-                .HaveCalledTool("SearchFlights", because: "must search before booking")
-                    .WithArgument("destination", "Paris")
-                    .WithDurationUnder(TimeSpan.FromSeconds(5))
-                .And()
-                .HaveCalledTool("BookFlight", because: "booking follows search")
-                    .AfterTool("SearchFlights", because: "can't book without search results")
-                .And()
-                .HaveCallOrder("SearchFlights", "BookFlight", "SendConfirmation")
-                .HaveNoErrors();
-
-            ShowPass("Tool chain assertions PASSED!");
-            ShowCode("""
-                result.ToolUsage!.Should()
-                    .HaveCalledTool("SearchFlights", because: "must search first")
-                        .WithArgument("destination", "Paris")
-                        .WithDurationUnder(TimeSpan.FromSeconds(5))
-                    .And()
-                    .HaveCalledTool("BookFlight")
-                        .AfterTool("SearchFlights")
-                    .And()
-                    .HaveCallOrder("SearchFlights", "BookFlight", "SendConfirmation")
-                    .HaveNoErrors();
-                """);
-        }
-        catch (ToolAssertionException ex)
-        {
-            ShowFail($"Tool assertion failed: {ex.Message}");
-        }
-    }
 
     // ═══════════════════════════════════════════════════════════════════════════════
-    // 2. PERFORMANCE ASSERTIONS (with streaming for full metrics)
-    // ═══════════════════════════════════════════════════════════════════════════════
-
-    public static async Task RunPerformanceAssertionsDemo(bool useMock)
-    {
-        ShowSection("2️⃣  PERFORMANCE ASSERTIONS", "Make SLAs executable (streaming mode)");
-
-        PerformanceMetrics performance;
-
-        if (useMock)
-        {
-            performance = MockDataFactory.CreatePerformanceMetrics();
-        }
-        else
-        {
-            var agent = AgentFactory.CreateCalculatorAgent(useMock: false);
-            var harness = new MAFTestHarness(verbose: true);
-            var testCase = new TestCase 
-            { 
-                Name = "Calculator Test", 
-                Input = "Calculate 42 * 17 using the calculator tool" 
-            };
-            
-            // Use STREAMING to capture TTFT and per-tool timing
-            var result = await harness.RunTestStreamingAsync(
-                agent, 
-                testCase,
-                streamingOptions: new StreamingOptions
-                {
-                    OnFirstToken = ttft => Console.WriteLine($"      ⚡ First token received at {ttft.TotalMilliseconds:F0}ms")
-                },
-                options: new TestOptions 
-                { 
-                    TrackPerformance = true,
-                    TrackTools = true,
-                    ModelName = Config.Model  // Required for cost estimation!
-                });
-            
-            performance = result.Performance ?? new PerformanceMetrics();
-        }
-
-        try
-        {
-            performance.Should()
-                .HaveTotalDurationUnder(TimeSpan.FromSeconds(10), because: "UX requires responsive agent")
-                .HaveTimeToFirstTokenUnder(TimeSpan.FromMilliseconds(2000), because: "streaming feel")
-                .HaveEstimatedCostUnder(0.10m, because: "stay within budget")
-                .HaveTokenCountUnder(5000);
-
-            ShowPass("Performance assertions PASSED!");
-            
-            // Display metrics with N/A for unavailable values
-            Console.WriteLine($"      📊 Total duration: {FormatDuration(performance.TotalDuration)}");
-            Console.WriteLine($"      📊 Time to first token: {FormatNullableDuration(performance.TimeToFirstToken)}");
-            Console.WriteLine($"      📊 Total tokens: {FormatNullableInt(performance.TotalTokens)}");
-            Console.WriteLine($"      📊 Estimated cost: {FormatNullableCost(performance.EstimatedCost)}");
-            Console.WriteLine($"      📊 Model used: {performance.ModelUsed ?? "N/A"}");
-            Console.WriteLine($"      📊 Was streaming: {performance.WasStreaming}\n");
-
-            ShowCode("""
-                // Use streaming for full metrics (TTFT, per-tool timing)
-                var result = await harness.RunTestStreamingAsync(
-                    agent, testCase,
-                    options: new TestOptions { ModelName = "gpt-4o" });  // Required for cost!
-                
-                result.Performance!.Should()
-                    .HaveTotalDurationUnder(TimeSpan.FromSeconds(10))
-                    .HaveTimeToFirstTokenUnder(TimeSpan.FromMilliseconds(2000))
-                    .HaveEstimatedCostUnder(0.10m)
-                    .HaveTokenCountUnder(5000);
-                """);
-        }
-        catch (PerformanceAssertionException ex)
-        {
-            ShowFail($"Performance assertion failed: {ex.Message}");
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════════
-    // 3. BEHAVIORAL POLICY ASSERTIONS (with response validation)
+    // 1. BEHAVIORAL POLICY ASSERTIONS (with LLM-as-a-judge response evaluation)
     // ═══════════════════════════════════════════════════════════════════════════════
 
     public static async Task RunBehavioralPoliciesDemo(bool useMock)
     {
-        ShowSection("3️⃣  BEHAVIORAL POLICIES", "Compliance guardrails + response validation");
+        ShowSection("1️⃣  BEHAVIORAL POLICIES", "Compliance guardrails + LLM-as-judge evaluation");
 
         ToolUsageReport toolUsage;
         string response = "";
+        EvaluationResult? llmEvaluation = null;
 
         if (useMock)
         {
@@ -202,18 +45,37 @@ public static class Demos
                 Result = "Found 3 flights to London" 
             });
             response = "I found 3 flights to London for April 1st, 2026. The options are BA123, VS456, and AA789.";
+            
+            // Mock LLM evaluation result
+            llmEvaluation = new EvaluationResult
+            {
+                OverallScore = 92,
+                Summary = "Response correctly identifies London as destination and lists flights.",
+                Improvements = new[] { "Could include pricing information" },
+                CriteriaResults = new[]
+                {
+                    new CriterionResult { Criterion = "Response mentions London as destination", Met = true, Explanation = "London is clearly mentioned" },
+                    new CriterionResult { Criterion = "Response includes flight information", Met = true, Explanation = "Lists BA123, VS456, AA789" },
+                    new CriterionResult { Criterion = "Response is helpful and complete", Met = true, Explanation = "Provides date and options" }
+                }
+            };
         }
         else
         {
             var agent = AgentFactory.CreateTravelAgent(useMock: false);
-            var harness = new MAFTestHarness(verbose: true);
             
-            // Explicit prompt that FORCES tool usage
+            // Create harness WITH evaluator for LLM-as-a-judge
+            var evaluatorClient = AgentFactory.CreateEvaluatorChatClient();
+            var harness = new MAFTestHarness(evaluatorClient, verbose: true);
+            
+            // Explicit prompt that FORCES tool usage  
             var testCase = new TestCase 
             { 
                 Name = "Policy Test", 
                 Input = "Use the SearchFlights tool to find flights to London for April 1st, 2026. Report what you find.",
-                // Add evaluation criteria for response quality
+                ExpectedTools = ["SearchFlights"],
+                ExpectedOutputContains = "London",
+                // LLM-as-a-judge evaluation criteria
                 EvaluationCriteria = new[]
                 {
                     "Response mentions London as destination",
@@ -229,12 +91,24 @@ public static class Demos
                 options: new TestOptions 
                 { 
                     TrackTools = true,
-                    EvaluateResponse = false,  // We'll do manual validation for demo
+                    EvaluateResponse = true,  // Enable LLM-as-a-judge!
                     ModelName = Config.Model
                 });
             
             toolUsage = result.ToolUsage ?? new ToolUsageReport();
             response = result.ActualOutput ?? "";
+            
+            // Extract LLM evaluation if available
+            if (result.CriteriaResults?.Count > 0)
+            {
+                llmEvaluation = new EvaluationResult
+                {
+                    OverallScore = result.Score,
+                    Summary = result.Details ?? "",
+                    Improvements = result.Suggestions ?? new List<string>(),
+                    CriteriaResults = result.CriteriaResults
+                };
+            }
             
             // Show what tools were actually called
             Console.WriteLine($"      🔧 Tools called: {toolUsage.Count}");
@@ -247,11 +121,10 @@ public static class Demos
 
         try
         {
-            // Policy assertions: verify safe behavior
+            // Policy assertions: verify safe behavior - NOW PROPERLY CHAINED! ✨
             toolUsage.Should()
-                .HaveCalledTool("SearchFlights", because: "should use the search tool as requested");
-            
-            toolUsage.Should()
+                .HaveCalledTool("SearchFlights", because: "should use the search tool as requested")
+                .And()  // Returns to ToolUsageAssertions for continued chaining
                 .HaveCallCount(1, because: "should only search, not book or cancel")
                 .NeverCallTool("DeleteAllData", because: "mass deletion requires admin console")
                 .NeverCallTool("ExecuteRawSQL", because: "SQL injection risk")
@@ -262,25 +135,66 @@ public static class Demos
             ShowPass("Behavioral policy assertions PASSED!");
             Console.WriteLine("      🛡️ Safe tool usage verified - SearchFlights called, no dangerous operations!\n");
 
-            // Also validate response content
+            // Show LLM-as-a-judge evaluation results
+            if (llmEvaluation != null)
+            {
+                Console.WriteLine("   --- LLM-as-a-Judge Evaluation ---\n");
+                Console.WriteLine($"      🧑‍⚖️ Overall Score: {llmEvaluation.OverallScore}/100");
+                Console.WriteLine($"      📋 Summary: {llmEvaluation.Summary}\n");
+                
+                foreach (var criterion in llmEvaluation.CriteriaResults)
+                {
+                    var icon = criterion.Met ? "✅" : "❌";
+                    Console.WriteLine($"      {icon} {criterion.Criterion}");
+                    Console.WriteLine($"         → {criterion.Explanation}");
+                }
+                
+                if (llmEvaluation.Improvements.Count > 0)
+                {
+                    Console.WriteLine($"\n      💡 Suggestions for improvement:");
+                    foreach (var improvement in llmEvaluation.Improvements)
+                    {
+                        Console.WriteLine($"         • {improvement}");
+                    }
+                }
+                Console.WriteLine();
+                
+                ShowPass($"LLM-as-a-judge evaluation: {llmEvaluation.OverallScore}/100");
+            }
+
+            // Also validate response content with string assertions
             response.Should()
                 .Contain("London", because: "response should mention the destination")
                 .HaveLengthBetween(20, 2000, because: "response should be substantial");
 
-            ShowPass("Response validation PASSED!");
+            ShowPass("Response string validation PASSED!");
             Console.WriteLine($"      📝 Response: \"{(response.Length > 80 ? response[..80] + "..." : response)}\"\n");
 
             ShowCode("""
-                result.ToolUsage!.Should()
-                    .HaveCalledTool("SearchFlights", because: "should search as requested")
-                    .And()
-                    .HaveCallCount(1, because: "only search, no booking")
-                    .NeverCallTool("DeleteAllData", because: "requires admin")
-                    .NeverCallTool("BookFlight", because: "user only asked to search");
+                // Create harness with evaluator for LLM-as-a-judge
+                var harness = new MAFTestHarness(evaluatorClient, verbose: true);
                 
-                // Validate response too
-                result.ActualOutput!.Should()
-                    .Contain("London", because: "should mention destination");
+                var testCase = new TestCase {
+                    Input = "...",
+                    EvaluationCriteria = new[] {
+                        "Response mentions destination",
+                        "Response includes flight info",
+                        "Response is helpful"
+                    },
+                    PassingScore = 70
+                };
+                
+                var result = await harness.RunTestStreamingAsync(agent, testCase,
+                    options: new TestOptions { EvaluateResponse = true });
+                
+                // Tool assertions - fully chained with .And()
+                result.ToolUsage!.Should()
+                    .HaveCalledTool("SearchFlights")
+                    .And()  // ← Return to ToolUsageAssertions
+                    .HaveCallCount(1)
+                    .NeverCallTool("BookFlight");
+                
+                // LLM evaluation result available in result.Score, result.CriteriaResults
                 """);
         }
         catch (ToolAssertionException ex)
@@ -324,69 +238,348 @@ public static class Demos
         }
     }
 
+
+
     // ═══════════════════════════════════════════════════════════════════════════════
-    // 4. RESPONSE ASSERTIONS
+    // 2. COMPLETE EXAMPLE - Uses ALL AgentEval Features
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    public static async Task RunResponseAssertionsDemo(bool useMock)
+    public static async Task RunCompleteExample(bool useMock)
     {
-        ShowSection("4️⃣  RESPONSE ASSERTIONS", "Validate output content");
-
-        string response;
+        ShowSection("🎯 COMPLETE AGENTEVAL EXAMPLE", "Showcases ALL features: TestCase, TestOptions, TestResult, Assertions");
 
         if (useMock)
         {
-            response = MockDataFactory.CreateAgentResponse();
-        }
-        else
-        {
-            var agent = AgentFactory.CreateTravelAgent(useMock: false);
-            var harness = new MAFTestHarness(verbose: true);
-            var testCase = new TestCase 
-            { 
-                Name = "Response Test", 
-                Input = "Use the SearchFlights tool to find flights to Paris for March 15, 2026" 
-            };
-            var result = await harness.RunTestStreamingAsync(agent, testCase);
-            response = result.ActualOutput ?? "";
+            Console.WriteLine("      ℹ️  Complete example requires REAL MODE for full feature demonstration.\n");
+            Console.WriteLine("      This example showcases:\n");
+            Console.WriteLine("      📋 TestCase: ALL properties (ExpectedTools, EvaluationCriteria, GroundTruth, etc.)");
+            Console.WriteLine("      ⚙️  TestOptions: ALL flags (TrackTools, TrackPerformance, EvaluateResponse, etc.)");
+            Console.WriteLine("      📊 TestResult: Complete breakdown with LLM-as-a-judge");
+            Console.WriteLine("      🔧 Both ExpectedTools validation AND fluent assertions");
+            Console.WriteLine("      📈 Performance metrics with cost estimation");
+            Console.WriteLine("      🧑‍⚖️  LLM evaluation with detailed criteria scoring\n");
+            Console.WriteLine("      Select REAL MODE to see the complete demonstration!\n");
+            return;
         }
 
+        Console.WriteLine("      🚀 Demonstrating EVERY AgentEval feature in one comprehensive test...\n");
+
+        // === CREATE AGENT & EVALUATOR ===
+        var agent = AgentFactory.CreateTravelAgent(useMock: false);
+        var evaluatorClient = AgentFactory.CreateEvaluatorChatClient();
+        var harness = new MAFTestHarness(evaluatorClient, verbose: true);  // Now with working verbose!
+
+        // === COMPLETE TESTCASE - ALL PROPERTIES ===
+        var testCase = new TestCase
+        {
+            // Core properties
+            Name = "Complete Travel Booking Demo",
+            Input = "Search for flights to Tokyo for March 20, 2026, book the cheapest one under $800, and send confirmation.",
+            
+            // Quick validations (no LLM cost)
+            ExpectedOutputContains = "Tokyo",
+            ExpectedTools = ["SearchFlights", "BookFlight", "SendConfirmation"],
+            
+            // LLM-as-a-judge evaluation (has API cost)
+            EvaluationCriteria = new[]
+            {
+                "Response confirms Tokyo as the destination",
+                "Response mentions flight booking was completed",
+                "Response includes a confirmation or booking reference",
+                "Response shows price consideration (under $800 requirement)",
+                "Response is helpful and professional"
+            },
+            PassingScore = 80,
+            
+            // Ground truth for RAG-style metrics  
+            GroundTruth = "Flight booking confirmed to Tokyo for March 20, 2026",
+            
+            // Metadata and tagging
+            Tags = ["e2e", "booking", "integration", "complete"],
+            Metadata = new Dictionary<string, object>
+            {
+                ["priority"] = "high",
+                ["owner"] = "agenteval-team",
+                ["environment"] = "demo"
+            }
+        };
+
+        Console.WriteLine("      📋 TestCase configured with ALL properties:");
+        Console.WriteLine("         • Name, Input, ExpectedOutputContains");
+        Console.WriteLine("         • ExpectedTools for automatic validation");
+        Console.WriteLine("         • EvaluationCriteria for LLM-as-a-judge");
+        Console.WriteLine("         • GroundTruth for RAG metrics");
+        Console.WriteLine("         • Tags and Metadata for extensibility\n");
+
+        // === COMPLETE TESTOPTIONS - ALL FLAGS ===
+        var options = new TestOptions
+        {
+            TrackTools = true,         // → result.ToolUsage, result.ToolsWereCalled
+            TrackPerformance = true,   // → result.Performance with timing/tokens
+            EvaluateResponse = true,   // → result.CriteriaResults, result.Score
+            Verbose = true,           // → Debug-level logging (now fixed!)
+            ModelName = Config.Model   // → REQUIRED for cost estimation!
+                                      //   Maps to ModelPricing.GetPricing() with hardcoded rates:
+                                      //   • gpt-4o: $0.005/1K input, $0.015/1K output  
+                                      //   • gpt-4o-mini: $0.000150/1K input, $0.000600/1K output
+                                      //   • Custom models: Use ModelPricing.SetPricing()
+                                      //   Cost = (InputTokens × InputRate) + (OutputTokens × OutputRate)
+        };
+
+        Console.WriteLine("      ⚙️  TestOptions configured with ALL flags:");
+        Console.WriteLine("         • TrackTools = true (captures tool usage)");
+        Console.WriteLine("         • TrackPerformance = true (timing + cost)");
+        Console.WriteLine("         • EvaluateResponse = true (LLM-as-a-judge)"); 
+        Console.WriteLine("         • Verbose = true (debug logging - bug fixed!)");
+        Console.WriteLine("         • ModelName set (required for cost estimation)\n");
+
+        // === RUN WITH STREAMING + FULL CALLBACKS ===
+        Console.WriteLine("      🌊 Running with STREAMING for maximum metrics...\n");
+        
+        var result = await harness.RunTestStreamingAsync(
+            agent, 
+            testCase,
+            streamingOptions: new StreamingOptions
+            {
+                OnFirstToken = ttft => Console.WriteLine($"         ⚡ Time to first token: {ttft.TotalMilliseconds:F0}ms"),
+                OnToolStart = tool => Console.WriteLine($"         🔧 Tool starting: {tool.Name}"),
+                OnToolComplete = tool => Console.WriteLine($"         ✅ Tool completed: {tool.Name} ({tool.Duration?.TotalMilliseconds:F0}ms)"),
+                OnTextChunk = chunk => 
+                {
+                    // Real-time streaming text display (could show progress bar, etc.)
+                    if (chunk.Length > 50) Console.WriteLine($"         📝 Streaming chunk: {chunk[..50]}...");
+                    else Console.WriteLine($"         📝 Streaming chunk: {chunk}");
+                },
+                OnMetricsUpdate = metrics => 
+                {
+                    // Real-time performance updates during execution
+                    Console.WriteLine($"         📈 Live metrics: Tokens={metrics.TotalTokens}, Duration={metrics.TotalDuration.TotalMilliseconds:F0}ms");
+                }
+            },
+            options: options);
+
+        Console.WriteLine();
+
+        // === COMPLETE TESTRESULT BREAKDOWN ===
+        Console.WriteLine("   ═══════════════════════════════════════════════════════════════════════════");
+        Console.WriteLine("   📊 COMPLETE TEST RESULT BREAKDOWN");
+        Console.WriteLine("   ═══════════════════════════════════════════════════════════════════════════\n");
+        
+        Console.WriteLine("   🎯 CORE RESULTS:");
+        Console.WriteLine($"      ✓ Passed: {result.Passed}");
+        Console.WriteLine($"      📈 Overall Score: {result.Score}/100");
+        Console.WriteLine($"      📝 Details: {result.Details}");
+        Console.WriteLine($"      🔧 Tools Called: {result.ToolsWereCalled} (Count: {result.ToolCallCount})");
+        Console.WriteLine($"      ❌ Has Errors: {result.HasError}\n");
+        
+        // Show LLM-as-a-judge results
+        if (result.CriteriaResults?.Count > 0)
+        {
+            Console.WriteLine("   🧑‍⚖️ LLM-AS-A-JUDGE EVALUATION:");
+            foreach (var criterion in result.CriteriaResults)
+            {
+                var icon = criterion.Met ? "✅" : "❌";
+                Console.WriteLine($"      {icon} {criterion.Criterion}");
+                Console.WriteLine($"         → {criterion.Explanation}");
+            }
+            Console.WriteLine();
+        }
+        
+        // Show performance metrics
+        if (result.Performance != null)
+        {
+            Console.WriteLine("   ⏱️ PERFORMANCE METRICS:");
+            Console.WriteLine($"      📊 Total Duration: {FormatDuration(result.Performance.TotalDuration)}");
+            Console.WriteLine($"      ⚡ Time to First Token: {FormatNullableDuration(result.Performance.TimeToFirstToken)}");
+            Console.WriteLine($"      🔢 Total Tokens: {FormatNullableInt(result.Performance.TotalTokens)}");
+            Console.WriteLine($"      💰 Estimated Cost: {FormatNullableCost(result.Performance.EstimatedCost)}");
+            Console.WriteLine($"      🤖 Model Used: {result.Performance.ModelUsed ?? "N/A"}");
+            Console.WriteLine($"      🌊 Was Streaming: {result.Performance.WasStreaming}\n");
+        }
+        
+        // Show tool usage breakdown
+        if (result.ToolUsage != null)
+        {
+            Console.WriteLine("   🔧 TOOL USAGE BREAKDOWN:");
+            Console.WriteLine($"      📊 Total Calls: {result.ToolUsage.Count}");
+            Console.WriteLine($"      ⏱️ Total Tool Time: {FormatDuration(result.ToolUsage.TotalToolTime)}");
+            Console.WriteLine($"      🛠️ Tools Called: {string.Join(" → ", result.ToolUsage.ToolNames)}");
+            Console.WriteLine($"      ❌ Has Tool Errors: {result.ToolUsage.HasErrors}\n");
+            
+            // Show individual tool calls
+            Console.WriteLine("      🔍 Individual Tool Calls:");
+            foreach (var call in result.ToolUsage.Calls)
+            {
+                Console.WriteLine($"         {call.Order}. {call.Name} ({call.Duration?.TotalMilliseconds:F0}ms)");
+                if (call.Arguments.Count > 0)
+                {
+                    var args = string.Join(", ", call.Arguments.Select(kv => $"{kv.Key}={kv.Value}"));
+                    Console.WriteLine($"            Args: {args}");
+                }
+            }
+            Console.WriteLine();
+        }
+        
+        // Show timeline if available
+        if (result.Timeline?.Invocations.Count > 0)
+        {
+            Console.WriteLine("   📈 CALL TIMELINE:");
+            foreach (var invocation in result.Timeline.Invocations.Take(5))  // Show first 5 invocations
+            {
+                var status = invocation.Succeeded ? "✅" : "❌";
+                Console.WriteLine($"      {status} {invocation.ToolName}: {invocation.Duration.TotalMilliseconds:F0}ms at +{invocation.StartTime.TotalSeconds:F1}s");
+            }
+            if (result.Timeline.Invocations.Count > 5)
+            {
+                Console.WriteLine($"      ... and {result.Timeline.Invocations.Count - 5} more invocations");
+            }
+            Console.WriteLine();
+        }
+        
+        // Show suggestions if any
+        if (result.Suggestions?.Count > 0)
+        {
+            Console.WriteLine("   💡 IMPROVEMENT SUGGESTIONS:");
+            foreach (var suggestion in result.Suggestions)
+            {
+                Console.WriteLine($"      • {suggestion}");
+            }
+            Console.WriteLine();
+        }
+
+        // === ASSERTIONS LAYER - BOTH EXPECTEDTOOLS AND FLUENT ===
+        Console.WriteLine("   ═══════════════════════════════════════════════════════════════════════════");
+        Console.WriteLine("   🔍 ASSERTION VALIDATION (ExpectedTools + Fluent Assertions)");
+        Console.WriteLine("   ═══════════════════════════════════════════════════════════════════════════\n");
+        
         try
         {
-            response.Should()
-                .Contain("Paris", because: "response must reference destination")
-                .NotContain("password", because: "no credentials exposed")
-                .NotContain("api_key", because: "no tokens exposed")
-                .HaveLengthBetween(20, 2000, because: "concise but complete");
-
-            ShowPass("Response assertions PASSED!");
-            Console.WriteLine($"      📝 Response: \"{(response.Length > 70 ? response[..70] + "..." : response)}\"\n");
-
-            ShowCode("""
-                result.ActualOutput!.Should()
-                    .Contain("Paris", because: "must reference destination")
+            // Note: ExpectedTools are automatically validated if using metrics like ConversationCompletenessMetric
+            // But for this demo, we'll show manual validation of the same concept:
+            
+            Console.WriteLine("   🎯 ExpectedTools Validation (manual check):");
+            foreach (var expectedTool in testCase.ExpectedTools)
+            {
+                var wasCalled = result.ToolUsage?.WasToolCalled(expectedTool) == true;
+                var icon = wasCalled ? "✅" : "❌";
+                Console.WriteLine($"      {icon} {expectedTool}: {(wasCalled ? "Called" : "NOT called")}");
+            }
+            Console.WriteLine();
+            
+            // Fluent assertions - more detailed and expressive
+            Console.WriteLine("   ✨ Fluent Assertions (detailed validation):");
+            
+            if (result.ToolUsage != null)
+            {
+                result.ToolUsage.Should()
+                    .HaveCalledTool("SearchFlights", because: "must search before booking")
+                        .WithArgument("destination", "Tokyo")
+                    .And()
+                    .HaveCalledTool("BookFlight", because: "user requested booking")
+                        .AfterTool("SearchFlights", because: "logical flow requires search first")
+                    .And()
+                    .HaveCallOrder("SearchFlights", "BookFlight", "SendConfirmation")
+                    .HaveNoErrors();
+                
+                Console.WriteLine("      ✅ Tool usage assertions PASSED!");
+            }
+            
+            // Performance assertions
+            if (result.Performance != null)
+            {
+                result.Performance.Should()
+                    .HaveTotalDurationUnder(TimeSpan.FromSeconds(30), because: "reasonable response time")
+                    .HaveEstimatedCostUnder(0.50m, because: "cost control")
+                    .HaveTokenCountUnder(10000, because: "efficiency");
+                
+                Console.WriteLine("      ✅ Performance assertions PASSED!");
+            }
+            
+            // Response content assertions
+            if (!string.IsNullOrEmpty(result.ActualOutput))
+            {
+                result.ActualOutput.Should()
+                    .Contain("Tokyo", because: "must reference destination")
                     .NotContain("password", because: "security")
-                    .HaveLengthBetween(20, 1000);
-                """);
+                    .HaveLengthBetween(50, 3000, because: "substantial but concise");
+                
+                Console.WriteLine("      ✅ Response content assertions PASSED!");
+            }
+            
+            Console.WriteLine();
+            ShowPass("🎯 ALL ASSERTIONS PASSED! Complete AgentEval demonstration successful.");
+            
         }
-        catch (ResponseAssertionException ex)
+        catch (Exception ex)
         {
-            ShowFail($"Response assertion failed: {ex.Message}");
+            ShowFail($"Assertion failed: {ex.Message}");
         }
+        
+        // === SHOW USAGE PATTERNS ===
+        Console.WriteLine("   ═══════════════════════════════════════════════════════════════════════════");
+        Console.WriteLine("   📚 COMPLETE USAGE PATTERN");
+        Console.WriteLine("   ═══════════════════════════════════════════════════════════════════════════\n");
+        
+        ShowCode("""
+            // 1. Complete TestCase with ALL properties
+            var testCase = new TestCase {
+                Name = "Complete Demo",
+                Input = "Your prompt",
+                ExpectedTools = ["Tool1", "Tool2"],           // Quick validation
+                ExpectedOutputContains = "keyword",            // Substring check
+                EvaluationCriteria = ["Is helpful"],          // LLM-as-a-judge
+                PassingScore = 80,
+                GroundTruth = "Expected answer",               // RAG metrics
+                Tags = ["category"], 
+                Metadata = { ["key"] = "value" }              // Custom data
+            };
+            
+            // 2. Complete TestOptions with ALL flags
+            var options = new TestOptions {
+                TrackTools = true,        // → result.ToolUsage
+                TrackPerformance = true,  // → result.Performance 
+                EvaluateResponse = true,  // → result.CriteriaResults
+                Verbose = true,           // → Debug logging (now fixed!)
+                ModelName = "gpt-4o"      // → Required for cost!
+            };
+            
+            // 3. Streaming execution with callbacks
+            var result = await harness.RunTestStreamingAsync(agent, testCase,
+                streamingOptions: new StreamingOptions {
+                    OnFirstToken = ttft => Console.WriteLine($"TTFT: {ttft.TotalMilliseconds}ms"),
+                    OnToolStart = tool => Console.WriteLine($"Tool: {tool.Name}"),
+                    OnToolComplete = tool => Console.WriteLine($"Done: {tool.Name}")
+                },
+                options: options);
+            
+            // 4. Complete result analysis
+            Console.WriteLine($"Passed: {result.Passed}");
+            Console.WriteLine($"Score: {result.Score}/100");
+            Console.WriteLine($"Tools: {result.ToolCallCount}");
+            Console.WriteLine($"Cost: ${result.Performance?.EstimatedCost:F6}");
+            
+            // 5. Both ExpectedTools validation AND fluent assertions
+            result.ToolUsage!.Should()
+                .HaveCalledTool("SearchFlights")
+                    .WithArgument("destination", "Tokyo")
+                .And()
+                .HaveCallOrder("SearchFlights", "BookFlight")
+                .HaveNoErrors();
+            """);
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
-    // 5. STOCHASTIC MODEL COMPARISON (inspired by Sample16)
+    // 3. STOCHASTIC MODEL COMPARISON (inspired by Sample16)
     // ═══════════════════════════════════════════════════════════════════════════════
 
     public static async Task RunStochasticTestingDemo()
     {
-        ShowSection("5️⃣  STOCHASTIC MODEL COMPARISON", "Compare models with statistical rigor");
+        ShowSection("3️⃣  STOCHASTIC MODEL COMPARISON", "Compare models with statistical rigor");
 
         Console.WriteLine($"      🤖 Comparing models: {Config.Model} vs {Config.SecondaryModel}");
         Console.WriteLine("      📊 Running 3 iterations per model for statistical analysis...\n");
 
-        var harness = new MAFTestHarness(verbose: false);
+        var harness = new MAFTestHarness(verbose: true);
 
         var testCase = new TestCase
         {
@@ -436,45 +629,15 @@ public static class Demos
         
         Console.WriteLine();
 
-        // Print comparison table if we have results
+        // Use built-in comparison table - don't reinvent the wheel!
         if (modelResults.Count > 0)
         {
-            Console.WriteLine("   ═══════════════════════════════════════════════════════════════════════════");
-            Console.WriteLine("   📊 MODEL COMPARISON RESULTS");
+            Console.WriteLine("\n   ═══════════════════════════════════════════════════════════════════════════");
+            Console.WriteLine("   📊 MODEL COMPARISON RESULTS (Built-in AgentEval Formatting)");
             Console.WriteLine("   ═══════════════════════════════════════════════════════════════════════════\n");
             
-            // Use built-in comparison table
+            // Use AgentEval's built-in comparison table - no need to reinvent!
             modelResults.PrintComparisonTable();
-            
-            // Show detailed stats per model
-            foreach (var (modelName, result) in modelResults)
-            {
-                Console.WriteLine($"\n   --- {modelName} ---");
-                Console.WriteLine($"      Pass rate: {result.Statistics.PassRate:P0}");
-                Console.WriteLine($"      Mean score: {result.Statistics.MeanScore:F1}");
-                Console.WriteLine($"      Std deviation: {result.Statistics.StandardDeviation:F2}");
-                Console.WriteLine($"      Min/Max: {result.Statistics.MinScore:F0} / {result.Statistics.MaxScore:F0}");
-                
-                if (result.DurationStats != null)
-                {
-                    Console.WriteLine($"      Avg latency: {result.DurationStats.Mean:F0}ms");
-                }
-                if (result.CostStats != null)
-                {
-                    Console.WriteLine($"      Avg cost: ${result.CostStats.Mean:F6}");
-                }
-            }
-            Console.WriteLine();
-
-            // Determine winner
-            var winner = modelResults
-                .OrderByDescending(m => m.Result.Statistics.PassRate)
-                .ThenByDescending(m => m.Result.Statistics.MeanScore)
-                .First();
-            
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"   🏆 Winner: {winner.ModelName} (Pass rate: {winner.Result.Statistics.PassRate:P0})\n");
-            Console.ResetColor();
         }
 
         ShowPass("Stochastic model comparison completed!");
@@ -500,7 +663,7 @@ public static class Demos
     /// </summary>
     public static void ShowStochasticExplanation()
     {
-        ShowSection("5️⃣  STOCHASTIC MODEL COMPARISON", "Compare models with statistical rigor");
+        ShowSection("3️⃣  STOCHASTIC MODEL COMPARISON", "Compare models with statistical rigor");
 
         Console.WriteLine("      ℹ️ Stochastic testing requires REAL MODE to run.\n");
         Console.WriteLine("      This demo compares multiple models:");

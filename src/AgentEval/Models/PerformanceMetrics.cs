@@ -87,25 +87,76 @@ public static class ModelPricing
     private static readonly ConcurrentDictionary<string, (decimal InputPer1K, decimal OutputPer1K)> _pricing = 
         new(StringComparer.OrdinalIgnoreCase)
     {
-        // OpenAI models
-        ["gpt-5-mini"] = (0.0001m, 0.0004m),  // gpt-5-mini pricing (placeholder, similar to gpt-4o-mini)
+        // OpenAI models (GPT family)
+        ["gpt-5-mini"] = (0.0001m, 0.0004m),  // Placeholder - future model
         ["gpt-4o"] = (0.005m, 0.015m),
         ["gpt-4o-2024-11-20"] = (0.0025m, 0.01m),
         ["gpt-4o-mini"] = (0.00015m, 0.0006m),
-        ["gpt-4.1"] = (0.01m, 0.03m),  // gpt-4.1 pricing (placeholder, similar to gpt-4-turbo)
+        ["gpt-4o-mini-2024-07-18"] = (0.00015m, 0.0006m),
         ["gpt-4-turbo"] = (0.01m, 0.03m),
+        ["gpt-4-turbo-2024-04-09"] = (0.01m, 0.03m),
         ["gpt-4"] = (0.03m, 0.06m),
+        ["gpt-4-0613"] = (0.03m, 0.06m),
         ["gpt-3.5-turbo"] = (0.0005m, 0.0015m),
+        ["gpt-3.5-turbo-0125"] = (0.0005m, 0.0015m),
+        
+        // OpenAI reasoning models (o-series)
         ["o1"] = (0.015m, 0.06m),
+        ["o1-preview"] = (0.015m, 0.06m),
         ["o1-mini"] = (0.003m, 0.012m),
         ["o3-mini"] = (0.00165m, 0.0066m),
         
-        // Anthropic models
+        // OpenAI embedding models
+        ["text-embedding-3-small"] = (0.00002m, 0m),  // Embedding models have no output cost
+        ["text-embedding-3-large"] = (0.00013m, 0m),
+        ["text-embedding-ada-002"] = (0.0001m, 0m),
+        
+        // Anthropic Claude models
         ["claude-3-5-sonnet"] = (0.003m, 0.015m),
         ["claude-3-5-sonnet-20241022"] = (0.003m, 0.015m),
+        ["claude-3-5-haiku"] = (0.00025m, 0.00125m),
         ["claude-3-opus"] = (0.015m, 0.075m),
         ["claude-3-sonnet"] = (0.003m, 0.015m),
         ["claude-3-haiku"] = (0.00025m, 0.00125m),
+        ["claude-2.1"] = (0.008m, 0.024m),
+        ["claude-2.0"] = (0.008m, 0.024m),
+        
+        // Google Gemini models
+        ["gemini-1.5-pro"] = (0.00125m, 0.005m),
+        ["gemini-1.5-pro-latest"] = (0.00125m, 0.005m),
+        ["gemini-1.5-flash"] = (0.000075m, 0.0003m),
+        ["gemini-1.0-pro"] = (0.0005m, 0.0015m),
+        ["gemini-pro"] = (0.0005m, 0.0015m),
+        
+        // Meta Llama models (via various providers)
+        ["llama-3.1-405b"] = (0.005m, 0.015m),  // Approximate pricing via cloud providers
+        ["llama-3.1-70b"] = (0.0009m, 0.0009m),
+        ["llama-3.1-8b"] = (0.0002m, 0.0002m),
+        ["llama-3-70b"] = (0.0009m, 0.0009m),
+        ["llama-3-8b"] = (0.0002m, 0.0002m),
+        
+        // Mistral AI models
+        ["mistral-large"] = (0.002m, 0.006m),
+        ["mistral-medium"] = (0.0027m, 0.0081m),
+        ["mistral-small"] = (0.001m, 0.003m),
+        ["mistral-7b"] = (0.0002m, 0.0002m),
+        ["mixtral-8x7b"] = (0.0007m, 0.0007m),
+        ["mixtral-8x22b"] = (0.002m, 0.006m),
+        
+        // Cohere models
+        ["command-r-plus"] = (0.003m, 0.015m),
+        ["command-r"] = (0.0005m, 0.0015m),
+        ["command"] = (0.001m, 0.002m),
+        ["command-light"] = (0.0003m, 0.0006m),
+        
+        // Azure OpenAI Service (same pricing as OpenAI but with different deployment names)
+        ["gpt-4o-deployment"] = (0.005m, 0.015m),  // Common Azure deployment name
+        ["gpt-4o-mini-deployment"] = (0.00015m, 0.0006m),
+        ["gpt-35-turbo"] = (0.0005m, 0.0015m),     // Azure naming convention
+        
+        // GitHub Models (GitHub-hosted versions)
+        ["gpt-4o-github"] = (0.005m, 0.015m),  // GitHub Models naming
+        ["claude-3-5-sonnet-github"] = (0.003m, 0.015m),
     };
     
     /// <summary>Estimate cost for a request.</summary>

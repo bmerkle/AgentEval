@@ -77,6 +77,11 @@ public class AgentResponseChunk
     
     /// <summary>Whether this is the final chunk.</summary>
     public bool IsComplete { get; init; }
+    
+    /// <summary>
+    /// Token usage information (typically only populated on the final/complete chunk).
+    /// </summary>
+    public TokenUsage? Usage { get; init; }
 }
 
 /// <summary>

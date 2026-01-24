@@ -79,6 +79,7 @@ public class ChatClientAgentAdapter : IStreamableAgent
     {
         var messages = BuildMessages(prompt);
         var textBuilder = new StringBuilder();
+        TokenUsage? capturedUsage = null;
 
         await foreach (var update in _chatClient.GetStreamingResponseAsync(messages, _chatOptions, cancellationToken))
         {
@@ -92,6 +93,22 @@ public class ChatClientAgentAdapter : IStreamableAgent
                     IsComplete = false
                 };
             }
+            
+            // Check for UsageContent in the streaming update contents
+            if (update.Contents != null)
+            {
+                foreach (var content in update.Contents)
+                {
+                    if (content is UsageContent usage)
+                    {
+                        capturedUsage = new TokenUsage
+                        {
+                            PromptTokens = (int)(usage.Details.InputTokenCount ?? 0),
+                            CompletionTokens = (int)(usage.Details.OutputTokenCount ?? 0)
+                        };
+                    }
+                }
+            }
         }
 
         // Final chunk with complete flag
@@ -103,7 +120,8 @@ public class ChatClientAgentAdapter : IStreamableAgent
 
         yield return new AgentResponseChunk
         {
-            IsComplete = true
+            IsComplete = true,
+            Usage = capturedUsage
         };
     }
 

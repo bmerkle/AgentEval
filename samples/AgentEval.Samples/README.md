@@ -1,8 +1,10 @@
 # AgentEval Samples
 
-> **Get started with AgentEval in 5 minutes!**
+> **📚 Comprehensive Learning Library - Get started with AgentEval in 5 minutes!**
 
-This project contains interactive samples demonstrating all major AgentEval features.
+This project contains **18 focused, educational samples** demonstrating all major AgentEval features. Perfect for learning step-by-step.
+
+
 
 ## 🚀 Quick Start
 
@@ -20,8 +22,8 @@ You'll see an interactive menu to run each sample.
 |--------|-------------------|------|
 | **01 - Hello World** | Basic test setup, TestCase, TestResult | 2 min |
 | **02 - Agent + One Tool** | Tool tracking, fluent assertions | 5 min |
-| **03 - Agent + Multi Tools** | Tool ordering, timeline visualization | 7 min |
-| **04 - Performance Metrics** | Latency, cost, TTFT, token tracking | 5 min |
+| **03 - Agent + Multi Tools** | **Tool ordering, timeline visualization** ⭐ | 7 min |
+| **04 - Performance Metrics** | **Latency, cost, TTFT, token tracking** ⭐ | 5 min |
 | **05 - RAG Evaluation** | All 5 RAG metrics: Faithfulness, Relevance, Precision, Recall, Correctness | 8 min |
 | **06 - Benchmarks** | PerformanceBenchmark, AgenticBenchmark | 7 min |
 | **07 - Snapshot Testing** | Regression testing, JSON diff, scrubbing | 5 min |
@@ -36,6 +38,8 @@ You'll see an interactive menu to run each sample.
 | **16 - Combined Test** | Stochastic + Model Comparison together | 5 min |
 | **17 - Quality & Safety Metrics** | Groundedness, Coherence, Fluency metrics | 5 min |
 | **18 - Judge Calibration** | Multi-model consensus voting for reliable evaluations | 8 min |
+
+> **⭐ Samples 03 & 04** provide the foundational knowledge for tool chain and performance assertions that advanced users can find in comprehensive form in the **AgentEval.NuGetConsumer** project.
 
 ## 🔧 Prerequisites
 
@@ -255,32 +259,7 @@ result.Performance.Should()
     .HaveTotalDurationUnder(TimeSpan.FromSeconds(5));
 ```
 
-## 📁 Project Structure
 
-```
-AgentEval.Samples/
-├── Program.cs                        # Interactive menu
-├── AIConfig.cs                       # Azure OpenAI configuration
-├── Sample01_HelloWorld.cs            # Basic test setup
-├── Sample02_AgentWithOneTool.cs      # Tool tracking
-├── Sample03_AgentWithMultipleTools.cs # Tool ordering
-├── Sample04_PerformanceMetrics.cs    # Performance tracking
-├── Sample05_RAGEvaluation.cs         # All 5 RAG metrics
-├── Sample06_Benchmarks.cs            # Benchmark runners
-├── Sample07_SnapshotTesting.cs       # Snapshot/regression testing
-├── Sample08_ConversationTesting.cs   # Multi-turn conversations
-├── Sample09_WorkflowTesting.cs       # Workflow orchestration
-├── Sample10_DatasetsAndExport.cs     # Batch eval & export
-├── Sample11_BecauseAssertions.cs     # .Because() explanations
-├── Sample12_PolicySafetyTesting.cs   # Safety & policy testing
-├── Sample13_TraceRecordReplay.cs     # Deterministic trace replay
-├── Sample14_StochasticTesting.cs     # Multi-run reliability testing
-├── Sample15_ModelComparison.cs       # Compare & rank models
-├── Sample16_CombinedStochasticComparison.cs # Combined testing
-├── Sample17_QualitySafetyMetrics.cs  # Groundedness, Coherence, Fluency
-├── Sample18_JudgeCalibration.cs      # Multi-model consensus voting
-└── README.md                         # This file
-```
 
 ## 🔗 Next Steps
 

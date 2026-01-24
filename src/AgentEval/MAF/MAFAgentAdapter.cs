@@ -60,6 +60,7 @@ public class MAFAgentAdapter : IStreamableAgent
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         var thread = _thread ?? _agent.GetNewThread();
+        TokenUsage? capturedUsage = null;
         
         await foreach (var update in _agent.RunStreamingAsync(prompt, thread, cancellationToken: cancellationToken))
         {
@@ -94,11 +95,20 @@ public class MAFAgentAdapter : IStreamableAgent
                             }
                         };
                         break;
+                    
+                    // Check for UsageContent if provider sends it in streaming
+                    case UsageContent usage:
+                        capturedUsage = new TokenUsage
+                        {
+                            PromptTokens = (int)(usage.Details.InputTokenCount ?? 0),
+                            CompletionTokens = (int)(usage.Details.OutputTokenCount ?? 0)
+                        };
+                        break;
                 }
             }
         }
         
-        yield return new AgentResponseChunk { IsComplete = true };
+        yield return new AgentResponseChunk { IsComplete = true, Usage = capturedUsage };
     }
     
     /// <summary>
