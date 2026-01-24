@@ -52,6 +52,9 @@ public class PerformanceMetrics
     /// <summary>Whether streaming was used.</summary>
     public bool WasStreaming { get; set; }
     
+    /// <summary>Indicates if token counts are estimated (true) vs actual from provider (false).</summary>
+    public bool TokensAreEstimated { get; set; }
+    
     /// <summary>Start fluent assertions.</summary>
     public PerformanceAssertions Should() => new(this);
     
@@ -88,7 +91,9 @@ public static class ModelPricing
         new(StringComparer.OrdinalIgnoreCase)
     {
         // OpenAI models (GPT family)
-        ["gpt-5-mini"] = (0.0001m, 0.0004m),  // Placeholder - future model
+        ["gpt-5"] = (0.005m, 0.02m),          // GPT-5 (estimated pricing)
+        ["gpt-5-chat"] = (0.005m, 0.02m),     // GPT-5 chat variant
+        ["gpt-5-mini"] = (0.0001m, 0.0004m),  // GPT-5 mini (placeholder)
         ["gpt-4o"] = (0.005m, 0.015m),
         ["gpt-4o-2024-11-20"] = (0.0025m, 0.01m),
         ["gpt-4o-mini"] = (0.00015m, 0.0006m),
@@ -207,4 +212,29 @@ public static class ModelPricing
     
     /// <summary>Get all known model names.</summary>
     public static IEnumerable<string> KnownModels => _pricing.Keys;
+    
+    /// <summary>
+    /// Estimate token count from text length.
+    /// Uses average of ~4 characters per token for English text.
+    /// This is an approximation and actual token count varies by model tokenizer.
+    /// </summary>
+    /// <param name="text">The text to estimate tokens for.</param>
+    /// <returns>Estimated token count.</returns>
+    public static int EstimateTokensFromText(string? text)
+    {
+        if (string.IsNullOrEmpty(text)) return 0;
+        return (int)Math.Ceiling(text.Length / 4.0);
+    }
+    
+    /// <summary>
+    /// Estimate tokens for a prompt/input.
+    /// Accounts for system prompt overhead (typically adds ~100-200 tokens).
+    /// </summary>
+    public static int EstimatePromptTokens(string? systemPrompt, string? userInput)
+    {
+        var systemTokens = EstimateTokensFromText(systemPrompt);
+        var inputTokens = EstimateTokensFromText(userInput);
+        // Add overhead for chat format wrappers
+        return systemTokens + inputTokens + 50;
+    }
 }

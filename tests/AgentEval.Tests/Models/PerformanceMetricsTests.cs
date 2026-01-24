@@ -49,6 +49,69 @@ public class PerformanceMetricsTests
         Assert.Equal(500, metrics.AverageToolTime.TotalMilliseconds, precision: 1);
     }
     
+    // === Cost Calculation Tests ===
+    
+    [Fact]
+    public void ModelPricing_EstimateCost_WithValidModel_ReturnsCost()
+    {
+        // gpt-4o: $0.005/1K input, $0.015/1K output
+        var cost = ModelPricing.EstimateCost("gpt-4o", inputTokens: 1000, outputTokens: 500);
+        
+        Assert.NotNull(cost);
+        // Expected: (1000/1000 * 0.005) + (500/1000 * 0.015) = 0.005 + 0.0075 = 0.0125
+        Assert.Equal(0.0125m, cost!.Value);
+    }
+    
+    [Fact]
+    public void ModelPricing_EstimateCost_WithUnknownModel_ReturnsNull()
+    {
+        var cost = ModelPricing.EstimateCost("unknown-model-xyz", inputTokens: 100, outputTokens: 50);
+        
+        Assert.Null(cost);
+    }
+    
+    [Fact]
+    public void ModelPricing_EstimateCost_WithNullModelName_ReturnsNull()
+    {
+        var cost = ModelPricing.EstimateCost(null, inputTokens: 100, outputTokens: 50);
+        
+        Assert.Null(cost);
+    }
+    
+    [Fact]
+    public void ModelPricing_EstimateCost_IsCaseInsensitive()
+    {
+        var costLower = ModelPricing.EstimateCost("gpt-4o", 100, 50);
+        var costUpper = ModelPricing.EstimateCost("GPT-4O", 100, 50);
+        
+        Assert.NotNull(costLower);
+        Assert.NotNull(costUpper);
+        Assert.Equal(costLower, costUpper);
+    }
+    
+    [Fact]
+    public void ModelPricing_EstimateCost_PartialMatch_Works()
+    {
+        // "gpt-4o-deployment-name" should match "gpt-4o"
+        var cost = ModelPricing.EstimateCost("gpt-4o-my-deployment", 1000, 500);
+        
+        Assert.NotNull(cost);
+        Assert.True(cost > 0);
+    }
+    
+    [Fact]
+    public void ModelPricing_SetPricing_AllowsCustomModels()
+    {
+        // Add custom model
+        ModelPricing.SetPricing("my-custom-model", inputPer1K: 0.01m, outputPer1K: 0.02m);
+        
+        var cost = ModelPricing.EstimateCost("my-custom-model", inputTokens: 1000, outputTokens: 1000);
+        
+        Assert.NotNull(cost);
+        // Expected: (1000/1000 * 0.01) + (1000/1000 * 0.02) = 0.01 + 0.02 = 0.03
+        Assert.Equal(0.03m, cost!.Value);
+    }
+    
     [Fact]
     public void AverageToolTime_WithNoTools_ReturnsZero()
     {

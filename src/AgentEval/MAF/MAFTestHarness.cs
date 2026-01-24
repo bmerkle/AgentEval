@@ -106,12 +106,25 @@ public class MAFTestHarness : IStreamingTestHarness
             }
             
             // Extract token usage and calculate cost
-            if (metrics != null && response.TokenUsage != null)
+            if (metrics != null)
             {
-                metrics.PromptTokens = response.TokenUsage.PromptTokens;
-                metrics.CompletionTokens = response.TokenUsage.CompletionTokens;
+                if (response.TokenUsage != null)
+                {
+                    // Use actual token usage from provider
+                    metrics.PromptTokens = response.TokenUsage.PromptTokens;
+                    metrics.CompletionTokens = response.TokenUsage.CompletionTokens;
+                    metrics.TokensAreEstimated = false;
+                }
+                else
+                {
+                    // Fallback: estimate tokens from text when provider doesn't return usage
+                    // This is common with Azure OpenAI via MAF SDK
+                    metrics.PromptTokens = ModelPricing.EstimatePromptTokens(null, testCase.Input);
+                    metrics.CompletionTokens = ModelPricing.EstimateTokensFromText(result.ActualOutput);
+                    metrics.TokensAreEstimated = true;
+                }
                 
-                // Calculate estimated cost
+                // Calculate estimated cost (works with actual or estimated tokens)
                 if (metrics.ModelUsed != null && metrics.PromptTokens.HasValue && metrics.CompletionTokens.HasValue)
                 {
                     metrics.EstimatedCost = ModelPricing.EstimateCost(
@@ -284,13 +297,26 @@ public class MAFTestHarness : IStreamingTestHarness
                 }
                 
                 // Extract token usage from final chunk
-                if (chunk.IsComplete && chunk.Usage != null)
+                if (chunk.IsComplete)
                 {
-                    metrics.PromptTokens = chunk.Usage.PromptTokens;
-                    metrics.CompletionTokens = chunk.Usage.CompletionTokens;
+                    if (chunk.Usage != null)
+                    {
+                        // Use actual token usage from provider
+                        metrics.PromptTokens = chunk.Usage.PromptTokens;
+                        metrics.CompletionTokens = chunk.Usage.CompletionTokens;
+                        metrics.TokensAreEstimated = false;
+                    }
+                    else
+                    {
+                        // Fallback: estimate tokens when provider doesn't return usage
+                        // This is common with Azure OpenAI streaming
+                        metrics.PromptTokens = ModelPricing.EstimatePromptTokens(null, testCase.Input);
+                        metrics.CompletionTokens = ModelPricing.EstimateTokensFromText(responseText.ToString());
+                        metrics.TokensAreEstimated = true;
+                    }
                     
-                    // Calculate cost now that we have tokens
-                    if (metrics.ModelUsed != null)
+                    // Calculate cost (works with actual or estimated tokens)
+                    if (metrics.ModelUsed != null && metrics.PromptTokens.HasValue && metrics.CompletionTokens.HasValue)
                     {
                         metrics.EstimatedCost = ModelPricing.EstimateCost(
                             metrics.ModelUsed,

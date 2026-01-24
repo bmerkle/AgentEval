@@ -138,11 +138,31 @@ public static class Sample19_StreamingVsAsyncPerformance
             else
                 Console.WriteLine($"   TTFT:          N/A");
 
-            Console.WriteLine($"   Input Tokens:  {p.PromptTokens ?? 0}");
-            Console.WriteLine($"   Output Tokens: {p.CompletionTokens ?? 0}");
+            // Show token values with estimation indicator
+            var tokenSource = p.TokensAreEstimated ? " (estimated)" : " (actual)";
+            Console.WriteLine($"   Input Tokens:  {p.PromptTokens ?? 0}{tokenSource}");
+            Console.WriteLine($"   Output Tokens: {p.CompletionTokens ?? 0}{tokenSource}");
             Console.WriteLine($"   Total Tokens:  {p.TotalTokens}");
-            Console.WriteLine($"   Model:         {p.ModelUsed ?? "unknown"}");
-            Console.WriteLine($"   Est. Cost:     ${p.EstimatedCost:F6}");
+            Console.WriteLine($"   Model:         {p.ModelUsed ?? "(not set)"}");
+            
+            // Show cost
+            if (p.EstimatedCost.HasValue && p.EstimatedCost > 0)
+            {
+                var costNote = p.TokensAreEstimated ? " (based on estimated tokens)" : "";
+                Console.WriteLine($"   Est. Cost:     ${p.EstimatedCost:F6}{costNote}");
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine($"   Est. Cost:     N/A - Model '{p.ModelUsed}' not in pricing database");
+                Console.ResetColor();
+            }
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("   Performance:   NULL ⚠️ (TrackPerformance not enabled?)");
+            Console.ResetColor();
         }
         Console.WriteLine();
     }
@@ -166,10 +186,18 @@ public static class Sample19_StreamingVsAsyncPerformance
         Console.WriteLine($"│ Est. Cost        │ {FmtCost(ap?.EstimatedCost),-13} │ {FmtCost(sp?.EstimatedCost),-13} │");
         Console.WriteLine("└──────────────────┴───────────────┴───────────────┘");
 
+        // Show if tokens are estimated
+        var asyncEst = ap?.TokensAreEstimated == true ? " (est)" : "";
+        var streamEst = sp?.TokensAreEstimated == true ? " (est)" : "";
+        
         Console.WriteLine("\n💡 KEY INSIGHTS:");
-        Console.WriteLine("   ✅ Both methods capture token usage and costs!");
+        Console.WriteLine("   ✅ Both methods now capture token usage and costs!");
         Console.WriteLine("   ✅ Streaming provides Time-to-First-Token (TTFT)");
-        Console.WriteLine("   ✅ TestOptions.ModelName enables accurate cost calculation");;
+        Console.WriteLine("   ✅ TestOptions.ModelName enables cost calculation");
+        if (ap?.TokensAreEstimated == true || sp?.TokensAreEstimated == true)
+        {
+            Console.WriteLine("   ℹ️  Tokens estimated (~4 chars/token) since provider didn't return usage");
+        }
     }
 
     private static string Fmt(TimeSpan? t) => t.HasValue ? $"{t.Value.TotalMilliseconds:F0}ms" : "N/A";
