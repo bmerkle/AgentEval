@@ -35,6 +35,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        ref: main  # Always build docs from main branch to satisfy environment protection rules
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -78,8 +80,8 @@ jobs:
   deploy:
     needs: build-docs
     runs-on: ubuntu-latest
-    # Only deploy on release or manual trigger, not on every docs change
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    # Deploy on: push to main (docs changes), release, or manual trigger
+    # This allows updating docs without a release
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

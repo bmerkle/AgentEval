@@ -1,7 +1,7 @@
 # AgentEval
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/joslat/AgentEval/main/assets/AgentEval_bounded.png" alt="AgentEval Logo" width="400" />
+  <img src="images/AgentEval_bounded.png" alt="AgentEval Logo" width="400" />
 </p>
 
 <p align="center">
@@ -9,19 +9,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/joslat/AgentEval/actions/workflows/ci.yml">
-    <img src="https://github.com/joslat/AgentEval/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
-  </a>
-  <a href="https://codecov.io/gh/joslat/AgentEval">
-    <img src="https://codecov.io/gh/joslat/AgentEval/graph/badge.svg?token=Y28TAK3LNH" alt="Code Coverage" />
-  </a>
   <a href="https://www.nuget.org/packages/AgentEval">
     <img src="https://img.shields.io/nuget/v/AgentEval.svg" alt="NuGet Version" />
   </a>
-  <a href="https://github.com/joslat/AgentEval/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/joslat/AgentEval.svg" alt="License" />
-  </a>
   <img src="https://img.shields.io/badge/tests-3000%2B-brightgreen" alt="Test Count" />
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="License" />
 </p>
 
 ---
