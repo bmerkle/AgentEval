@@ -1,4 +1,3 @@
-````markdown
 # RAG Metrics Guide
 
 > **Comprehensive evaluation for Retrieval-Augmented Generation systems**
@@ -7,13 +6,14 @@
 
 ## Overview
 
-AgentEval provides 10 metrics specifically designed for evaluating RAG pipelines, covering the entire retrieval → generation → evaluation cycle.
+AgentEval provides **13 metrics** specifically designed for evaluating RAG pipelines, covering the entire retrieval to generation to evaluation cycle.
 
 ### Metric Categories
 
 | Category | Metrics | Cost | Best For |
 |----------|---------|------|----------|
 | **LLM-based** | Faithfulness, Relevance, Context Precision/Recall, Answer Correctness | $$$ | High-accuracy evaluation, production sampling |
+| **Quality** | Groundedness, Coherence, Fluency | $$$ | Safety validation, language quality |
 | **Embedding-based** | Answer Similarity, Response-Context, Query-Context | $ | Volume testing, fast feedback |
 | **Information Retrieval** | Recall@K, MRR | **FREE** | CI/CD, retrieval optimization |
 
@@ -21,26 +21,26 @@ AgentEval provides 10 metrics specifically designed for evaluating RAG pipelines
 
 ```
 RAG Pipeline Stage          Recommended Metrics
-─────────────────────────────────────────────────────────
-                           ┌─────────────────────────────┐
-  Query                    │                             │
-    │                      │                             │
-    ▼                      │                             │
-┌───────────┐              │  code_recall_at_k (FREE)    │
-│ Retrieval │──────────────│  code_mrr (FREE)            │
-└───────────┘              │  embed_query_context ($)    │
-    │                      │  llm_context_precision ($$$)│
-    │                      │  llm_context_recall ($$$)   │
-    ▼                      │                             │
-┌───────────┐              │                             │
-│ Generation│──────────────│  llm_faithfulness ($$$)     │
-└───────────┘              │  embed_response_context ($) │
-    │                      │                             │
-    ▼                      │                             │
-┌───────────┐              │  llm_answer_correctness ($$$│
-│  Answer   │──────────────│  embed_answer_similarity ($)│
-└───────────┘              │  llm_relevance ($$$)        │
-                           └─────────────────────────────┘
+---------------------------------------------------------
+                           +-----------------------------+
+  Query                    |                             |
+    |                      |                             |
+    v                      |                             |
++-----------+              |  code_recall_at_k (FREE)    |
+| Retrieval |--------------|  code_mrr (FREE)            |
++-----------+              |  embed_query_context ($)    |
+    |                      |  llm_context_precision ($$$)|
+    |                      |  llm_context_recall ($$$)   |
+    v                      |                             |
++-----------+              |                             |
+| Generation|--------------|  llm_faithfulness ($$$)     |
++-----------+              |  embed_response_context ($) |
+    |                      |                             |
+    v                      |                             |
++-----------+              |  llm_answer_correctness ($$$|
+|  Answer   |--------------|  embed_answer_similarity ($)|
++-----------+              |  llm_relevance ($$$)        |
+                           +-----------------------------+
 ```
 
 ---
@@ -53,7 +53,7 @@ These metrics evaluate retrieval quality using only document IDs - **no API call
 
 **Purpose:** Measures what proportion of relevant documents were found in the top K results.
 
-**Formula:** `Recall@K = |Relevant ∩ Retrieved@K| / |Relevant|`
+**Formula:** `Recall@K = |Relevant INTERSECT Retrieved@K| / |Relevant|`
 
 | Property | Value |
 |----------|-------|
@@ -98,6 +98,7 @@ var result = await metric.EvaluateAsync(context);
 | Pass Threshold | 33% (first relevant in top 3) |
 
 **Scoring:**
+
 | First Relevant Rank | Score |
 |---------------------|-------|
 | 1 | 100 |
@@ -436,38 +437,39 @@ var context = new EvaluationContext
 {
     Input = "What is AgentEval?",
     Output = "AgentEval is a .NET evaluation toolkit for AI agents.",
-    Context = "AgentEval is the comprehensive .NET evaluation toolkit for AI agents, built for Microsoft Agent Framework.",
+    Context = "AgentEval is the comprehensive .NET evaluation toolkit...",
     GroundTruth = "AgentEval is a .NET toolkit for evaluating AI agents.",
     RelevantDocumentIds = ["doc-agenteval-readme", "doc-agenteval-quickstart"],
-    RetrievedDocumentIds = ["doc-agenteval-readme", "doc-other", "doc-agenteval-quickstart"]
+    RetrievedDocumentIds = ["doc-agenteval-readme", "doc-other", "doc-quickstart"]
 };
 
 // Run all metrics
 Console.WriteLine("Metric                    Score  Passed");
-Console.WriteLine("─────────────────────────────────────────");
+Console.WriteLine("-----------------------------------------");
 
 foreach (var metric in metrics)
 {
     var result = await metric.EvaluateAsync(context);
-    var status = result.Passed ? "✅" : "❌";
+    var status = result.Passed ? "PASS" : "FAIL";
     Console.WriteLine($"{metric.Name,-25} {result.Score,5:F0}  {status}");
 }
 ```
 
 **Sample Output:**
+
 ```
 Metric                    Score  Passed
-─────────────────────────────────────────
-code_recall_at_k            100  ✅
-code_mrr                    100  ✅
-embed_answer_similarity      94  ✅
-embed_response_context       89  ✅
-embed_query_context          85  ✅
-llm_faithfulness             95  ✅
-llm_relevance                90  ✅
-llm_context_precision        88  ✅
-llm_context_recall           92  ✅
-llm_answer_correctness       96  ✅
+-----------------------------------------
+code_recall_at_k            100  PASS
+code_mrr                    100  PASS
+embed_answer_similarity      94  PASS
+embed_response_context       89  PASS
+embed_query_context          85  PASS
+llm_faithfulness             95  PASS
+llm_relevance                90  PASS
+llm_context_precision        88  PASS
+llm_context_recall           92  PASS
+llm_answer_correctness       96  PASS
 ```
 
 ---
@@ -475,17 +477,120 @@ llm_answer_correctness       96  ✅
 ## Data Requirements
 
 | Metric | Input | Output | Context | Ground Truth | Doc IDs |
-|--------|-------|--------|---------|--------------|---------|
-| `code_recall_at_k` | - | - | - | - | ✅ |
-| `code_mrr` | - | - | - | - | ✅ |
-| `embed_answer_similarity` | - | ✅ | - | ✅ | - |
-| `embed_response_context` | - | ✅ | ✅ | - | - |
-| `embed_query_context` | ✅ | - | ✅ | - | - |
-| `llm_faithfulness` | ✅ | ✅ | ✅ | - | - |
-| `llm_relevance` | ✅ | ✅ | - | - | - |
-| `llm_context_precision` | ✅ | - | ✅ | - | - |
-| `llm_context_recall` | ✅ | - | ✅ | ✅ | - |
-| `llm_answer_correctness` | ✅ | ✅ | - | ✅ | - |
+|--------|:-----:|:------:|:-------:|:------------:|:-------:|
+| `code_recall_at_k` | - | - | - | - | Yes |
+| `code_mrr` | - | - | - | - | Yes |
+| `embed_answer_similarity` | - | Yes | - | Yes | - |
+| `embed_response_context` | - | Yes | Yes | - | - |
+| `embed_query_context` | Yes | - | Yes | - | - |
+| `llm_faithfulness` | Yes | Yes | Yes | - | - |
+| `llm_relevance` | Yes | Yes | - | - | - |
+| `llm_context_precision` | Yes | - | Yes | - | - |
+| `llm_context_recall` | Yes | - | Yes | Yes | - |
+| `llm_answer_correctness` | Yes | Yes | - | Yes | - |
+| `llm_groundedness` | Yes | Yes | Yes | - | - |
+| `llm_coherence` | - | Yes | - | - | - |
+| `llm_fluency` | - | Yes | - | - | - |
+
+---
+
+## Quality Metrics ($$$)
+
+LLM-based metrics for evaluating response safety, coherence, and language quality.
+
+### llm_groundedness
+
+**Purpose:** Detects unsubstantiated claims, fabricated sources, or speculation presented as fact.
+
+| Property | Value |
+|----------|-------|
+| Interface | `IRAGMetric`, `ISafetyMetric` |
+| Requires | Context |
+| Cost | ~$0.01-0.05/eval |
+
+**When to Use:**
+- Safety validation for AI responses
+- Detecting fabricated citations or statistics
+- High-stakes applications requiring factual accuracy
+- Catching "confident hallucinations"
+
+**Example:**
+```csharp
+var metric = new GroundednessMetric(chatClient);
+
+var context = new EvaluationContext
+{
+    Input = "What were our Q3 sales?",
+    Output = "According to the Q3 report, sales increased 15% to $2.3M.",
+    Context = "Q3 sales grew 15% year-over-year."  // Note: $2.3M not mentioned
+};
+
+var result = await metric.EvaluateAsync(context);
+// Lower score - specific number ($2.3M) not grounded in context
+```
+
+---
+
+### llm_coherence
+
+**Purpose:** Measures logical coherence and internal consistency - no self-contradictions.
+
+| Property | Value |
+|----------|-------|
+| Interface | `IRAGMetric`, `IQualityMetric` |
+| Requires | Output only |
+| Cost | ~$0.01-0.05/eval |
+
+**When to Use:**
+- Detecting self-contradictions in complex responses
+- Evaluating logical flow of multi-step explanations
+- Quality assurance for long-form content
+- Ensuring ideas connect naturally
+
+**Example:**
+```csharp
+var metric = new CoherenceMetric(chatClient);
+
+var context = new EvaluationContext
+{
+    Input = "Explain the deployment process",
+    Output = "First, build the project. Then test locally. The first step is testing..."
+};
+
+var result = await metric.EvaluateAsync(context);
+// Low score - contradictory: "first" used for both build and testing
+```
+
+---
+
+### llm_fluency
+
+**Purpose:** Evaluates grammar, readability, and natural language quality.
+
+| Property | Value |
+|----------|-------|
+| Interface | `IRAGMetric`, `IQualityMetric` |
+| Requires | Output only |
+| Cost | ~$0.01-0.05/eval |
+
+**When to Use:**
+- Customer-facing content validation
+- Grammar and style checking
+- Readability assessment
+- Non-native language output quality
+
+**Example:**
+```csharp
+var metric = new FluencyMetric(chatClient);
+
+var context = new EvaluationContext
+{
+    Output = "The product is working very good and has many feature for user."
+};
+
+var result = await metric.EvaluateAsync(context);
+// Moderate score - grammar issues: "very good" → "very well", "feature" → "features"
+```
 
 ---
 
@@ -499,5 +604,3 @@ llm_answer_correctness       96  ✅
 ---
 
 *Last updated: January 2026*
-
-````

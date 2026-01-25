@@ -34,6 +34,8 @@
     href: metrics-reference.md
   - name: RAG Metrics
     href: rag-metrics.md
+  - name: Agentic Metrics
+    href: agentic-metrics.md
   - name: Implementing Embeddings
     href: embedding-metrics.md
   - name: Benchmarks

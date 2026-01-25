@@ -395,6 +395,100 @@ var result = await metric.EvaluateAsync(new EvaluationContext
 
 ---
 
+## Quality Metrics
+
+Metrics for evaluating response quality, safety, and language characteristics.
+
+### llm_groundedness
+
+**Purpose:** Measures whether the response is grounded and avoids unsubstantiated claims, fabricated sources, or presenting speculation as fact.
+
+| Property | Value |
+|----------|-------|
+| Interface | `IRAGMetric`, `ISafetyMetric` |
+| Requires Context | ✅ Yes |
+| Requires Ground Truth | ❌ No |
+| Cost | LLM API call |
+
+**When to Use:**
+- Safety validation for AI responses
+- Detecting fabricated sources, citations, or statistics
+- Ensuring claims are substantiated by context
+- High-stakes applications requiring factual accuracy
+
+**Example:**
+```csharp
+var metric = new GroundednessMetric(chatClient);
+var result = await metric.EvaluateAsync(new EvaluationContext
+{
+    Input = "What are the sales numbers?",
+    Output = "According to our Q3 report, sales increased 15%.",
+    Context = "Q3 sales report shows 15% growth year-over-year."
+});
+// result.Score: High (claim supported by context)
+```
+
+---
+
+### llm_coherence
+
+**Purpose:** Measures the logical coherence and internal consistency of the response.
+
+| Property | Value |
+|----------|-------|
+| Interface | `IRAGMetric`, `IQualityMetric` |
+| Requires Context | ❌ No |
+| Requires Ground Truth | ❌ No |
+| Cost | LLM API call |
+
+**When to Use:**
+- Detecting self-contradictions in responses
+- Evaluating logical flow and structure
+- Quality assurance for complex, multi-part responses
+- Ensuring ideas connect naturally
+
+**Example:**
+```csharp
+var metric = new CoherenceMetric(chatClient);
+var result = await metric.EvaluateAsync(new EvaluationContext
+{
+    Input = "Explain the process",
+    Output = "First, prepare the ingredients. The final step is preparation..."
+});
+// result.Score: Low (contradictory: preparation both first and last)
+```
+
+---
+
+### llm_fluency
+
+**Purpose:** Measures grammar, readability, and natural language quality of the response.
+
+| Property | Value |
+|----------|-------|
+| Interface | `IRAGMetric`, `IQualityMetric` |
+| Requires Context | ❌ No |
+| Requires Ground Truth | ❌ No |
+| Cost | LLM API call |
+
+**When to Use:**
+- Grammar and style checking
+- Readability assessment
+- Language quality assurance
+- Customer-facing content validation
+
+**Example:**
+```csharp
+var metric = new FluencyMetric(chatClient);
+var result = await metric.EvaluateAsync(new EvaluationContext
+{
+    Output = "The product is very good and works excellent for many purpose."
+});
+// result.Score: Moderate (minor grammar issues)
+```
+
+---
+
 ## Quick Reference Table
 
 | Metric | Category | Context | Ground Truth | Tool Usage | Cost |
@@ -414,6 +508,9 @@ var result = await metric.EvaluateAsync(new EvaluationContext
 | `code_tool_success` | Agentic | ❌ | ❌ | ✅ | Free |
 | `code_tool_efficiency` | Agentic | ❌ | ❌ | ✅ | Free |
 | `llm_task_completion` | Agentic | ❌ | ❌ | ❌ | LLM |
+| `llm_groundedness` | Quality | ✅ | ❌ | ❌ | LLM |
+| `llm_coherence` | Quality | ❌ | ❌ | ❌ | LLM |
+| `llm_fluency` | Quality | ❌ | ❌ | ❌ | LLM |
 
 ---
 

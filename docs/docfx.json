@@ -36,6 +36,10 @@
       "_enableSearch": true,
       "_enableNewTab": true,
       "_disableContribution": false,
+      "_disableToc": false,
+      "_disableBreadcrumb": false,
+      "_disableAffix": false,
+      "_disableSideFilter": false,
       "_gitContribute": {
         "repo": "https://github.com/joslat/AgentEval",
         "branch": "main"
