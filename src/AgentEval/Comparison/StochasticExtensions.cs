@@ -6,7 +6,7 @@ using AgentEval.Assertions;
 namespace AgentEval.Comparison;
 
 /// <summary>
-/// Extension methods for stochastic testing.
+/// Extension methods for stochastic evaluation.
 /// </summary>
 public static class StochasticExtensions
 {

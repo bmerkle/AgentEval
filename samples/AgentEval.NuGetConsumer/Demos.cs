@@ -580,7 +580,7 @@ public static class Demos
     // 3. STOCHASTIC MODEL COMPARISON (inspired by Sample16)
     // ═══════════════════════════════════════════════════════════════════════════════
 
-    public static async Task RunStochasticTestingDemo()
+    public static async Task RunStochasticEvaluationDemo()
     {
         ShowSection("3️⃣  STOCHASTIC MODEL COMPARISON", "Compare models with statistical rigor");
 
@@ -667,13 +667,13 @@ public static class Demos
     }
 
     /// <summary>
-    /// Shows explanation why stochastic testing requires real mode.
+    /// Shows explanation why stochastic evaluation requires real mode.
     /// </summary>
     public static void ShowStochasticExplanation()
     {
         ShowSection("3️⃣  STOCHASTIC MODEL COMPARISON", "Compare models with statistical rigor");
 
-        Console.WriteLine("      ℹ️ Stochastic testing requires REAL MODE to run.\n");
+        Console.WriteLine("      ℹ️ stochastic evaluation requires REAL MODE to run.\n");
         Console.WriteLine("      This demo compares multiple models:");
         Console.WriteLine($"         • {Config.Model}");
         Console.WriteLine($"         • {Config.SecondaryModel}\n");

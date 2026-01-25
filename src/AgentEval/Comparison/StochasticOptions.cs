@@ -4,7 +4,7 @@
 namespace AgentEval.Comparison;
 
 /// <summary>
-/// Configuration options for stochastic testing.
+/// Configuration options for stochastic evaluation.
 /// </summary>
 /// <param name="Runs">Number of test runs. Default: 10. Minimum: 3.</param>
 /// <param name="SuccessRateThreshold">Minimum pass rate to consider the test as successful (0.0-1.0). Default: 0.8 (80%).</param>

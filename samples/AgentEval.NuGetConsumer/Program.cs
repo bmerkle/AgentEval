@@ -72,7 +72,7 @@ static async Task ShowDemoMenu(bool useMock)
                 case "2":
                     if (!useMock)
                     {
-                        await Demos.RunStochasticTestingDemo();
+                        await Demos.RunStochasticEvaluationDemo();
                     }
                     else
                     {
@@ -84,7 +84,7 @@ static async Task ShowDemoMenu(bool useMock)
                     await Demos.RunBehavioralPoliciesDemo(useMock);
                     if (!useMock)
                     {
-                        await Demos.RunStochasticTestingDemo();
+                        await Demos.RunStochasticEvaluationDemo();
                     }
                     else
                     {

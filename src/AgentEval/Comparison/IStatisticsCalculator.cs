@@ -4,7 +4,7 @@
 namespace AgentEval.Comparison;
 
 /// <summary>
-/// Provides statistical calculations for stochastic testing and model comparison.
+/// Provides statistical calculations for stochastic evaluation and model comparison.
 /// This interface enables testability through dependency injection and allows
 /// for alternative statistical implementations (e.g., GPU-accelerated, distributed).
 /// </summary>

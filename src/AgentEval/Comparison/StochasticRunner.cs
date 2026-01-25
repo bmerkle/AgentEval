@@ -12,7 +12,7 @@ namespace AgentEval.Comparison;
 /// Enables statistical analysis of agent behavior across multiple runs.
 /// </summary>
 /// <remarks>
-/// Stochastic testing runs the same test case multiple times to:
+/// stochastic evaluation runs the same test case multiple times to:
 /// - Measure reliability and consistency
 /// - Identify flaky behaviors
 /// - Calculate statistical confidence in results
@@ -32,7 +32,7 @@ public interface IStochasticRunner
     /// <param name="agent">The agent to test. Cannot be null.</param>
     /// <param name="testCase">The test case to run repeatedly. Cannot be null.</param>
     /// <param name="options">
-    /// Stochastic testing options (number of runs, parallelism, success threshold, etc.).
+    /// stochastic evaluation options (number of runs, parallelism, success threshold, etc.).
     /// If null, uses <see cref="StochasticOptions.Default"/>.
     /// </param>
     /// <param name="cancellationToken">Token to cancel the stochastic test run.</param>
@@ -50,12 +50,12 @@ public interface IStochasticRunner
     /// <summary>
     /// Runs a test case multiple times, creating a fresh agent for each run.
     /// Use this method when you need isolated, independent runs without state carryover.
-    /// This is the recommended approach for most stochastic testing scenarios.
+    /// This is the recommended approach for most stochastic evaluation scenarios.
     /// </summary>
     /// <param name="factory">Factory to create fresh agent instances. Cannot be null.</param>
     /// <param name="testCase">The test case to run repeatedly. Cannot be null.</param>
     /// <param name="options">
-    /// Stochastic testing options (number of runs, parallelism, success threshold, etc.).
+    /// stochastic evaluation options (number of runs, parallelism, success threshold, etc.).
     /// If null, uses <see cref="StochasticOptions.Default"/>.
     /// </param>
     /// <param name="cancellationToken">Token to cancel the stochastic test run.</param>
