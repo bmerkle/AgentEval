@@ -90,7 +90,7 @@ public class AgenticBenchmark
                     }
                 }
                 
-                var TestResult = new ToolAccuracyTestResult
+                var testResult = new ToolAccuracyTestResult
                 {
                     TestCaseName = testCase.Name,
                     Passed = !toolsMissed.Any() && !parameterErrors.Any() && !unexpectedTools.Any(),
@@ -101,7 +101,7 @@ public class AgenticBenchmark
                     TotalToolsCalled = toolUsage.Count
                 };
                 
-                results.Add(TestResult);
+                results.Add(testResult);
             }
             catch (Exception ex)
             {
@@ -164,17 +164,17 @@ public class AgenticBenchmark
                     evaluationCriteria,
                     cancellationToken);
                 
-                var TestResult = new TaskCompletionTestResult
+                var testResult = new TaskCompletionTestResult
                 {
                     TestCaseName = testCase.Name,
                     Passed = evaluation.OverallScore >= testCase.PassingScore,
                     Score = evaluation.OverallScore,
                     ActualOutput = response.Text,
-                    TestSummary = evaluation.Summary,
+                    EvaluationSummary = evaluation.Summary,
                     CriteriaResults = evaluation.CriteriaResults.ToList()
                 };
                 
-                results.Add(TestResult);
+                results.Add(testResult);
             }
             catch (Exception ex)
             {
@@ -256,7 +256,7 @@ public class AgenticBenchmark
                     previousStepPassed = stepPassed;
                 }
                 
-                var TestResult = new MultiStepTestResult
+                var testResult = new MultiStepTestResult
                 {
                     TestCaseName = testCase.Name,
                     Passed = stepResults.All(s => s.Passed),
@@ -265,7 +265,7 @@ public class AgenticBenchmark
                     StepResults = stepResults
                 };
                 
-                results.Add(TestResult);
+                results.Add(testResult);
             }
             catch (Exception ex)
             {
@@ -408,7 +408,7 @@ public class TaskCompletionTestResult
     public bool Passed { get; init; }
     public double? Score { get; init; }
     public string? ActualOutput { get; init; }
-    public string? TestSummary { get; init; }
+    public string? EvaluationSummary { get; init; }
     public IReadOnlyList<CriterionResult> CriteriaResults { get; init; } = [];
     public string? Error { get; init; }
 }

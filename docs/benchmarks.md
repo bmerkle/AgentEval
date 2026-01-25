@@ -522,6 +522,6 @@ If you need HumanEval support, consider:
 ## See Also
 
 - [ADR-009: Benchmark Strategy](adr/009-benchmark-strategy.md) - Architecture decision
-- [stochastic evaluation](stochastic-testing.md) - Statistical testing for benchmarks
+- [stochastic evaluation](stochastic-evaluation.md) - Statistical testing for benchmarks
 - [Model Comparison](model-comparison.md) - Compare models on benchmarks
 - [Extensibility Guide](extensibility.md) - Creating custom metrics

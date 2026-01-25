@@ -326,7 +326,7 @@ var compositeScore = scores.Average(s => s.Score);
 
 - [RAG Metrics](rag-metrics.md) - Complete RAG evaluation guide
 - [Metrics Reference](metrics-reference.md) - Complete metric catalog
-- [stochastic evaluation](stochastic-testing.md) - Handle LLM variability
+- [stochastic evaluation](stochastic-evaluation.md) - Handle LLM variability
 - [Model Comparison](model-comparison.md) - Compare models
 
 ---

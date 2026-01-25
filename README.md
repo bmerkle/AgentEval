@@ -432,7 +432,7 @@ agenteval list metrics
 |-------|-------------|
 | [Getting Started](docs/getting-started.md) | Your first agent test in 5 minutes |
 | [Fluent Assertions](docs/assertions.md) | Complete assertion guide |
-| [stochastic evaluation](docs/stochastic-testing.md) | Handle LLM non-determinism |
+| [stochastic evaluation](docs/stochastic-evaluation.md) | Handle LLM non-determinism |
 | [Model Comparison](docs/model-comparison.md) | Compare models with confidence |
 | [Benchmarks](docs/benchmarks.md) | Benchmark patterns and best practices |
 | [Tracing](docs/tracing.md) | Record and Replay patterns |

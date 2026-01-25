@@ -236,7 +236,7 @@ agenteval eval --dataset tests.yaml --format junit -o results.xml
 
 | Getting Started | Features | Advanced |
 |-----------------|----------|----------|
-| [Installation](installation.md) | [Assertions](assertions.md) | [stochastic evaluation](stochastic-testing.md) |
+| [Installation](installation.md) | [Assertions](assertions.md) | [stochastic evaluation](stochastic-evaluation.md) |
 | [Quick Start](getting-started.md) | [Metrics Reference](metrics-reference.md) | [Model Comparison](model-comparison.md) |
 | [Walkthrough](walkthrough.md) | [Benchmarks](benchmarks.md) | [Trace Record/Replay](tracing.md) |
 | [CLI Tool](cli.md) | [Workflows](workflows.md) | [Architecture](architecture.md) |

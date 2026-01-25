@@ -652,7 +652,7 @@ var weights = new ComparisonWeights
 
 ## Next Steps
 
-- [stochastic evaluation](stochastic-testing.md) - The foundation for model comparison
+- [stochastic evaluation](stochastic-evaluation.md) - The foundation for model comparison
 - [Trace Record & Replay](tracing.md) - Reduce comparison costs
 - [Code Gallery](showcase/code-gallery.md) - More examples
 

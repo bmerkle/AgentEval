@@ -547,7 +547,7 @@ var testCase = new TestCase
 
 **Symptom:** Quality scores vary widely between runs
 
-**Solution:** Use [stochastic evaluation](stochastic-testing.md) to run multiple times and analyze statistics:
+**Solution:** Use [stochastic evaluation](stochastic-evaluation.md) to run multiple times and analyze statistics:
 ```csharp
 var stochasticRunner = new StochasticRunner(harness, EvaluationOptions);
 var result = await stochasticRunner.RunStochasticTestAsync(

@@ -21,10 +21,10 @@ using AgentEval.MAF;
 using AgentEval.Assertions;
 
 // Create evaluation harness
-var harness = new MAFTestHarness(evaluatorClient);
+var harness = new MAFEvaluationHarness(evaluatorClient);
 
-// Run test with tool tracking
-var result = await harness.RunTestAsync(agent, new TestCase
+// Run evaluation with tool tracking
+var result = await harness.RunEvaluationAsync(agent, new TestCase
 {
     Name = "Feature Planning Test",
     Input = "Plan a user authentication feature",

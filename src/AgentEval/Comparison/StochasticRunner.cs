@@ -85,26 +85,26 @@ public class StochasticRunner : IStochasticRunner
     /// </summary>
     /// <param name="harness">The evaluation harness to use for running individual tests.</param>
     /// <param name="statisticsCalculator">Optional statistics calculator. If null, uses default.</param>
-    /// <param name="EvaluationOptions">Optional test options for each run.</param>
+    /// <param name="evaluationOptions">Optional test options for each run.</param>
     [ActivatorUtilitiesConstructor]
     public StochasticRunner(
         IEvaluationHarness harness, 
         IStatisticsCalculator? statisticsCalculator = null,
-        EvaluationOptions? EvaluationOptions = null)
+        EvaluationOptions? evaluationOptions = null)
     {
         _harness = harness ?? throw new ArgumentNullException(nameof(harness));
         _statisticsCalculator = statisticsCalculator ?? DefaultStatisticsCalculator.Instance;
-        _testOptions = EvaluationOptions;
+        _testOptions = evaluationOptions;
     }
     
     /// <summary>
     /// Creates a new stochastic runner (legacy constructor for backward compatibility).
     /// </summary>
     /// <param name="harness">The evaluation harness to use for running individual tests.</param>
-    /// <param name="EvaluationOptions">Optional test options for each run.</param>
+    /// <param name="evaluationOptions">Optional test options for each run.</param>
     [Obsolete("Use constructor with IStatisticsCalculator parameter for better testability. This constructor will be removed in a future version.")]
-    public StochasticRunner(IEvaluationHarness harness, EvaluationOptions? EvaluationOptions)
-        : this(harness, statisticsCalculator: null, EvaluationOptions: EvaluationOptions)
+    public StochasticRunner(IEvaluationHarness harness, EvaluationOptions? evaluationOptions)
+        : this(harness, statisticsCalculator: null, evaluationOptions: evaluationOptions)
     {
     }
     
