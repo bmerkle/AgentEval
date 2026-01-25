@@ -112,6 +112,37 @@ var replayer = new TraceReplayingAgent(trace);
 var response = await replayer.ReplayNextAsync();
 ```
 
+## Git Commit Conventions
+
+### Skip CI for Intermediate Commits
+When making multiple small changes (docs, formatting, etc.), use `[skip ci]` to avoid triggering full CI pipeline:
+
+```powershell
+git commit -m "docs: Fix typo in README [skip ci]"
+git commit -m "style: Format code [skip ci]"
+```
+
+**When to use `[skip ci]`:**
+- Documentation-only changes
+- Comment/typo fixes
+- Formatting changes
+- Intermediate commits during a multi-commit refactor
+
+**When NOT to use `[skip ci]`:**
+- Any code changes (even small ones)
+- Final commit of a feature/fix
+- Changes to tests, samples, or configuration
+
+### Commit Message Format
+Use conventional commits:
+- `feat:` New feature
+- `fix:` Bug fix
+- `docs:` Documentation only
+- `style:` Formatting, no code change
+- `refactor:` Code restructuring
+- `test:` Adding/updating tests
+- `chore:` Maintenance tasks
+
 ## Environment Variables
 
 For samples/integration tests:

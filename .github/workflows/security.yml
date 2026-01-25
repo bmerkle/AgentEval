@@ -8,6 +8,9 @@ on:
   schedule:
     - cron: '0 0 * * 1' # Weekly scan on Mondays
 
+# Skip if commit message contains [skip ci] or [ci skip]
+# This is useful for documentation-only changes or formatting fixes
+
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
@@ -17,6 +20,7 @@ jobs:
   security:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    if: "!contains(github.event.head_commit.message, '[skip ci]') && !contains(github.event.head_commit.message, '[ci skip]')"
     
     steps:
     - name: Checkout repository
