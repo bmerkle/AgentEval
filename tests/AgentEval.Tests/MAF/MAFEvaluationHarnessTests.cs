@@ -12,7 +12,7 @@ namespace AgentEval.Tests;
 /// <summary>
 /// Tests for MAFEvaluationHarness.
 /// </summary>
-public class MAFTestHarnessTests
+public class MAFEvaluationHarnessTests
 {
     #region Constructor Tests
 

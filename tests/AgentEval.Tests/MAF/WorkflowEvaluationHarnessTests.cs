@@ -11,7 +11,7 @@ namespace AgentEval.Tests.MAF;
 /// <summary>
 /// Unit tests for WorkflowEvaluationHarness.
 /// </summary>
-public class WorkflowTestHarnessTests
+public class WorkflowEvaluationHarnessTests
 {
     // ═══════════════════════════════════════════════════════════════════════════
     // BASIC EXECUTION
