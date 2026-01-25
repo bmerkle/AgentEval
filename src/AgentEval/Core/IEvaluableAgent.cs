@@ -4,14 +4,14 @@
 namespace AgentEval.Core;
 
 /// <summary>
-/// Represents a testable AI agent abstraction.
-/// Implement this interface to adapt any agent framework for testing.
+/// Represents an evaluable AI agent abstraction.
+/// Implement this interface to adapt any agent framework for evaluation.
 /// </summary>
 /// <remarks>
 /// This follows the Interface Segregation Principle - only the minimal
-/// methods needed for testing are required.
+/// methods needed for evaluation are required.
 /// </remarks>
-public interface ITestableAgent
+public interface IEvaluableAgent
 {
     /// <summary>
     /// Gets the name of the agent for identification in reports.
@@ -30,7 +30,7 @@ public interface ITestableAgent
 /// <summary>
 /// Extended interface for agents that support streaming.
 /// </summary>
-public interface IStreamableAgent : ITestableAgent
+public interface IStreamableAgent : IEvaluableAgent
 {
     /// <summary>
     /// Invokes the agent with streaming response.

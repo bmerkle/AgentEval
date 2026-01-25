@@ -8,17 +8,17 @@ using Microsoft.Extensions.DependencyInjection;
 namespace AgentEval.Comparison;
 
 /// <summary>
-/// Interface for running stochastic (repeated, randomized) tests on agents.
+/// Interface for running stochastic (repeated, randomized) evaluations on agents.
 /// Enables statistical analysis of agent behavior across multiple runs.
 /// </summary>
 /// <remarks>
-/// Stochastic testing runs the same test case multiple times to:
+/// stochastic evaluation runs the same test case multiple times to:
 /// - Measure reliability and consistency
 /// - Identify flaky behaviors
 /// - Calculate statistical confidence in results
 /// - Compare performance distributions across runs
 /// 
-/// Implementations should support concurrent test execution for performance
+/// Implementations should support concurrent evaluation execution for performance
 /// and provide detailed statistics including mean, median, confidence intervals,
 /// and pass rate analysis.
 /// </remarks>
@@ -26,23 +26,23 @@ public interface IStochasticRunner
 {
     /// <summary>
     /// Runs a test case multiple times against the same agent instance.
-    /// Use this method when testing stateful agents or when you want to reuse
+    /// Use this method when evaluating stateful agents or when you want to reuse
     /// the same agent instance across all runs.
     /// </summary>
-    /// <param name="agent">The agent to test. Cannot be null.</param>
+    /// <param name="agent">The agent to evaluate. Cannot be null.</param>
     /// <param name="testCase">The test case to run repeatedly. Cannot be null.</param>
     /// <param name="options">
-    /// Stochastic testing options (number of runs, parallelism, success threshold, etc.).
+    /// stochastic evaluation options (number of runs, parallelism, success threshold, etc.).
     /// If null, uses <see cref="StochasticOptions.Default"/>.
     /// </param>
-    /// <param name="cancellationToken">Token to cancel the stochastic test run.</param>
+    /// <param name="cancellationToken">Token to cancel the stochastic evaluation run.</param>
     /// <returns>
-    /// Stochastic test result containing individual run results, aggregate statistics,
+    /// Stochastic evaluation result containing individual run results, aggregate statistics,
     /// and pass/fail determination based on the success rate threshold.
     /// </returns>
     /// <exception cref="ArgumentNullException">Thrown when agent or testCase is null.</exception>
     Task<StochasticResult> RunStochasticTestAsync(
-        ITestableAgent agent,
+        IEvaluableAgent agent,
         TestCase testCase,
         StochasticOptions? options = null,
         CancellationToken cancellationToken = default);
@@ -50,17 +50,17 @@ public interface IStochasticRunner
     /// <summary>
     /// Runs a test case multiple times, creating a fresh agent for each run.
     /// Use this method when you need isolated, independent runs without state carryover.
-    /// This is the recommended approach for most stochastic testing scenarios.
+    /// This is the recommended approach for most stochastic evaluation scenarios.
     /// </summary>
     /// <param name="factory">Factory to create fresh agent instances. Cannot be null.</param>
     /// <param name="testCase">The test case to run repeatedly. Cannot be null.</param>
     /// <param name="options">
-    /// Stochastic testing options (number of runs, parallelism, success threshold, etc.).
+    /// stochastic evaluation options (number of runs, parallelism, success threshold, etc.).
     /// If null, uses <see cref="StochasticOptions.Default"/>.
     /// </param>
-    /// <param name="cancellationToken">Token to cancel the stochastic test run.</param>
+    /// <param name="cancellationToken">Token to cancel the stochastic evaluation run.</param>
     /// <returns>
-    /// Stochastic test result containing individual run results, aggregate statistics,
+    /// Stochastic evaluation result containing individual run results, aggregate statistics,
     /// and pass/fail determination based on the success rate threshold.
     /// </returns>
     /// <exception cref="ArgumentNullException">Thrown when factory or testCase is null.</exception>
@@ -76,41 +76,41 @@ public interface IStochasticRunner
 /// </summary>
 public class StochasticRunner : IStochasticRunner
 {
-    private readonly ITestHarness _harness;
+    private readonly IEvaluationHarness _harness;
     private readonly IStatisticsCalculator _statisticsCalculator;
-    private readonly TestOptions? _testOptions;
+    private readonly EvaluationOptions? _testOptions;
     
     /// <summary>
     /// Creates a new stochastic runner with dependency injection.
     /// </summary>
-    /// <param name="harness">The test harness to use for running individual tests.</param>
+    /// <param name="harness">The evaluation harness to use for running individual evaluations.</param>
     /// <param name="statisticsCalculator">Optional statistics calculator. If null, uses default.</param>
-    /// <param name="testOptions">Optional test options for each run.</param>
+    /// <param name="evaluationOptions">Optional evaluation options for each run.</param>
     [ActivatorUtilitiesConstructor]
     public StochasticRunner(
-        ITestHarness harness, 
+        IEvaluationHarness harness, 
         IStatisticsCalculator? statisticsCalculator = null,
-        TestOptions? testOptions = null)
+        EvaluationOptions? evaluationOptions = null)
     {
         _harness = harness ?? throw new ArgumentNullException(nameof(harness));
         _statisticsCalculator = statisticsCalculator ?? DefaultStatisticsCalculator.Instance;
-        _testOptions = testOptions;
+        _testOptions = evaluationOptions;
     }
     
     /// <summary>
     /// Creates a new stochastic runner (legacy constructor for backward compatibility).
     /// </summary>
-    /// <param name="harness">The test harness to use for running individual tests.</param>
-    /// <param name="testOptions">Optional test options for each run.</param>
+    /// <param name="harness">The evaluation harness to use for running individual evaluations.</param>
+    /// <param name="evaluationOptions">Optional evaluation options for each run.</param>
     [Obsolete("Use constructor with IStatisticsCalculator parameter for better testability. This constructor will be removed in a future version.")]
-    public StochasticRunner(ITestHarness harness, TestOptions? testOptions)
-        : this(harness, statisticsCalculator: null, testOptions: testOptions)
+    public StochasticRunner(IEvaluationHarness harness, EvaluationOptions? evaluationOptions)
+        : this(harness, statisticsCalculator: null, evaluationOptions: evaluationOptions)
     {
     }
     
     /// <inheritdoc/>
     public Task<StochasticResult> RunStochasticTestAsync(
-        ITestableAgent agent,
+        IEvaluableAgent agent,
         TestCase testCase,
         StochasticOptions? options = null,
         CancellationToken cancellationToken = default)
@@ -137,7 +137,7 @@ public class StochasticRunner : IStochasticRunner
     }
     
     private async Task<StochasticResult> RunStochasticTestInternalAsync(
-        Func<ITestableAgent> agentProvider,
+        Func<IEvaluableAgent> agentProvider,
         TestCase testCase,
         StochasticOptions options,
         CancellationToken cancellationToken)
@@ -155,7 +155,7 @@ public class StochasticRunner : IStochasticRunner
                 cancellationToken.ThrowIfCancellationRequested();
                 
                 var agent = agentProvider();
-                var result = await _harness.RunTestAsync(agent, testCase, _testOptions, cancellationToken);
+                var result = await _harness.RunEvaluationAsync(agent, testCase, _testOptions, cancellationToken);
                 results.Add(result);
                 
                 if (options.DelayBetweenRuns.HasValue && options.DelayBetweenRuns.Value > TimeSpan.Zero)
@@ -205,7 +205,7 @@ public class StochasticRunner : IStochasticRunner
     }
     
     private async Task<TestResult> RunSingleTestWithThrottlingAsync(
-        Func<ITestableAgent> agentProvider,
+        Func<IEvaluableAgent> agentProvider,
         TestCase testCase,
         SemaphoreSlim semaphore,
         TimeSpan? delay,
@@ -215,7 +215,7 @@ public class StochasticRunner : IStochasticRunner
         try
         {
             var agent = agentProvider();
-            var result = await _harness.RunTestAsync(agent, testCase, _testOptions, cancellationToken);
+            var result = await _harness.RunEvaluationAsync(agent, testCase, _testOptions, cancellationToken);
             
             if (delay.HasValue && delay.Value > TimeSpan.Zero)
             {

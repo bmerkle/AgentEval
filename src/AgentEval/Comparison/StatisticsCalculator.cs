@@ -4,7 +4,7 @@
 namespace AgentEval.Comparison;
 
 /// <summary>
-/// Provides statistical calculations for stochastic testing.
+/// Provides statistical calculations for stochastic evaluation.
 /// </summary>
 public static class StatisticsCalculator
 {

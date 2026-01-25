@@ -97,7 +97,7 @@ public static class Program
                     await Sample13_TraceRecordReplay.RunAsync();
                     break;
                 case 14:
-                    await Sample14_StochasticTesting.RunAsync();
+                    await Sample14_StochasticEvaluation.RunAsync();
                     break;
                 case 15:
                     await Sample15_ModelComparison.RunAsync();
@@ -171,7 +171,7 @@ public static class Program
         Console.WriteLine("│ 11. 📝 Because Assertions - Self-documenting tests          │");
         Console.WriteLine("│ 12. 🛡️ Policy & Safety    - Enterprise guardrails           │");
         Console.WriteLine("│ 13. 🔄 Trace Record/Replay - Deterministic testing          │");
-        Console.WriteLine("│ 14. 🎲 Stochastic Testing - Multi-run reliability           │");
+        Console.WriteLine("│ 14. 🎲 Stochastic Evaluation - Multi-run reliability           │");
         Console.WriteLine("│ 15. ⚖️ Model Comparison   - Compare & rank models           │");
         Console.WriteLine("│ 16. 🔀 Combined Test      - Stochastic + Model Comparison   │");
         Console.WriteLine("│ 17. 🛡️ Quality & Safety   - Groundedness, Coherence, Fluency│");

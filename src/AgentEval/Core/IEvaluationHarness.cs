@@ -6,45 +6,45 @@ using AgentEval.Models;
 namespace AgentEval.Core;
 
 /// <summary>
-/// Test harness for running agent tests.
+/// Evaluation harness for running agent evaluations.
 /// </summary>
-public interface ITestHarness
+public interface IEvaluationHarness
 {
     /// <summary>
-    /// Run a single test case against an agent.
+    /// Run a single evaluation case against an agent.
     /// </summary>
-    /// <param name="agent">The agent to test.</param>
+    /// <param name="agent">The agent to evaluate.</param>
     /// <param name="testCase">The test case to run.</param>
-    /// <param name="options">Optional test options.</param>
+    /// <param name="options">Optional evaluation options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The test result.</returns>
-    Task<TestResult> RunTestAsync(
-        ITestableAgent agent,
+    /// <returns>The evaluation result.</returns>
+    Task<TestResult> RunEvaluationAsync(
+        IEvaluableAgent agent,
         TestCase testCase,
-        TestOptions? options = null,
+        EvaluationOptions? options = null,
         CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// Extended harness that supports streaming tests.
+/// Extended harness that supports streaming evaluations.
 /// </summary>
-public interface IStreamingTestHarness : ITestHarness
+public interface IStreamingEvaluationHarness : IEvaluationHarness
 {
     /// <summary>
-    /// Run a test with streaming for detailed timing metrics.
+    /// Run an evaluation with streaming for detailed timing metrics.
     /// </summary>
-    Task<TestResult> RunTestStreamingAsync(
+    Task<TestResult> RunEvaluationStreamingAsync(
         IStreamableAgent agent,
         TestCase testCase,
         StreamingOptions? streamingOptions = null,
-        TestOptions? options = null,
+        EvaluationOptions? options = null,
         CancellationToken cancellationToken = default);
 }
 
 /// <summary>
-/// Options for test execution.
+/// Options for evaluation execution.
 /// </summary>
-public class TestOptions
+public class EvaluationOptions
 {
     /// <summary>Whether to track tool/function calls.</summary>
     public bool TrackTools { get; init; } = true;
@@ -63,7 +63,7 @@ public class TestOptions
 }
 
 /// <summary>
-/// Options for streaming test execution.
+/// Options for streaming evaluation execution.
 /// </summary>
 public class StreamingOptions
 {

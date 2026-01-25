@@ -72,7 +72,7 @@ static async Task ShowDemoMenu(bool useMock)
                 case "2":
                     if (!useMock)
                     {
-                        await Demos.RunStochasticTestingDemo();
+                        await Demos.RunStochasticEvaluationDemo();
                     }
                     else
                     {
@@ -84,7 +84,7 @@ static async Task ShowDemoMenu(bool useMock)
                     await Demos.RunBehavioralPoliciesDemo(useMock);
                     if (!useMock)
                     {
-                        await Demos.RunStochasticTestingDemo();
+                        await Demos.RunStochasticEvaluationDemo();
                     }
                     else
                     {
@@ -217,7 +217,7 @@ static void ShowSummary(bool useMock)
     ║                         ✅ ADVANCED AGENTEVAL FEATURES!                       ║
     ╠════════════════════════════════════════════════════════════════════════════════╣
     ║                                                                                ║
-    ║   🎯 Complete Example         - ALL TestCase, TestOptions, StreamingOptions    ║
+    ║   🎯 Complete Example         - ALL TestCase, EvaluationOptions, StreamingOptions    ║
     ║   🧑‍⚖️  LLM-as-a-Judge           - Behavioral policies + evaluation criteria    ║
     """);
     

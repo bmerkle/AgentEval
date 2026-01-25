@@ -34,13 +34,13 @@ public static class Sample01_HelloWorld
         Console.WriteLine($"   ✓ Agent '{agent.Name}' created\n");
 
         // ═══════════════════════════════════════════════════════════════
-        // STEP 2: Create a test harness
+        // STEP 2: Create a evaluation harness
         // ═══════════════════════════════════════════════════════════════
-        Console.WriteLine("📝 Step 2: Creating test harness...\n");
+        Console.WriteLine("📝 Step 2: Creating evaluation harness...\n");
         
         // Simple harness without AI evaluation (for this hello world)
-        var harness = new MAFTestHarness(verbose: true);
-        Console.WriteLine("   ✓ Test harness ready\n");
+        var harness = new MAFEvaluationHarness(verbose: true);
+        Console.WriteLine("   ✓ evaluation harness ready\n");
 
         // ═══════════════════════════════════════════════════════════════
         // STEP 3: Define a test case
@@ -49,7 +49,7 @@ public static class Sample01_HelloWorld
         
         // NOTE: This sample uses ExpectedOutputContains for simple validation.
         // EvaluationCriteria requires an AI evaluator (IChatClient) to be passed
-        // to MAFTestHarness for AI-powered evaluation. Without an evaluator,
+        // to MAFEvaluationHarness for AI-powered evaluation. Without an evaluator,
         // the test passes if the output is non-empty and contains the expected substring.
         var testCase = new TestCase
         {
@@ -68,7 +68,7 @@ public static class Sample01_HelloWorld
         Console.WriteLine("📝 Step 4: Running test...\n");
         
         var adapter = new MAFAgentAdapter(agent);
-        var result = await harness.RunTestAsync(adapter, testCase);
+        var result = await harness.RunEvaluationAsync(adapter, testCase);
 
         // ═══════════════════════════════════════════════════════════════
         // STEP 5: Check results
@@ -103,7 +103,7 @@ public static class Sample01_HelloWorld
         // Summary
         // ═══════════════════════════════════════════════════════════════
         Console.WriteLine("\n💡 KEY TAKEAWAYS:");
-        Console.WriteLine("   • MAFTestHarness is the main entry point for testing");
+        Console.WriteLine("   • MAFEvaluationHarness is the main entry point for testing");
         Console.WriteLine("   • TestCase defines what to test and what to expect");
         Console.WriteLine("   • MAFAgentAdapter wraps MAF agents for testing");
         Console.WriteLine("   • TestResult contains pass/fail status, score, and output");

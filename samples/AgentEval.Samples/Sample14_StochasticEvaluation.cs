@@ -15,7 +15,7 @@ using ChatOptions = Microsoft.Extensions.AI.ChatOptions;
 namespace AgentEval.Samples;
 
 /// <summary>
-/// Sample 14: Stochastic Testing - Run tests multiple times for reliability
+/// Sample 14: stochastic evaluation - Run tests multiple times for reliability
 /// 
 /// This demonstrates:
 /// - Running the same test N times to measure consistency
@@ -25,7 +25,7 @@ namespace AgentEval.Samples;
 /// 
 /// ⏱️ Time to understand: 5 minutes
 /// </summary>
-public static class Sample14_StochasticTesting
+public static class Sample14_StochasticEvaluation
 {
     public static async Task RunAsync()
     {
@@ -55,8 +55,8 @@ public static class Sample14_StochasticTesting
         // ═══════════════════════════════════════════════════════════════
         Console.WriteLine("📝 Step 2: Setting up stochastic runner...\n");
         
-        var harness = new MAFTestHarness(verbose: false);
-        var stochasticRunner = new StochasticRunner(harness, new TestOptions
+        var harness = new MAFEvaluationHarness(verbose: false);
+        var stochasticRunner = new StochasticRunner(harness, new EvaluationOptions
         {
             TrackTools = true,
             TrackPerformance = true,
@@ -123,7 +123,7 @@ public static class Sample14_StochasticTesting
         PrintFooter(result.Passed);
     }
     
-    private static ITestableAgent CreateAgentWithCalculator()
+    private static IEvaluableAgent CreateAgentWithCalculator()
     {
         var azureClient = new AzureOpenAIClient(AIConfig.Endpoint, AIConfig.KeyCredential);
         var chatClient = azureClient
@@ -167,7 +167,7 @@ public static class Sample14_StochasticTesting
         Console.WriteLine("""
 
         ╔═══════════════════════════════════════════════════════════════╗
-        ║  Sample 14: Stochastic Testing                                ║
+        ║  Sample 14: stochastic evaluation                                ║
         ║  Run tests multiple times for reliability measurement         ║
         ╚═══════════════════════════════════════════════════════════════╝
 

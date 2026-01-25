@@ -11,11 +11,11 @@ namespace AgentEval.Benchmarks;
 /// </summary>
 public class AgenticBenchmark
 {
-    private readonly ITestableAgent _agent;
+    private readonly IEvaluableAgent _agent;
     private readonly IEvaluator? _evaluator;
     private readonly AgenticBenchmarkOptions _options;
     
-    public AgenticBenchmark(ITestableAgent agent, IEvaluator? evaluator = null, AgenticBenchmarkOptions? options = null)
+    public AgenticBenchmark(IEvaluableAgent agent, IEvaluator? evaluator = null, AgenticBenchmarkOptions? options = null)
     {
         _agent = agent ?? throw new ArgumentNullException(nameof(agent));
         _evaluator = evaluator;
