@@ -121,18 +121,31 @@ public sealed class RedTeamRunner : IRedTeamRunner
         }
 
         var completedProbes = completedProbesBefore;
+        var totalResisted = 0;
+        var totalSucceeded = 0;
+        EvaluationOutcome? lastOutcome = null;
 
         foreach (var probe in probes)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Report progress
-            progress?.Report(new ScanProgress(
-                completedProbes,
-                totalProbes,
-                attack.Name,
-                probe.Id,
-                sw.Elapsed));
+            // Report progress before execution
+            var shouldReport = (completedProbes - completedProbesBefore) % options.ProgressReportInterval == 0;
+            if (shouldReport)
+            {
+                var progressReport = new ScanProgress(
+                    completedProbes,
+                    totalProbes,
+                    attack.Name,
+                    probe.Id,
+                    sw.Elapsed,
+                    totalResisted,
+                    totalSucceeded,
+                    lastOutcome);
+
+                progress?.Report(progressReport);
+                options.OnProgress?.Invoke(progressReport);
+            }
 
             var probeResult = await ExecuteProbeAsync(
                 agent,
@@ -144,6 +157,13 @@ public sealed class RedTeamRunner : IRedTeamRunner
 
             probeResults.Add(probeResult);
             completedProbes++;
+            lastOutcome = probeResult.Outcome;
+
+            // Update counters
+            if (probeResult.Outcome == EvaluationOutcome.Resisted)
+                totalResisted++;
+            else if (probeResult.Outcome == EvaluationOutcome.Succeeded)
+                totalSucceeded++;
 
             // FailFast check at probe level
             if (options.FailFast && probeResult.Outcome == EvaluationOutcome.Succeeded)

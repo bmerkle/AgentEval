@@ -8,6 +8,8 @@ using AgentEval.Core;
 using AgentEval.MAF;
 using AgentEval.RedTeam;
 using AgentEval.RedTeam.Attacks;
+using AgentEval.RedTeam.Baseline;
+using AgentEval.RedTeam.Output;
 using AgentEval.RedTeam.Reporting;
 
 namespace AgentEval.Samples;
@@ -101,76 +103,66 @@ public static class Sample21_RedTeamAdvanced
         Console.WriteLine("Step 2: Running scan with progress...");
         Console.WriteLine();
 
-        var lastPct = -1;
+        var attackStats = new Dictionary<string, (int Resisted, int Total)>();
         var progress = new Progress<ScanProgress>(p =>
         {
-            var pct = (int)p.PercentComplete;
-            if (pct != lastPct && pct % 10 == 0)
+            // Track per-attack stats
+            if (!attackStats.ContainsKey(p.CurrentAttack))
+                attackStats[p.CurrentAttack] = (0, 0);
+            
+            // Update attack stats when we have a result
+            if (p.LastOutcome.HasValue)
             {
-                Console.Write($"\r  [{pct,3}%] Processing {p.CurrentAttack}...          ");
-                lastPct = pct;
+                var (resisted, total) = attackStats[p.CurrentAttack];
+                attackStats[p.CurrentAttack] = (
+                    resisted + (p.LastOutcome == EvaluationOutcome.Resisted ? 1 : 0),
+                    total + 1
+                );
             }
+
+            // Build progress bar
+            var barWidth = 25;
+            var filled = (int)(p.PercentComplete / 100.0 * barWidth);
+            var bar = new string('█', filled) + new string('░', barWidth - filled);
+            
+            var remaining = p.EstimatedRemaining?.TotalSeconds ?? 0;
+            var timeStr = remaining > 0 ? $" ~{remaining:F0}s" : "";
+            
+            Console.Write($"\r  [{bar}] {p.PercentComplete,5:F1}% {p.StatusEmoji} " +
+                $"{p.CurrentAttack} ({p.ResistedCount}/{p.CompletedProbes}){timeStr}        ");
         });
 
         var result = await pipeline
             .WithProgress(progress)
             .ScanAsync(agent);
 
-        Console.WriteLine($"\r  [100%] Complete!                                ");
+        Console.WriteLine($"\r  [█████████████████████████] 100.0% ✅ Complete!                    ");
         Console.WriteLine();
 
         // ============================================
-        // STEP 3: Detailed results analysis
+        // STEP 3: Rich Output Formatting Demo
         // ============================================
-        Console.WriteLine("Step 3: Detailed Results");
-        Console.WriteLine("-".PadRight(40, '-'));
-        Console.WriteLine($"  Overall Score: {result.OverallScore:F1}%");
-        Console.WriteLine($"  Attack Success Rate: {result.AttackSuccessRate:P1}");
-        Console.WriteLine($"  Verdict: {result.Verdict}");
+        Console.WriteLine("Step 3: Rich Output Formatting (showing different verbosity levels)");
         Console.WriteLine();
 
-        foreach (var attack in result.AttackResults)
+        // Summary view (default) - shows attack-level results
+        Console.WriteLine("--- Summary View (default) ---");
+        result.Print(VerbosityLevel.Summary);
+        Console.WriteLine();
+
+        // Detailed view - shows failed probes with reasons
+        Console.WriteLine("--- Detailed View (with sensitive content) ---");
+        result.Print(new RedTeamOutputOptions
         {
-            var status = attack.SucceededCount == 0 ? "✅" : "❌";
-            Console.WriteLine($"  {status} {attack.AttackDisplayName}");
-            Console.WriteLine($"     OWASP: {attack.OwaspId} | Severity: {attack.Severity}");
-            Console.WriteLine($"     Resisted: {attack.ResistedCount}/{attack.TotalCount}");
+            Verbosity = VerbosityLevel.Detailed,
+            ShowSensitiveContent = ShowFailureDetails
+        });
+        Console.WriteLine();
 
-            if (attack.SucceededCount > 0)
-            {
-                Console.WriteLine($"     ⚠️ Failed probes:");
-                foreach (var probe in attack.ProbeResults
-                    .Where(p => p.Outcome == EvaluationOutcome.Succeeded)
-                    .Take(3))
-                {
-                    Console.WriteLine($"        - {probe.ProbeId} ({probe.Technique})");
-                    
-                    // Show detailed failure info if enabled
-                    if (ShowFailureDetails)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        var probeDisplay = probe.Prompt.Length > 50 
-                            ? probe.Prompt.Substring(0, 50) + "..." 
-                            : probe.Prompt;
-                        var responseDisplay = probe.Response.Length > 50 
-                            ? probe.Response.Substring(0, 50) + "..." 
-                            : probe.Response;
-                        Console.WriteLine($"          Probe: \"{probeDisplay}\"");
-                        Console.WriteLine($"          Response: \"{responseDisplay}\"");
-                        Console.ResetColor();
-                    }
-                }
-                if (attack.SucceededCount > 3)
-                {
-                    Console.WriteLine($"        ...and {attack.SucceededCount - 3} more");
-                    if (ShowFailureDetails)
-                    {
-                        Console.WriteLine($"        💡 Tip: Set ShowFailureDetails = false to hide sensitive content");
-                    }
-                }
-            }
-            Console.WriteLine();
-        }
+        // CI/CD view (no colors, no emoji)
+        Console.WriteLine("--- CI/CD View (no colors) ---");
+        result.PrintSummary();
+        Console.WriteLine();
 
         // ============================================
         // STEP 4: Export reports
@@ -233,7 +225,50 @@ public static class Sample21_RedTeamAdvanced
         }
 
         Console.WriteLine();
-        Console.WriteLine("=== Sample 21 Complete ===");
+        // ============================================
+        // STEP 6: Baseline Comparison (CI/CD regression tracking)
+        // ============================================
+        Console.WriteLine("Step 6: Baseline Comparison Demo");
+        Console.WriteLine("-".PadRight(40, '-'));
+
+        // Create a baseline from current results  
+        var baseline = result.ToBaseline("v1.0.0", "Initial security baseline");
+        Console.WriteLine($"  📸 Created baseline v1.0.0 (score: {baseline.OverallScore:F1}%)");
+        Console.WriteLine($"     Known vulnerabilities: {baseline.KnownVulnerabilities.Count}");
+
+        if (ExportReports)
+        {
+            var outputDir = Path.Combine(Path.GetTempPath(), "AgentEval-RedTeam");
+            var baselinePath = Path.Combine(outputDir, "baseline.json");
+            await baseline.SaveAsync(baselinePath);
+            Console.WriteLine($"  💾 Saved baseline: {baselinePath}");
+        }
+
+        // Simulate comparing against baseline (in CI/CD you'd load a committed baseline)
+        var comparison = result.CompareToBaseline(baseline);
+        Console.WriteLine();
+        Console.WriteLine($"  Comparison Results:");
+        Console.WriteLine($"    Status: {comparison.Status}");
+        Console.WriteLine($"    Score delta: {comparison.ScoreDelta:+0.0;-0.0;0.0}%");
+        Console.WriteLine($"    New vulnerabilities: {comparison.NewVulnerabilities.Count}");
+        Console.WriteLine($"    Resolved: {comparison.ResolvedVulnerabilities.Count}");
+
+        // Demonstrate baseline assertions for CI/CD
+        try
+        {
+            comparison.Should()
+                .HaveNoNewVulnerabilities("no regressions allowed in CI")
+                .And()
+                .HaveOverallScoreNotDecreasedBy(5, "allow max 5% degradation")
+                .ThrowIfFailed();
+            Console.WriteLine("  ✅ No regressions detected");
+        }
+        catch (RedTeamRegressionException ex)
+        {
+            Console.WriteLine($"  ❌ Regression: {ex.Message}");
+        }
+
+        Console.WriteLine();        Console.WriteLine("=== Sample 21 Complete ===");
         
         if (ExportReports)
         {

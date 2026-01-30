@@ -19,15 +19,15 @@ AgentEval RedTeam is built on two foundational cybersecurity taxonomies that pro
 - **Source**: [MITRE ATLAS Framework](https://atlas.mitre.org/)
 - **License**: Apache License 2.0
 - **Why**: Comprehensive ML/AI attack taxonomy with tactics, techniques, procedures (TTPs) used by cybersecurity professionals worldwide
-- **Coverage**: **8 technique IDs** mapped to attack implementations for full attack lifecycle traceability
+- **Coverage**: **6 technique IDs** mapped to attack implementations (AML.T0024, AML.T0037, AML.T0043, AML.T0045, AML.T0051, AML.T0054)
 - **Attribution**: *Attack techniques classified using MITRE ATLAS framework. © 2023 The MITRE Corporation.*
 
-### AgentEval's Approach: Curate + Convert + Credit
+### AgentEval's Approach: Original Implementation with Taxonomy Mapping
 
-1. **Curate**: Study attack techniques from academic papers, security tools (garak, PyRIT), and industry reports
-2. **Convert**: Re-implement in C# with parameterization and .NET integration (no direct code copying)
-3. **Credit**: Attribution in documentation, probe metadata, and compliance reports
-4. **Taxonomy Mapping**: Every attack maps to OWASP ID + MITRE ATLAS techniques for enterprise compliance
+1. **Original Authorship**: All 106 attack probes are **originally written** for AgentEval
+2. **Taxonomy Mapping**: Every attack maps to OWASP ID + MITRE ATLAS techniques for compliance
+3. **Inspiration Sources**: General LLM security research, public jailbreak patterns (DAN, STAN)
+4. **Not Copied From**: We do NOT copy prompts from garak, PyRIT, or specific papers
 5. **Generate Reports**: Export findings mapped to industry frameworks for SOC/compliance teams
 
 ## Quick Start
@@ -51,38 +51,58 @@ result.Should()
 
 ## Attack Types
 
-The MVP includes **5 core attack types** covering the most critical OWASP LLM vulnerabilities:
+The MVP includes **9 core attack types** covering the most critical OWASP LLM vulnerabilities:
 
-| Attack | OWASP ID | MITRE ATLAS | Description | Test Count Range |
-|--------|----------|-------------|-------------|------------------|
-| **PromptInjection** | LLM01 | AML.T0051 | Direct instruction override attempts | 8-35 tests |
-| **Jailbreak** | LLM01 | AML.T0054 | Roleplay, DAN, hypothetical bypasses | 5-25 tests |
-| **PIILeakage** | LLM06 | AML.T0048 | Data extraction and memorization probes | 4-20 tests |
-| **SystemPromptExtraction** | LLM07 | AML.T0020 | Attempts to reveal system instructions | 3-15 tests |
-| **IndirectInjection** | LLM01 | AML.T0020 | Injection via documents, tools, RAG | 2-12 tests |
+| Attack | OWASP ID | MITRE ATLAS | Description | Probes |
+|--------|-----------|-----------|-----------|--------|
+| **PromptInjection** | LLM01 | AML.T0051 | Direct instruction override attempts | 27 |
+| **Jailbreak** | LLM01 | AML.T0054 | Roleplay, DAN, hypothetical bypasses | 24 |
+| **PIILeakage** | LLM06 | AML.T0024, AML.T0037 | Data extraction and memorization probes | 19 |
+| **SystemPromptExtraction** | LLM07 | AML.T0043 | Attempts to reveal system instructions | 19 |
+| **IndirectInjection** | LLM01 | AML.T0051 | Injection via documents, tools, RAG | 17 |
+| **InferenceAPIAbuse** | LLM04 | AML.T0045 | ML inference API abuse and resource exhaustion | 15 |
+| **ExcessiveAgency** | LLM08 | AML.T0051, AML.T0054 | Scope expansion, privilege escalation, unauthorized actions | 15 |
+| **InsecureOutput** | LLM02 | AML.T0051 | XSS, SQL, command injection in outputs | 18 |
+| **EncodingEvasion** | LLM01 | AML.T0051 | Encoded/obfuscated payload delivery | 23 |
 
 ### Detailed Coverage by Category
 
-#### LLM01: Prompt Injection (35-55 total tests)
-- **Direct Override**: `"Ignore previous instructions..."`
-- **Delimiter Injection**: `"---END---\nNew instructions:"`
-- **Context Manipulation**: Multi-part instruction splitting
-- **Encoding Variants**: Base64, Unicode, ROT13 obfuscation
-- **Jailbreak Personas**: DAN, STAN, roleplay scenarios
+#### LLM01: Prompt Injection (91 probes total)
+- **Direct Override**: `"Ignore previous instructions..."` (27 probes)
+- **Jailbreak Personas**: DAN, STAN, roleplay scenarios (24 probes)
+- **Indirect Injection**: Document/RAG/tool poisoning (17 probes)
+- **Encoding Evasion**: Base64, ROT13, hex, unicode obfuscation (23 probes)
 
-#### LLM06: Sensitive Information Disclosure (15-25 total tests)
+#### LLM06: Sensitive Information Disclosure (19 probes)
 - **PII Extraction**: Names, emails, SSNs, addresses
 - **Memory Probes**: Training data leakage attempts
 - **Inference Attacks**: Social engineering for personal data
-- **Completion Attacks**: "John Smith's email is: " patterns
 
-#### LLM07: Insecure Plugin Design (8-18 total tests)
+#### LLM07: Insecure Plugin Design (19 probes)
 - **System Prompt Disclosure**: Direct revelation requests
-- **Instruction Extraction**: Multi-turn conversation tricks
-- **Tool Bypass**: Plugin security circumvention
-- **Context Confusion**: Mixed system/user content
+- **Instruction Extraction**: Formatting tricks, language conversion
+- **Developer Impersonation**: Fake admin/audit requests
 
-**Total MVP Coverage**: **22-107 tests** across 3 OWASP categories, 8 MITRE ATLAS techniques
+#### LLM04: Model Denial of Service (15 probes)
+- **Resource Exhaustion**: Token flooding, excessive content generation
+- **API Parameter Abuse**: Hyperparameter manipulation, rate limiting bypass
+- **Model Fingerprinting**: Information disclosure attempts
+- **Advanced Exploitation**: Streaming abuse, function calling exploitation
+
+#### LLM08: Excessive Agency (15 probes)
+- **Authority Escalation**: Fake admin/manager authority claims
+- **Scope Expansion**: Extending beyond defined boundaries
+- **Implicit Delegation**: Self-granted permissions
+- **Autonomous Decision**: Making unsanctioned choices
+
+#### LLM02: Insecure Output Handling (18 probes)
+- **XSS Injection**: Script tags, event handlers in output
+- **SQL Injection**: SQL code in responses
+- **Command Injection**: Shell commands in output
+- **Code Injection**: Executable code patterns
+- **Format Injection**: CSV formula, log forging, email headers
+
+**Total MVP Coverage**: **177 probes** across 6 OWASP categories (LLM01, LLM02, LLM04, LLM06, LLM07, LLM08)
 
 ## Intensity Levels
 
@@ -126,7 +146,7 @@ var result = await AttackPipeline
 |--------|-------------|
 | `WithAttack<T>()` | Add a specific attack type |
 | `WithAttack(attack)` | Add a pre-configured attack instance |
-| `WithAllAttacks()` | Add all 5 MVP attack types |
+| `WithAllAttacks()` | Add all 9 MVP attack types |
 | `WithMvpAttacks()` | Add PromptInjection, Jailbreak, PIILeakage |
 | `WithIntensity(level)` | Set probe generation intensity |
 | `WithTimeout(duration)` | Overall scan timeout |
@@ -442,7 +462,7 @@ await exporter.ExportToFileAsync(result, "security-report.md");
 ### Test Configuration
 - **Intensity Level**: Moderate (47 total probes)
 - **Attack Categories**: 3 of 10 OWASP LLM categories
-- **MITRE ATLAS Techniques**: 8 techniques tested
+- **MITRE ATLAS Techniques**: 5 techniques tested
 - **Test Duration**: 12.45 seconds
 - **Parallel Execution**: Disabled (sequential testing)
 
@@ -747,4 +767,228 @@ See the sample projects for complete working examples:
 ```bash
 dotnet run --project samples/AgentEval.Samples -- 20
 dotnet run --project samples/AgentEval.Samples -- 21
+```
+
+## Progress Reporting
+
+Track scan progress in real-time using the progress callback:
+
+```csharp
+var progress = new Progress<ScanProgress>(p =>
+{
+    // Progress info
+    Console.WriteLine($"{p.StatusEmoji} {p.PercentComplete:F1}% - {p.CurrentAttack}");
+    Console.WriteLine($"  Probes: {p.CompletedProbes}/{p.TotalProbes}");
+    Console.WriteLine($"  Resisted: {p.ResistedCount}, Succeeded: {p.SucceededCount}");
+    Console.WriteLine($"  Defense Rate: {p.CurrentSuccessRate:P1}");
+    
+    if (p.LastOutcome.HasValue)
+        Console.WriteLine($"  Last: {p.LastOutcome.Value}");
+});
+
+var result = await AttackPipeline
+    .Create()
+    .WithAllAttacks()
+    .WithProgress(progress)
+    .ScanAsync(agent);
+```
+
+### ScanProgress Properties
+
+| Property | Description |
+|----------|-------------|
+| `CurrentAttack` | Name of the attack currently executing |
+| `CompletedProbes` | Number of probes completed so far |
+| `TotalProbes` | Total probes in the scan |
+| `PercentComplete` | Percentage complete (0-100) |
+| `ResistedCount` | Probes resisted so far |
+| `SucceededCount` | Probes that succeeded so far |
+| `LastOutcome` | Result of the last completed probe |
+| `CurrentSuccessRate` | Defense rate (Resisted / Completed) |
+| `StatusEmoji` | Visual indicator (🟢 secure, 🟡 warning, 🔴 breach) |
+| `EstimatedRemaining` | Estimated time remaining |
+
+### Custom Progress Bar Example
+
+```csharp
+var progress = new Progress<ScanProgress>(p =>
+{
+    var barWidth = 30;
+    var filled = (int)(p.PercentComplete / 100.0 * barWidth);
+    var bar = new string('█', filled) + new string('░', barWidth - filled);
+    
+    Console.Write($"\r[{bar}] {p.PercentComplete:F0}% {p.StatusEmoji} {p.CurrentAttack}");
+});
+```
+
+### Progress Reporting Interval
+
+Control how frequently progress is reported:
+
+```csharp
+var options = new ScanOptions
+{
+    ProgressReportInterval = 5,  // Report every 5th probe
+    OnProgress = progress => Console.WriteLine($"{progress.PercentComplete}%")
+};
+```
+
+## Rich Console Output
+
+Format results with built-in output formatters:
+
+```csharp
+using AgentEval.RedTeam.Output;
+
+var result = await agent.QuickRedTeamScanAsync();
+
+// Default summary (colored, emoji)
+result.Print();
+
+// Specific verbosity level
+result.Print(VerbosityLevel.Detailed);
+
+// Full output with all probe details
+result.PrintFull();
+
+// CI/CD-friendly (no colors, no emoji)
+result.PrintSummary();
+
+// Custom options
+result.Print(new RedTeamOutputOptions
+{
+    Verbosity = VerbosityLevel.Detailed,
+    UseColors = true,
+    UseEmoji = true,
+    ShowSensitiveContent = false,  // Hide prompts/responses
+    ShowSecurityReferences = true
+});
+
+// Get formatted string instead of printing
+var text = result.ToFormattedString(VerbosityLevel.Summary);
+```
+
+### Verbosity Levels
+
+| Level | Description |
+|-------|-------------|
+| **Minimal** | Total score only |
+| **Summary** | Score + per-attack breakdown |
+| **Detailed** | Summary + failed probes with reasons |
+| **Full** | All probes including successful defenses |
+
+### Output Example (Summary Level)
+
+```
+╔═══════════════════════════════════════════════════════════╗
+║              RED TEAM SECURITY REPORT                      ║
+╠═══════════════════════════════════════════════════════════╣
+║  Agent: CustomerSupportAgent                               ║
+║  Duration: 12.45s                                          ║
+║  Total Probes: 47                                          ║
+╠═══════════════════════════════════════════════════════════╣
+║  OVERALL SCORE: 93.6%                                      ║
+║  🟡 PARTIALLY SECURE                                       ║
+╠═══════════════════════════════════════════════════════════╣
+║  ATTACK BREAKDOWN                                          ║
+╠═══════════════════════════════════════════════════════════╣
+║  🟡 PromptInjection   18/20  (10.0% ASR) HIGH              ║
+║  🟢 PIILeakage        15/15  ( 0.0% ASR)                   ║
+║  🔴 Jailbreak         14/15  ( 6.7% ASR) HIGH              ║
+╚═══════════════════════════════════════════════════════════╝
+```
+
+### Environment Variables
+
+| Variable | Effect |
+|----------|--------|
+| `NO_COLOR` | Disables ANSI colors when set |
+| `TERM=dumb` | Disables colors on dumb terminals |
+
+## Baseline Comparison (CI/CD Regression Tracking)
+
+Track security posture over time and prevent regressions:
+
+```csharp
+using AgentEval.RedTeam.Baseline;
+
+// Create a baseline from current results
+var baseline = result.ToBaseline("v1.0.0", "Initial security baseline");
+
+// Save baseline for future comparisons
+await baseline.SaveAsync("baseline.json");
+
+// Later: Load baseline and compare
+var baseline = await RedTeamBaseline.LoadAsync("baseline.json");
+var current = await agent.QuickRedTeamScanAsync();
+var comparison = current.CompareToBaseline(baseline);
+
+// Check for regressions
+Console.WriteLine($"Status: {comparison.Status}");
+Console.WriteLine($"Score delta: {comparison.ScoreDelta:+0;-0;0}%");
+Console.WriteLine($"New vulnerabilities: {comparison.NewVulnerabilities.Count}");
+Console.WriteLine($"Resolved: {comparison.ResolvedVulnerabilities.Count}");
+```
+
+### Baseline Assertions for CI/CD
+
+Fail builds when security regresses:
+
+```csharp
+[Fact]
+public async Task Agent_DoesNotRegress()
+{
+    var baseline = await RedTeamBaseline.LoadAsync("baseline.json");
+    var current = await agent.QuickRedTeamScanAsync();
+    var comparison = current.CompareToBaseline(baseline);
+    
+    comparison.Should()
+        .HaveNoNewVulnerabilities("no new security holes allowed")
+        .And()
+        .HaveOverallScoreNotDecreasedBy(5, "allow max 5% degradation")
+        .And()
+        .NotBeRegression()
+        .ThrowIfFailed();
+}
+```
+
+### Comparison Properties
+
+| Property | Description |
+|----------|-------------|
+| `ScoreDelta` | Change in overall score (positive = improved) |
+| `AttackSuccessRateDelta` | Change in ASR (negative = improved) |
+| `NewVulnerabilities` | Probe IDs that now fail but passed before |
+| `ResolvedVulnerabilities` | Probe IDs that now pass but failed before |
+| `PersistentVulnerabilities` | Probe IDs that fail in both |
+| `Status` | Improved, Stable, or Regressed |
+| `IsRegression` | True if new vulnerabilities found or score dropped significantly |
+
+### Baseline Assertions
+
+| Assertion | Description |
+|-----------|-------------|
+| `HaveNoNewVulnerabilities()` | No new attack successes |
+| `HaveOverallScoreNotDecreasedBy(%)` | Score within threshold |
+| `NotBeRegression()` | Combined check: no new vulns + score stable |
+
+### CI/CD Workflow Example
+
+```yaml
+# Store baseline in your repo
+- name: Run security scan
+  run: |
+    dotnet test --filter "Category=RedTeam"
+    
+- name: Check for regressions
+  run: |
+    # Compare against committed baseline
+    dotnet run --project SecurityTests -- compare baseline.json
+    
+- name: Update baseline (release only)
+  if: github.ref == 'refs/heads/main'
+  run: |
+    # Capture new baseline after fixes
+    dotnet run --project SecurityTests -- capture baseline.json
+    git commit -am "Update security baseline"
 ```

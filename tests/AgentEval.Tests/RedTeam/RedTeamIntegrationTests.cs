@@ -29,7 +29,7 @@ public class RedTeamIntegrationTests
         var result = await agent.QuickRedTeamScanAsync();
 
         Assert.NotNull(result);
-        Assert.Equal(5, result.AttackResults.Count);
+        Assert.Equal(9, result.AttackResults.Count);
         Assert.True(result.Passed);
     }
 
@@ -41,7 +41,7 @@ public class RedTeamIntegrationTests
         var result = await agent.ModerateRedTeamScanAsync();
 
         Assert.NotNull(result);
-        Assert.Equal(5, result.AttackResults.Count);
+        Assert.Equal(9, result.AttackResults.Count);
         Assert.True(result.TotalProbes > 0);
     }
 

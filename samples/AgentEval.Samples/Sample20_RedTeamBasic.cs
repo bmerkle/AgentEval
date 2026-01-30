@@ -7,6 +7,7 @@ using Microsoft.Extensions.AI;
 using AgentEval.Core;
 using AgentEval.MAF;
 using AgentEval.RedTeam;
+using AgentEval.RedTeam.Output;
 
 namespace AgentEval.Samples;
 
@@ -83,72 +84,35 @@ public static class Sample20_RedTeamBasic
         Console.WriteLine("  (Testing 5 attack types with Quick intensity)");
         Console.WriteLine();
 
-        // The simplest API: one method call!
-        var result = await agent.QuickRedTeamScanAsync();
+        // The simplest API: one method call with progress callback!
+        var options = new ScanOptions
+        {
+            Intensity = Intensity.Quick,
+            OnProgress = p =>
+            {
+                var remaining = p.EstimatedRemaining?.TotalSeconds ?? 0;
+                Console.Write($"\r  [{p.PercentComplete,3:F0}%] {p.StatusEmoji} {p.CurrentAttack}: " +
+                    $"{p.ResistedCount}/{p.CompletedProbes} resisted" +
+                    $"{(remaining > 0 ? $", ~{remaining:F0}s left" : "")}          ");
+            }
+        };
+        var result = await agent.RedTeamAsync(options);
+        Console.WriteLine(); // New line after progress
 
         // ============================================
-        // STEP 3: Review results
+        // STEP 3: Review results with rich formatting
         // ============================================
-        Console.WriteLine("Step 3: Results");
-        Console.WriteLine("-".PadRight(40, '-'));
-        Console.WriteLine($"  Overall Score: {result.OverallScore:F1}%");
-        Console.WriteLine($"  Verdict: {(result.Passed ? "✅ PASS" : "❌ FAIL")}");
-        Console.WriteLine($"  Duration: {result.Duration.TotalSeconds:F1}s");
-        Console.WriteLine();
-        Console.WriteLine($"  Probes Run: {result.TotalProbes}");
-        Console.WriteLine($"  ✅ Resisted: {result.ResistedProbes}");
-        Console.WriteLine($"  ❌ Compromised: {result.SucceededProbes}");
+        Console.WriteLine("Step 3: Results (using rich output formatter)");
         Console.WriteLine();
 
-        // Show per-attack breakdown
-        Console.WriteLine("  Attack Results:");
-        foreach (var attack in result.AttackResults)
-        {
-            var status = attack.SucceededCount == 0 ? "✅" : "❌";
-            Console.WriteLine($"    {status} {attack.AttackDisplayName}: {attack.ResistedCount}/{attack.TotalCount} resisted");
-        }
-
-        // Show detailed failures if enabled and there are failures
-        if (ShowFailureDetails && result.FailedAttacks.Any())
-        {
-            Console.WriteLine();
-            Console.WriteLine("  🔍 Detailed Failure Analysis:");
-            Console.WriteLine("  " + "=".PadRight(38, '='));
-            
-            var failedProbes = result.FailedAttacks
-                .SelectMany(a => a.ProbeResults.Where(p => p.Outcome == EvaluationOutcome.Succeeded))
-                .Take(3); // Show up to 3 failures
-            
-            foreach (var failure in failedProbes)
+        // Use the new Print extension method with Summary verbosity (default)
+        result.Print(ShowFailureDetails
+            ? new RedTeamOutputOptions
             {
-                var attack = result.FailedAttacks.First(a => a.ProbeResults.Contains(failure));
-                Console.WriteLine();
-                Console.WriteLine($"    ❌ {attack.AttackDisplayName} - {failure.ProbeId}");
-                Console.WriteLine($"       Technique: {failure.Technique ?? "Unknown"}");
-                Console.WriteLine($"       OWASP: {attack.OwaspId} | MITRE: {string.Join(", ", attack.MitreAtlasIds)}");
-                
-                // Show probe and response (truncated)
-                Console.ForegroundColor = ConsoleColor.Red;
-                var probeDisplay = failure.Prompt.Length > 60 
-                    ? failure.Prompt.Substring(0, 60) + "..." 
-                    : failure.Prompt;
-                var responseDisplay = failure.Response.Length > 60 
-                    ? failure.Response.Substring(0, 60) + "..." 
-                    : failure.Response;
-                Console.WriteLine($"       Probe: \"{probeDisplay}\"");
-                Console.WriteLine($"       Response: \"{responseDisplay}\"");
-                Console.ResetColor();
-                Console.WriteLine($"       Why Failed: {failure.Reason}");
+                Verbosity = VerbosityLevel.Detailed,
+                ShowSensitiveContent = true
             }
-            
-            var totalFailures = result.FailedAttacks.Sum(a => a.SucceededCount);
-            if (totalFailures > 3)
-            {
-                Console.WriteLine();
-                Console.WriteLine($"    ... and {totalFailures - 3} more failures");
-                Console.WriteLine($"    💡 Tip: Set ShowFailureDetails = false to hide sensitive content");
-            }
-        }
+            : RedTeamOutputOptions.Default);
 
         Console.WriteLine();
 

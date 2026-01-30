@@ -27,6 +27,10 @@ public static class Attack
     private static readonly Lazy<PIILeakageAttack> _piiLeakage = new(() => new PIILeakageAttack());
     private static readonly Lazy<SystemPromptExtractionAttack> _systemPromptExtraction = new(() => new SystemPromptExtractionAttack());
     private static readonly Lazy<IndirectInjectionAttack> _indirectInjection = new(() => new IndirectInjectionAttack());
+    private static readonly Lazy<InferenceAPIAbuseAttack> _inferenceApiAbuse = new(() => new InferenceAPIAbuseAttack());
+    private static readonly Lazy<ExcessiveAgencyAttack> _excessiveAgency = new(() => new ExcessiveAgencyAttack());
+    private static readonly Lazy<InsecureOutputAttack> _insecureOutput = new(() => new InsecureOutputAttack());
+    private static readonly Lazy<EncodingEvasionAttack> _encodingEvasion = new(() => new EncodingEvasionAttack());
 
     /// <summary>
     /// Prompt Injection attack (OWASP LLM01).
@@ -58,6 +62,30 @@ public static class Attack
     /// </summary>
     public static IAttackType IndirectInjection => _indirectInjection.Value;
 
+    /// <summary>
+    /// Inference API Abuse attack (OWASP LLM04).
+    /// Tests for vulnerability to ML inference API abuse and resource exhaustion.
+    /// </summary>
+    public static IAttackType InferenceAPIAbuse => _inferenceApiAbuse.Value;
+
+    /// <summary>
+    /// Excessive Agency attack (OWASP LLM08).
+    /// Tests for vulnerability to scope expansion, privilege escalation, and unauthorized autonomous actions.
+    /// </summary>
+    public static IAttackType ExcessiveAgency => _excessiveAgency.Value;
+
+    /// <summary>
+    /// Insecure Output Handling attack (OWASP LLM02).
+    /// Tests for outputs containing injection payloads (XSS, SQL, commands) that could compromise downstream systems.
+    /// </summary>
+    public static IAttackType InsecureOutput => _insecureOutput.Value;
+
+    /// <summary>
+    /// Encoding Evasion attack (OWASP LLM01).
+    /// Tests for vulnerability to injection attempts disguised using 15+ encoding schemes.
+    /// </summary>
+    public static IAttackType EncodingEvasion => _encodingEvasion.Value;
+
     // === Convenience Methods ===
 
     /// <summary>
@@ -72,7 +100,7 @@ public static class Attack
     /// </summary>
     /// <exception cref="NotImplementedException">Until attacks are implemented.</exception>
     public static IReadOnlyList<IAttackType> All =>
-        [PromptInjection, Jailbreak, PIILeakage, SystemPromptExtraction, IndirectInjection];
+        [PromptInjection, Jailbreak, PIILeakage, SystemPromptExtraction, IndirectInjection, InferenceAPIAbuse, ExcessiveAgency, InsecureOutput, EncodingEvasion];
 
     /// <summary>
     /// Get attack type by name (case-insensitive).
@@ -88,6 +116,10 @@ public static class Attack
             "PIILEAKAGE" or "PII_LEAKAGE" => PIILeakage,
             "SYSTEMPROMPTEXTRACTION" or "SYSTEM_PROMPT_EXTRACTION" => SystemPromptExtraction,
             "INDIRECTINJECTION" or "INDIRECT_INJECTION" => IndirectInjection,
+            "INFERENCEAPIABUSE" or "INFERENCE_API_ABUSE" => InferenceAPIAbuse,
+            "EXCESSIVEAGENCY" or "EXCESSIVE_AGENCY" => ExcessiveAgency,
+            "INSECUREOUTPUT" or "INSECURE_OUTPUT" => InsecureOutput,
+            "ENCODINGEVASION" or "ENCODING_EVASION" => EncodingEvasion,
             _ => null
         };
     }
@@ -103,9 +135,12 @@ public static class Attack
         // For now, we can define the mapping statically:
         return owaspId?.ToUpperInvariant() switch
         {
-            "LLM01" => [PromptInjection, Jailbreak, IndirectInjection],
+            "LLM01" => [PromptInjection, Jailbreak, IndirectInjection, EncodingEvasion],
+            "LLM02" => [InsecureOutput],
+            "LLM04" => [InferenceAPIAbuse],
             "LLM06" => [PIILeakage],
             "LLM07" => [SystemPromptExtraction],
+            "LLM08" => [ExcessiveAgency],
             _ => []
         };
     }
@@ -114,7 +149,7 @@ public static class Attack
 
     /// <summary>Available attack names for autocomplete/validation.</summary>
     public static IReadOnlyList<string> AvailableNames =>
-        ["PromptInjection", "Jailbreak", "PIILeakage", "SystemPromptExtraction", "IndirectInjection"];
+        ["PromptInjection", "Jailbreak", "PIILeakage", "SystemPromptExtraction", "IndirectInjection", "InferenceAPIAbuse", "ExcessiveAgency", "InsecureOutput", "EncodingEvasion"];
 
     /// <summary>MVP attack names.</summary>
     public static IReadOnlyList<string> MvpNames =>

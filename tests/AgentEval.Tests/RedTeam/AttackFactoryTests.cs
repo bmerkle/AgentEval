@@ -20,9 +20,13 @@ public class AttackFactoryTests
     [Fact]
     public void AvailableNames_ContainsAllBuiltInAttacks()
     {
-        Assert.Equal(5, Attack.AvailableNames.Count);
+        Assert.Equal(9, Attack.AvailableNames.Count);
         Assert.Contains("SystemPromptExtraction", Attack.AvailableNames);
         Assert.Contains("IndirectInjection", Attack.AvailableNames);
+        Assert.Contains("InferenceAPIAbuse", Attack.AvailableNames);
+        Assert.Contains("ExcessiveAgency", Attack.AvailableNames);
+        Assert.Contains("InsecureOutput", Attack.AvailableNames);
+        Assert.Contains("EncodingEvasion", Attack.AvailableNames);
     }
 
     [Fact]
@@ -170,25 +174,30 @@ public class AttackFactoryTests
     }
 
     [Fact]
-    public void All_ReturnsFiveAttacks()
+    public void All_ReturnsNineAttacks()
     {
         var attacks = Attack.All;
-        Assert.Equal(5, attacks.Count);
+        Assert.Equal(9, attacks.Count);
         Assert.Contains(attacks, a => a.Name == "PromptInjection");
         Assert.Contains(attacks, a => a.Name == "Jailbreak");
         Assert.Contains(attacks, a => a.Name == "PIILeakage");
         Assert.Contains(attacks, a => a.Name == "SystemPromptExtraction");
         Assert.Contains(attacks, a => a.Name == "IndirectInjection");
+        Assert.Contains(attacks, a => a.Name == "InferenceAPIAbuse");
+        Assert.Contains(attacks, a => a.Name == "ExcessiveAgency");
+        Assert.Contains(attacks, a => a.Name == "InsecureOutput");
+        Assert.Contains(attacks, a => a.Name == "EncodingEvasion");
     }
 
     [Fact]
     public void ByOwaspId_LLM01_ReturnsInjectionAttacks()
     {
         var attacks = Attack.ByOwaspId("LLM01");
-        Assert.Equal(3, attacks.Count);
+        Assert.Equal(4, attacks.Count);
         Assert.Contains(attacks, a => a.Name == "PromptInjection");
         Assert.Contains(attacks, a => a.Name == "Jailbreak");
         Assert.Contains(attacks, a => a.Name == "IndirectInjection");
+        Assert.Contains(attacks, a => a.Name == "EncodingEvasion");
     }
 
     [Fact]
@@ -208,6 +217,14 @@ public class AttackFactoryTests
     }
 
     [Fact]
+    public void ByOwaspId_LLM04_ReturnsInferenceAPIAbuse()
+    {
+        var attacks = Attack.ByOwaspId("LLM04");
+        Assert.Single(attacks);
+        Assert.Equal("InferenceAPIAbuse", attacks[0].Name);
+    }
+
+    [Fact]
     public void ByOwaspId_Unknown_ReturnsEmptyList()
     {
         // Non-existent OWASP IDs should return empty list (not throw)
@@ -220,5 +237,154 @@ public class AttackFactoryTests
     {
         var result = Attack.ByOwaspId(null!);
         Assert.Empty(result);
+    }
+
+    // === InferenceAPIAbuse tests (AML.T0045) ===
+
+    [Theory]
+    [InlineData("InferenceAPIAbuse")]
+    [InlineData("INFERENCEAPIABUSE")]
+    [InlineData("inferenceapiabuse")]
+    [InlineData("Inference_API_Abuse")]
+    public void ByName_InferenceAPIAbuse_IsCaseInsensitive(string name)
+    {
+        var attack = Attack.ByName(name);
+        Assert.NotNull(attack);
+        Assert.Equal("InferenceAPIAbuse", attack.Name);
+    }
+
+    [Fact]
+    public void InferenceAPIAbuse_ReturnsInferenceAPIAbuseAttack()
+    {
+        var attack = Attack.InferenceAPIAbuse;
+        Assert.NotNull(attack);
+        Assert.IsType<InferenceAPIAbuseAttack>(attack);
+        Assert.Equal("InferenceAPIAbuse", attack.Name);
+        Assert.Equal("LLM04", attack.OwaspLlmId);
+        Assert.Contains("AML.T0045", attack.MitreAtlasIds);
+    }
+
+    [Fact]
+    public void InferenceAPIAbuse_ReturnsSameInstance()
+    {
+        var attack1 = Attack.InferenceAPIAbuse;
+        var attack2 = Attack.InferenceAPIAbuse;
+        Assert.Same(attack1, attack2);
+    }
+
+    // === ExcessiveAgency tests (LLM08) ===
+
+    [Theory]
+    [InlineData("ExcessiveAgency")]
+    [InlineData("EXCESSIVEAGENCY")]
+    [InlineData("excessiveagency")]
+    [InlineData("Excessive_Agency")]
+    public void ByName_ExcessiveAgency_IsCaseInsensitive(string name)
+    {
+        var attack = Attack.ByName(name);
+        Assert.NotNull(attack);
+        Assert.Equal("ExcessiveAgency", attack.Name);
+    }
+
+    [Fact]
+    public void ExcessiveAgency_ReturnsExcessiveAgencyAttack()
+    {
+        var attack = Attack.ExcessiveAgency;
+        Assert.NotNull(attack);
+        Assert.IsType<ExcessiveAgencyAttack>(attack);
+        Assert.Equal("ExcessiveAgency", attack.Name);
+        Assert.Equal("LLM08", attack.OwaspLlmId);
+        Assert.Contains("AML.T0051", attack.MitreAtlasIds);
+        Assert.Contains("AML.T0054", attack.MitreAtlasIds);
+    }
+
+    [Fact]
+    public void ExcessiveAgency_ReturnsSameInstance()
+    {
+        var attack1 = Attack.ExcessiveAgency;
+        var attack2 = Attack.ExcessiveAgency;
+        Assert.Same(attack1, attack2);
+    }
+
+    [Fact]
+    public void ByOwaspId_LLM08_ReturnsExcessiveAgency()
+    {
+        var attacks = Attack.ByOwaspId("LLM08");
+        Assert.Single(attacks);
+        Assert.Equal("ExcessiveAgency", attacks[0].Name);
+    }
+
+    // === InsecureOutput tests (LLM02) ===
+
+    [Theory]
+    [InlineData("InsecureOutput")]
+    [InlineData("INSECUREOUTPUT")]
+    [InlineData("insecureoutput")]
+    [InlineData("Insecure_Output")]
+    public void ByName_InsecureOutput_IsCaseInsensitive(string name)
+    {
+        var attack = Attack.ByName(name);
+        Assert.NotNull(attack);
+        Assert.Equal("InsecureOutput", attack.Name);
+    }
+
+    [Fact]
+    public void InsecureOutput_ReturnsInsecureOutputAttack()
+    {
+        var attack = Attack.InsecureOutput;
+        Assert.NotNull(attack);
+        Assert.IsType<InsecureOutputAttack>(attack);
+        Assert.Equal("InsecureOutput", attack.Name);
+        Assert.Equal("LLM02", attack.OwaspLlmId);
+        Assert.Contains("AML.T0051", attack.MitreAtlasIds);
+    }
+
+    [Fact]
+    public void InsecureOutput_ReturnsSameInstance()
+    {
+        var attack1 = Attack.InsecureOutput;
+        var attack2 = Attack.InsecureOutput;
+        Assert.Same(attack1, attack2);
+    }
+
+    [Fact]
+    public void ByOwaspId_LLM02_ReturnsInsecureOutput()
+    {
+        var attacks = Attack.ByOwaspId("LLM02");
+        Assert.Single(attacks);
+        Assert.Equal("InsecureOutput", attacks[0].Name);
+    }
+
+    // === EncodingEvasion tests (LLM01) ===
+
+    [Theory]
+    [InlineData("EncodingEvasion")]
+    [InlineData("ENCODINGEVASION")]
+    [InlineData("encodingevasion")]
+    [InlineData("Encoding_Evasion")]
+    public void ByName_EncodingEvasion_IsCaseInsensitive(string name)
+    {
+        var attack = Attack.ByName(name);
+        Assert.NotNull(attack);
+        Assert.Equal("EncodingEvasion", attack.Name);
+    }
+
+    [Fact]
+    public void EncodingEvasion_ReturnsEncodingEvasionAttack()
+    {
+        var attack = Attack.EncodingEvasion;
+        Assert.NotNull(attack);
+        Assert.IsType<EncodingEvasionAttack>(attack);
+        Assert.Equal("EncodingEvasion", attack.Name);
+        Assert.Equal("LLM01", attack.OwaspLlmId);
+        Assert.Contains("AML.T0051", attack.MitreAtlasIds);
+    }
+
+    [Fact]
+    public void EncodingEvasion_ReturnsSameInstance()
+    {
+        var attack1 = Attack.EncodingEvasion;
+        var attack2 = Attack.EncodingEvasion;
+        Assert.Same(attack1, attack2);
     }
 }

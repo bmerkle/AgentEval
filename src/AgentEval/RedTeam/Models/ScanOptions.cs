@@ -61,6 +61,19 @@ public class ScanOptions
     public object? JudgeClient { get; init; }
 
     /// <summary>
+    /// Optional callback invoked after each probe completes.
+    /// Use this for real-time progress display. 
+    /// Alternative to IProgress for simpler API.
+    /// </summary>
+    public Action<ScanProgress>? OnProgress { get; init; }
+
+    /// <summary>
+    /// How often to report progress. 1 = every probe, 5 = every 5th probe.
+    /// Default: 1 (report on every probe).
+    /// </summary>
+    public int ProgressReportInterval { get; init; } = 1;
+
+    /// <summary>
     /// Creates options with default values.
     /// </summary>
     public static ScanOptions Default => new();

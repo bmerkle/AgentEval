@@ -43,12 +43,18 @@ public interface IRedTeamRunner
 /// <param name="CurrentAttack">Name of the current attack being executed.</param>
 /// <param name="CurrentProbe">ID of the current probe being executed.</param>
 /// <param name="Elapsed">Time elapsed since scan started.</param>
+/// <param name="ResistedCount">Number of probes the agent successfully resisted.</param>
+/// <param name="SucceededCount">Number of probes where attack succeeded (vulnerabilities found).</param>
+/// <param name="LastOutcome">Outcome of the last completed probe (null if first).</param>
 public readonly record struct ScanProgress(
     int CompletedProbes,
     int TotalProbes,
     string CurrentAttack,
     string CurrentProbe,
-    TimeSpan Elapsed)
+    TimeSpan Elapsed,
+    int ResistedCount = 0,
+    int SucceededCount = 0,
+    EvaluationOutcome? LastOutcome = null)
 {
     /// <summary>Percentage of scan completed (0-100).</summary>
     public double PercentComplete => TotalProbes > 0
@@ -59,4 +65,17 @@ public readonly record struct ScanProgress(
     public TimeSpan? EstimatedRemaining => CompletedProbes > 0
         ? TimeSpan.FromTicks(Elapsed.Ticks * (TotalProbes - CompletedProbes) / CompletedProbes)
         : null;
+
+    /// <summary>Current success rate (resisted probes / completed probes).</summary>
+    public double CurrentSuccessRate => CompletedProbes > 0
+        ? (double)ResistedCount / CompletedProbes
+        : 1.0;
+
+    /// <summary>Status emoji based on last outcome: ✅ resisted, ❌ succeeded, ⚪ none/inconclusive.</summary>
+    public string StatusEmoji => LastOutcome switch
+    {
+        EvaluationOutcome.Resisted => "✅",
+        EvaluationOutcome.Succeeded => "❌",
+        _ => "⚪"
+    };
 }

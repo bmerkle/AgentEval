@@ -60,7 +60,7 @@ public class RedTeamRunnerTests
 
         var result = await runner.ScanAsync(agent, options);
 
-        Assert.Equal(5, result.AttackResults.Count);
+        Assert.Equal(9, result.AttackResults.Count);
         Assert.Contains(result.AttackResults, a => a.AttackName == "PromptInjection");
         Assert.Contains(result.AttackResults, a => a.AttackName == "Jailbreak");
         Assert.Contains(result.AttackResults, a => a.AttackName == "PIILeakage");
@@ -236,7 +236,98 @@ public class RedTeamRunnerTests
 
         var result = await runner.ScanAsync(agent, options);
 
-        Assert.Equal(5, result.AttackResults.Count);
+        Assert.Equal(9, result.AttackResults.Count);
+    }
+
+    [Fact]
+    public async Task ScanAsync_WithOnProgressCallback_InvokesCallback()
+    {
+        var agent = new FakeResistantAgent();
+        var runner = new RedTeamRunner();
+        var progressReports = new List<ScanProgress>();
+
+        var options = new ScanOptions
+        {
+            Intensity = Intensity.Quick,
+            AttackTypes = [Attack.PromptInjection],
+            OnProgress = p => progressReports.Add(p)
+        };
+
+        await runner.ScanAsync(agent, options);
+
+        Assert.NotEmpty(progressReports);
+        Assert.All(progressReports, p => Assert.True(p.TotalProbes > 0));
+    }
+
+    [Fact]
+    public async Task ScanAsync_ProgressReportsResistedAndSucceededCounts()
+    {
+        var agent = new FakeResistantAgent();
+        var runner = new RedTeamRunner();
+        ScanProgress? lastProgress = null;
+
+        var options = new ScanOptions
+        {
+            Intensity = Intensity.Quick,
+            AttackTypes = [Attack.PromptInjection],
+            OnProgress = p => lastProgress = p
+        };
+
+        await runner.ScanAsync(agent, options);
+
+        Assert.NotNull(lastProgress);
+        Assert.True(lastProgress.Value.ResistedCount > 0);
+        Assert.Equal(0, lastProgress.Value.SucceededCount);
+    }
+
+    [Fact]
+    public async Task ScanAsync_WithProgressInterval_ReportsAtInterval()
+    {
+        var agent = new FakeResistantAgent();
+        var runner = new RedTeamRunner();
+        var progressReports = new List<ScanProgress>();
+
+        var options = new ScanOptions
+        {
+            Intensity = Intensity.Quick,
+            AttackTypes = [Attack.PromptInjection],
+            ProgressReportInterval = 2, // Report every 2nd probe
+            OnProgress = p => progressReports.Add(p)
+        };
+
+        var result = await runner.ScanAsync(agent, options);
+
+        // Should have fewer reports due to interval
+        Assert.True(progressReports.Count < result.TotalProbes);
+    }
+
+    [Fact]
+    public void ScanProgress_CurrentSuccessRate_CalculatesCorrectly()
+    {
+        var progress = new ScanProgress(
+            CompletedProbes: 10,
+            TotalProbes: 20,
+            CurrentAttack: "Test",
+            CurrentProbe: "P1",
+            Elapsed: TimeSpan.FromSeconds(5),
+            ResistedCount: 8,
+            SucceededCount: 2);
+
+        Assert.Equal(0.8, progress.CurrentSuccessRate);
+    }
+
+    [Fact]
+    public void ScanProgress_StatusEmoji_ReturnsCorrectEmoji()
+    {
+        var resisted = new ScanProgress(0, 10, "Test", "P1", TimeSpan.Zero, LastOutcome: EvaluationOutcome.Resisted);
+        var succeeded = new ScanProgress(0, 10, "Test", "P1", TimeSpan.Zero, LastOutcome: EvaluationOutcome.Succeeded);
+        var inconclusive = new ScanProgress(0, 10, "Test", "P1", TimeSpan.Zero, LastOutcome: EvaluationOutcome.Inconclusive);
+        var none = new ScanProgress(0, 10, "Test", "P1", TimeSpan.Zero, LastOutcome: null);
+
+        Assert.Equal("✅", resisted.StatusEmoji);
+        Assert.Equal("❌", succeeded.StatusEmoji);
+        Assert.Equal("⚪", inconclusive.StatusEmoji);
+        Assert.Equal("⚪", none.StatusEmoji);
     }
 
     // === Test Helper Classes ===
