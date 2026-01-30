@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using AgentEval.Core;
+using AgentEval.RedTeam;
 
 namespace AgentEval.Models;
 
@@ -95,6 +96,12 @@ public class TestResult
     /// Enables trace-first debugging to understand agent behavior.
     /// </summary>
     public ToolCallTimeline? Timeline { get; set; }
+
+    /// <summary>
+    /// Results from red team security scanning, if performed.
+    /// Populated when test is run with IncludeRedTeam = true or via explicit red-team scan.
+    /// </summary>
+    public RedTeamResult? RedTeam { get; set; }
     
     /// <summary>Whether any tools were called during the run.</summary>
     public bool ToolsWereCalled => ToolUsage?.Count > 0;

@@ -114,6 +114,12 @@ public static class Program
                 case 19:
                     await Sample19_StreamingVsAsyncPerformance.RunAsync();
                     break;
+                case 20:
+                    await Sample20_RedTeamBasic.RunAsync();
+                    break;
+                case 21:
+                    await Sample21_RedTeamAdvanced.RunAsync();
+                    break;
                 default:
                     Console.WriteLine($"❌ Sample {sampleNumber} not found.\n");
                     break;
@@ -177,6 +183,8 @@ public static class Program
         Console.WriteLine("│ 17. 🛡️ Quality & Safety   - Groundedness, Coherence, Fluency│");
         Console.WriteLine("│ 18. ⚖️ Judge Calibration  - Multi-model consensus voting   │");
         Console.WriteLine("│ 19. ⚡ Streaming vs Async - Performance comparison          │");
+        Console.WriteLine("│ 20. 🛡️ Red Team Basic    - Security vulnerability scan       │");
+        Console.WriteLine("│ 21. 🛡️ Red Team Advanced - Pipeline, reports, compliance    │");
         
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("├─────────────────────────────────────────────────────────────┤");
