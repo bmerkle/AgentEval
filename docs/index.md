@@ -159,7 +159,8 @@ dotnet test
 | "Tests fail randomly!" | **stochastic evaluation** - assert on pass *rate*, not single run |
 | "Which model should I use?" | **Model comparison** with cost/quality recommendations |
 | "Is my agent compliant?" | **Behavioral policies** - guardrails as code |
-| "Is my agent secure?" | **Red team testing** - OWASP/MITRE security probes |
+| "Is my agent secure?" | **Red team testing** - 192 OWASP LLM 2025 security probes |
+| "Is content safe/unbiased?" | **ResponsibleAI metrics** - toxicity, bias, misinformation |
 | "Is my RAG hallucinating?" | **Faithfulness metrics** - grounding verification |
 | "How do I debug CI failures?" | **Trace replay** - capture and reproduce executions |
 
@@ -195,7 +196,11 @@ dotnet test
 
 -   **🔴 Red Team Security**
     
-    177 probes, 9 attack types, 60% OWASP LLM Top 10 coverage, MITRE ATLAS mapping
+    192 probes, 9 attack types, 60% OWASP LLM 2025 coverage, MITRE ATLAS mapping
+
+-   **🛡️ Responsible AI**
+    
+    Toxicity detection, bias measurement, misinformation risk
 
 -   **📊 RAG Metrics**
     
@@ -233,7 +238,7 @@ dotnet tool install -g AgentEval.Cli
 agenteval eval --dataset tests.yaml --format junit -o results.xml
 ```
 
-**18 runnable samples** included—from Hello World to Model Comparison. [View Samples →](https://github.com/joslat/AgentEval/tree/main/samples/AgentEval.Samples)
+**21 runnable samples** included—from Hello World to Red Team Security. [View Samples →](https://github.com/joslat/AgentEval/tree/main/samples/AgentEval.Samples)
 
 ---
 
@@ -243,6 +248,7 @@ agenteval eval --dataset tests.yaml --format junit -o results.xml
 |-----------------|----------|----------|
 | [Installation](installation.md) | [Assertions](assertions.md) | [stochastic evaluation](stochastic-evaluation.md) |
 | [Quick Start](getting-started.md) | [Red Team Security](redteam.md) | [Model Comparison](model-comparison.md) |
+|  | [Responsible AI](ResponsibleAI.md) |  |
 | [Walkthrough](walkthrough.md) | [Metrics Reference](metrics-reference.md) | [Trace Record/Replay](tracing.md) |
 | [CLI Tool](cli.md) | [Benchmarks](benchmarks.md) | [Architecture](architecture.md) |
 |  | [Workflows](workflows.md) |  |

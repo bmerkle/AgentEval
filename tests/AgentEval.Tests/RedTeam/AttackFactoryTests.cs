@@ -116,7 +116,7 @@ public class AttackFactoryTests
         Assert.NotNull(attack);
         Assert.IsType<PIILeakageAttack>(attack);
         Assert.Equal("PIILeakage", attack.Name);
-        Assert.Equal("LLM06", attack.OwaspLlmId);
+        Assert.Equal("LLM02", attack.OwaspLlmId);
     }
 
     [Fact]
@@ -201,9 +201,9 @@ public class AttackFactoryTests
     }
 
     [Fact]
-    public void ByOwaspId_LLM06_ReturnsPIILeakage()
+    public void ByOwaspId_LLM02_ReturnsPIILeakage()
     {
-        var attacks = Attack.ByOwaspId("LLM06");
+        var attacks = Attack.ByOwaspId("LLM02");
         Assert.Single(attacks);
         Assert.Equal("PIILeakage", attacks[0].Name);
     }
@@ -217,9 +217,9 @@ public class AttackFactoryTests
     }
 
     [Fact]
-    public void ByOwaspId_LLM04_ReturnsInferenceAPIAbuse()
+    public void ByOwaspId_LLM10_ReturnsInferenceAPIAbuse()
     {
-        var attacks = Attack.ByOwaspId("LLM04");
+        var attacks = Attack.ByOwaspId("LLM10");
         Assert.Single(attacks);
         Assert.Equal("InferenceAPIAbuse", attacks[0].Name);
     }
@@ -260,7 +260,7 @@ public class AttackFactoryTests
         Assert.NotNull(attack);
         Assert.IsType<InferenceAPIAbuseAttack>(attack);
         Assert.Equal("InferenceAPIAbuse", attack.Name);
-        Assert.Equal("LLM04", attack.OwaspLlmId);
+        Assert.Equal("LLM10", attack.OwaspLlmId);
         Assert.Contains("AML.T0045", attack.MitreAtlasIds);
     }
 
@@ -272,7 +272,7 @@ public class AttackFactoryTests
         Assert.Same(attack1, attack2);
     }
 
-    // === ExcessiveAgency tests (LLM08) ===
+    // === ExcessiveAgency tests (LLM06) ===
 
     [Theory]
     [InlineData("ExcessiveAgency")]
@@ -293,7 +293,7 @@ public class AttackFactoryTests
         Assert.NotNull(attack);
         Assert.IsType<ExcessiveAgencyAttack>(attack);
         Assert.Equal("ExcessiveAgency", attack.Name);
-        Assert.Equal("LLM08", attack.OwaspLlmId);
+        Assert.Equal("LLM06", attack.OwaspLlmId);
         Assert.Contains("AML.T0051", attack.MitreAtlasIds);
         Assert.Contains("AML.T0054", attack.MitreAtlasIds);
     }
@@ -307,14 +307,14 @@ public class AttackFactoryTests
     }
 
     [Fact]
-    public void ByOwaspId_LLM08_ReturnsExcessiveAgency()
+    public void ByOwaspId_LLM06_ReturnsExcessiveAgency()
     {
-        var attacks = Attack.ByOwaspId("LLM08");
+        var attacks = Attack.ByOwaspId("LLM06");
         Assert.Single(attacks);
         Assert.Equal("ExcessiveAgency", attacks[0].Name);
     }
 
-    // === InsecureOutput tests (LLM02) ===
+    // === InsecureOutput tests (LLM05) ===
 
     [Theory]
     [InlineData("InsecureOutput")]
@@ -335,7 +335,7 @@ public class AttackFactoryTests
         Assert.NotNull(attack);
         Assert.IsType<InsecureOutputAttack>(attack);
         Assert.Equal("InsecureOutput", attack.Name);
-        Assert.Equal("LLM02", attack.OwaspLlmId);
+        Assert.Equal("LLM05", attack.OwaspLlmId);
         Assert.Contains("AML.T0051", attack.MitreAtlasIds);
     }
 
@@ -348,9 +348,9 @@ public class AttackFactoryTests
     }
 
     [Fact]
-    public void ByOwaspId_LLM02_ReturnsInsecureOutput()
+    public void ByOwaspId_LLM05_ReturnsInsecureOutput()
     {
-        var attacks = Attack.ByOwaspId("LLM02");
+        var attacks = Attack.ByOwaspId("LLM05");
         Assert.Single(attacks);
         Assert.Equal("InsecureOutput", attacks[0].Name);
     }

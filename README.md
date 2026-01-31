@@ -215,7 +215,7 @@ if (faithfulness.Score < 70)
 
 ### Red Team Security Testing: Find Vulnerabilities Before Production
 
-AgentEval includes comprehensive red team security testing with **177 probes across 9 attack types**, covering **6/10 OWASP LLM Top 10** categories and **6 MITRE ATLAS** techniques:
+AgentEval includes comprehensive red team security testing with **192 probes across 9 attack types**, covering **6/10 OWASP LLM Top 10 2025** categories and **6 MITRE ATLAS** techniques:
 
 ```csharp
 // Sample20: Basic RedTeam testing
@@ -226,8 +226,8 @@ var result = await redTeam.RunAsync(agent, new RedTeamOptions
         AttackType.PromptInjection, 
         AttackType.Jailbreak, 
         AttackType.PIILeakage,
-        AttackType.ExcessiveAgency,  // LLM08
-        AttackType.InsecureOutput    // LLM02
+        AttackType.ExcessiveAgency,  // LLM06
+        AttackType.InsecureOutput    // LLM05
     },
     Intensity = AttackIntensity.Quick,
     ShowFailureDetails = true  // Show actual attack probes (for analysis)
@@ -242,24 +242,25 @@ result.Should()
 
 **Real-time security assessment:**
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    RedTeam Security Results                     │
-├─────────────────────────────────────────────────────────────────┤
-│  Overall Score: 88.2% ✅                                       │
-│  Verdict: PARTIAL_PASS                                         │
-│  OWASP Coverage: 6/10 (60%)                                    │
-│                                                                 │
-│  Attack Results (9 types, 177 total probes):                   │
-│    ✅ Prompt Injection: 25/27 resisted (92.6%)                │
-│    ✅ Jailbreak: 22/24 resisted (91.7%)                       │
-│    ✅ PII Leakage: 19/19 resisted (100%)                      │
-│    ✅ Excessive Agency: 14/15 resisted (93.3%)                │
-│    ❌ Insecure Output: 15/18 resisted (83.3%)                 │
-│                                                                 │
-│  OWASP Compliance:                                              │
-│    ✅ LLM01, LLM06, LLM07, LLM08 compliant                    │
-│    ❌ LLM02 (Insecure Output): 3 vulnerabilities found        │
-└─────────────────────────────────────────────────────────────────┘
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                        RedTeam Security Assessment                           ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  🛡️ Overall Score: 88.2%                                                     ║
+║  Verdict: ✅ PARTIAL_PASS                                                    ║
+║  Duration: 12.4s | Agent: ResearchAssistant                                  ║
+║  Probes: 45 total, 40 resisted, 5 compromised                                ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  Attack Results:                                                             ║
+║                                                                              ║
+║  Attack                   Resisted     Rate     Severity                     ║
+║  ───────────────────────────────────────────────────────────────────────     ║
+║  ✅ Prompt Injection      8/9          89%      Critical                     ║
+║  ✅ Jailbreak             7/8          88%      High                         ║
+║  ✅ PII Leakage           6/6          100%     Critical                     ║
+║  ✅ Excessive Agency      5/5          100%     High                         ║
+║  ❌ Insecure Output       10/12        83%      Critical                     ║
+║     OWASP: LLM05 | MITRE: AML.T0051                                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 
 **Multiple export formats** for security teams:
@@ -270,6 +271,42 @@ result.Should()
 - **PDF** for executive/board-level reporting
 
 **✅ See Samples:** [Sample20_RedTeamBasic.cs](samples/AgentEval.Samples/Sample20_RedTeamBasic.cs) • [Sample21_RedTeamAdvanced.cs](samples/AgentEval.Samples/Sample21_RedTeamAdvanced.cs) • [docs/redteam.md](docs/redteam.md)
+
+---
+
+### Responsible AI: Content Safety Metrics
+
+Complementing security testing, AgentEval's ResponsibleAI namespace provides **content safety evaluation**:
+
+```csharp
+using AgentEval.ResponsibleAI;
+
+// Toxicity detection (pattern + LLM hybrid)
+var toxicity = new ToxicityMetric(chatClient, useLlmFallback: true);
+var toxicityResult = await toxicity.EvaluateAsync(context);
+
+// Bias measurement with counterfactual testing  
+var bias = new BiasMetric(chatClient);
+var biasResult = await bias.EvaluateCounterfactualAsync(
+    originalContext, counterfactualContext, "gender");
+
+// Misinformation risk assessment
+var misinformation = new MisinformationMetric(chatClient);
+var misInfoResult = await misinformation.EvaluateAsync(context);
+
+// All must pass for responsible AI compliance
+toxicityResult.Should().HaveScoreAbove(90);
+biasResult.Should().HavePassed();
+misInfoResult.Should().HavePassed();
+```
+
+| Metric | Type | Detects |
+|--------|------|---------||
+| **ToxicityMetric** | Hybrid | Hate speech, violence, harassment |
+| **BiasMetric** | LLM | Stereotyping, differential treatment |
+| **MisinformationMetric** | LLM | Unsupported claims, false confidence |
+
+**✅ See:** [docs/ResponsibleAI.md](docs/ResponsibleAI.md)
 
 ---
 
@@ -339,6 +376,8 @@ public class MyAgentTests : AgentEvalTestBase
 | "What's the latency/cost?" | **Performance metrics** - TTFT, tokens, estimated cost |
 | "How do I debug failures?" | **Trace recording** - capture executions for step-by-step analysis |
 | "CI tests pass locally but fail in CI?" | **Rich test output** - detailed logs and trace artifacts |
+| "Is my agent secure?" | **Red Team testing** - 192 probes, OWASP LLM 2025 coverage |
+| "Is content safe and unbiased?" | **ResponsibleAI metrics** - toxicity, bias, misinformation |
 
 ---
 
@@ -503,7 +542,7 @@ agenteval list metrics
 
 ## Samples
 
-Run all 18 included samples:
+Run all 21 included samples:
 
 ```bash
 dotnet run --project samples/AgentEval.Samples

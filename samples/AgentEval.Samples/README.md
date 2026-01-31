@@ -2,7 +2,7 @@
 
 > **📚 Comprehensive Learning Library - Get started with AgentEval in 5 minutes!**
 
-This project contains **19 focused, educational samples** demonstrating all major AgentEval features. Perfect for learning step-by-step.
+This project contains **21 focused, educational samples** demonstrating all major AgentEval features. Each sample covers a distinct capability, ensuring features are exhaustively demonstrated.
 
 ## ⚡ Core Principle
 
@@ -11,7 +11,7 @@ This project contains **19 focused, educational samples** demonstrating all majo
 - **Evaluation** (LLM-as-judge scores, metrics) → Always real or gracefully skipped
 - **Structure** (tool ordering, workflows, conversations) → Can be demonstrated with mock data
 
-This means samples 1-13 work fully without credentials, while samples 14-19 require Azure OpenAI for meaningful results.
+This means samples 1-13 work fully without credentials, while samples 14-21 require Azure OpenAI for meaningful results.
 
 
 
@@ -48,6 +48,8 @@ You'll see an interactive menu to run each sample.
 | **17 - Quality & Safety Metrics** | Groundedness, Coherence, Fluency metrics | 5 min |
 | **18 - Judge Calibration** | Multi-model consensus voting for reliable evaluations | 8 min |
 | **19 - Streaming vs Async** | Compare streaming and non-streaming performance | 5 min |
+| **20 - Red Team Basic** | **Security testing, OWASP LLM 2025 probes, attack resistance** 🛡️ | 5 min |
+| **21 - Red Team Advanced** | **Advanced security: export formats, compliance reports** 🛡️ | 7 min |
 
 > **⭐ Samples 03 & 04** provide the foundational knowledge for tool chain and performance assertions that advanced users can find in comprehensive form in the **AgentEval.NuGetConsumer** project.
 
@@ -55,7 +57,7 @@ You'll see an interactive menu to run each sample.
 
 ### With Azure OpenAI (Full Experience)
 
-Set environment variables (**recommended for samples 14-19**):
+Set environment variables (**recommended for samples 14-21**):
 
 ```powershell
 # PowerShell

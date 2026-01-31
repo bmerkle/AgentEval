@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Red Team Security Testing Module** - Comprehensive AI agent security evaluation
-  - **9 attack types**: PromptInjection, Jailbreak, PIILeakage, SystemPromptExtraction, IndirectInjection, ExcessiveAgency (LLM08), InsecureOutput (LLM02), InferenceAPIAbuse (LLM04), EncodingEvasion
-  - **177 total probes** across all attack categories
-  - **60% OWASP LLM Top 10 coverage** (6/10): LLM01, LLM02, LLM04, LLM06, LLM07, LLM08
+  - **9 attack types**: PromptInjection, Jailbreak, PIILeakage (LLM02), SystemPromptExtraction (LLM07), IndirectInjection, ExcessiveAgency (LLM06), InsecureOutput (LLM05), InferenceAPIAbuse (LLM10), EncodingEvasion
+  - **192 total probes** across all attack categories (expanded InsecureOutput from 18→33)
+  - **60% OWASP LLM Top 10 2025 coverage** (6/10): LLM01, LLM02, LLM05, LLM06, LLM07, LLM10
   - **6 MITRE ATLAS techniques**: AML.T0024, AML.T0037, AML.T0043, AML.T0045, AML.T0051, AML.T0054
   - **5 export formats**: JSON, JUnit XML, SARIF (GitHub Security), Markdown, PDF
   - **4 compliance reports**: OWASP, MITRE, SOC2, ISO27001
@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Baseline comparison for CI/CD regression tracking
   - Real-time progress reporting with `ScanProgress` callback
   - Rich console output with emoji, colors, and detailed breakdowns
+- **Responsible AI Metrics** (`AgentEval.ResponsibleAI` namespace)
+  - `ToxicityMetric` - Pattern + LLM hybrid toxicity detection
+  - `BiasMetric` - LLM-based bias detection with counterfactual testing
+  - `MisinformationMetric` - Claim verification and calibration assessment
 
 ### Planned
 - CodeQL integration for advanced code analysis

@@ -53,6 +53,8 @@
     href: security-scanning.md
   - name: Red Team Evaluation
     href: redteam.md
+  - name: Responsible AI
+    href: ResponsibleAI.md
 
 - name: API Reference
   items:

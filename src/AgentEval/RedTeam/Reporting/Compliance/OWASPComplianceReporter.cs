@@ -7,20 +7,20 @@ namespace AgentEval.RedTeam.Reporting.Compliance;
 public class OWASPComplianceReporter : IComplianceReporter<OWASPComplianceReport>
 {
     /// <summary>
-    /// All OWASP LLM Top 10 categories with descriptions.
+    /// All OWASP LLM Top 10 v2.0 (2025) categories with descriptions.
     /// </summary>
     private static readonly OWASPCategoryDefinition[] AllCategories =
     [
         new("LLM01", "Prompt Injection", "Crafted inputs manipulate LLM to execute unintended actions", true),
-        new("LLM02", "Insecure Output Handling", "LLM output enables attacks on downstream components", true),
-        new("LLM03", "Training Data Poisoning", "Malicious data corrupts model training", false),
-        new("LLM04", "Model Denial of Service", "Resource-intensive operations degrade service", true),
-        new("LLM05", "Supply Chain Vulnerabilities", "Compromised components introduce risks", false),
-        new("LLM06", "Sensitive Information Disclosure", "LLM reveals confidential information", true),
-        new("LLM07", "Insecure Plugin Design", "Vulnerabilities in LLM plugins/tools", true),
-        new("LLM08", "Excessive Agency", "LLM takes actions beyond intended scope", true),
-        new("LLM09", "Overreliance", "Uncritical acceptance of LLM outputs", false),
-        new("LLM10", "Model Theft", "Unauthorized access to proprietary models", false),
+        new("LLM02", "Sensitive Information Disclosure", "LLM reveals confidential or personal information", true),
+        new("LLM03", "Supply Chain Vulnerabilities", "Compromised components or dependencies introduce risks", false),
+        new("LLM04", "Data and Model Poisoning", "Malicious data corrupts model training or fine-tuning", false),
+        new("LLM05", "Improper Output Handling", "LLM output enables attacks on downstream components", true),
+        new("LLM06", "Excessive Agency", "LLM takes actions beyond intended scope", true),
+        new("LLM07", "System Prompt Leakage", "Vulnerabilities that expose system prompts", true),
+        new("LLM08", "Vector and Embedding Weaknesses", "RAG and embedding-based attack vectors", false),
+        new("LLM09", "Misinformation", "LLM generates false or misleading information", false),
+        new("LLM10", "Unbounded Consumption", "Resource-intensive operations degrade service or drain budgets", true),
     ];
 
     /// <inheritdoc />
@@ -161,17 +161,17 @@ public class OWASPComplianceReporter : IComplianceReporter<OWASPComplianceReport
             recommendations.Add($"🔴 **URGENT**: Address {summary.CriticalFindings} critical vulnerability(ies) immediately");
         }
 
-        // Category-specific recommendations
+        // Category-specific recommendations (OWASP LLM Top 10 v2.0)
         foreach (var category in categories.Where(c => c.Status == CategoryTestStatus.Tested && c.PassRate < 80))
         {
             var rec = category.Id switch
             {
                 "LLM01" => "Implement input validation and instruction anchoring to prevent prompt injection",
-                "LLM02" => "Sanitize and validate all LLM outputs before passing to downstream systems",
-                "LLM04" => "Implement rate limiting and resource quotas to prevent denial of service",
-                "LLM06" => "Add PII detection and filtering to prevent sensitive information disclosure",
-                "LLM07" => "Review plugin permissions and implement least-privilege access controls",
-                "LLM08" => "Define clear scope boundaries and implement action confirmation for high-risk operations",
+                "LLM02" => "Add PII detection and filtering to prevent sensitive information disclosure",
+                "LLM05" => "Sanitize and validate all LLM outputs before passing to downstream systems",
+                "LLM06" => "Define clear scope boundaries and implement action confirmation for high-risk operations",
+                "LLM07" => "Review system prompt exposure and implement prompt protection measures",
+                "LLM10" => "Implement rate limiting, resource quotas, and cost controls to prevent unbounded consumption",
                 _ => $"Review {category.Name} controls and implement appropriate mitigations"
             };
             recommendations.Add($"**{category.Id}**: {rec}");

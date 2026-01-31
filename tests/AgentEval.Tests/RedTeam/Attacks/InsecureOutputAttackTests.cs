@@ -24,9 +24,9 @@ public sealed class InsecureOutputAttackTests
     }
 
     [Fact]
-    public void OwaspLlmId_ReturnsLLM02()
+    public void OwaspLlmId_ReturnsLLM05()
     {
-        Assert.Equal("LLM02", _attack.OwaspLlmId);
+        Assert.Equal("LLM05", _attack.OwaspLlmId);
     }
 
     [Fact]
@@ -74,10 +74,10 @@ public sealed class InsecureOutputAttackTests
     }
 
     [Fact]
-    public void GetProbes_ComprehensiveIntensity_Returns18Probes()
+    public void GetProbes_ComprehensiveIntensity_Returns33Probes()
     {
         var probes = _attack.GetProbes(Intensity.Comprehensive);
-        Assert.Equal(18, probes.Count); // All probes
+        Assert.Equal(33, probes.Count); // All probes including advanced techniques
     }
 
     // === Probe ID Tests ===
@@ -101,7 +101,7 @@ public sealed class InsecureOutputAttackTests
     public void GetProbes_ProbeIdsAreSequential()
     {
         var probes = _attack.GetProbes(Intensity.Comprehensive);
-        var expectedIds = Enumerable.Range(1, 18).Select(i => $"IO-{i:D3}").ToList();
+        var expectedIds = Enumerable.Range(1, 33).Select(i => $"IO-{i:D3}").ToList();
         var actualIds = probes.Select(p => p.Id).OrderBy(id => id).ToList();
         Assert.Equal(expectedIds, actualIds);
     }
@@ -114,6 +114,13 @@ public sealed class InsecureOutputAttackTests
     [InlineData("command_injection")]
     [InlineData("format_injection")]
     [InlineData("code_injection")]
+    [InlineData("ssrf_injection")]
+    [InlineData("csrf_injection")]
+    [InlineData("nosql_injection")]
+    [InlineData("deserialization_injection")]
+    [InlineData("supply_chain_injection")]
+    [InlineData("http_header_injection")]
+    [InlineData("privilege_escalation")]
     public void GetProbes_ContainsTechnique(string technique)
     {
         var probes = _attack.GetProbes(Intensity.Comprehensive);
@@ -228,6 +235,167 @@ public sealed class InsecureOutputAttackTests
         var cmdPatterns = new[] { "rm", "cat", "wget", "cmd.exe", "$(", "`" };
         Assert.All(probes, p => 
             Assert.True(cmdPatterns.Any(pattern => 
+                p.Prompt.Contains(pattern, StringComparison.OrdinalIgnoreCase))));
+    }
+
+    // === SSRF Injection Probe Tests ===
+
+    [Fact]
+    public void GetProbes_SsrfProbesExistAtComprehensiveIntensity()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive);
+        var ssrfProbes = probes.Where(p => p.Technique == "ssrf_injection").ToList();
+        Assert.Equal(3, ssrfProbes.Count);
+    }
+
+    [Fact]
+    public void GetProbes_SsrfProbesContainUrlPatterns()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive)
+            .Where(p => p.Technique == "ssrf_injection")
+            .ToList();
+        
+        var ssrfPatterns = new[] { "http://", "file://", "169.254.169.254", "internal", "metadata" };
+        Assert.All(probes, p => 
+            Assert.True(ssrfPatterns.Any(pattern => 
+                p.Prompt.Contains(pattern, StringComparison.OrdinalIgnoreCase))));
+    }
+
+    // === CSRF Injection Probe Tests ===
+
+    [Fact]
+    public void GetProbes_CsrfProbesExistAtComprehensiveIntensity()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive);
+        var csrfProbes = probes.Where(p => p.Technique == "csrf_injection").ToList();
+        Assert.Equal(2, csrfProbes.Count);
+    }
+
+    [Fact]
+    public void GetProbes_CsrfProbesContainFormPatterns()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive)
+            .Where(p => p.Technique == "csrf_injection")
+            .ToList();
+        
+        var csrfPatterns = new[] { "form", "POST", "action", "submit", "hidden" };
+        Assert.All(probes, p => 
+            Assert.True(csrfPatterns.Any(pattern => 
+                p.Prompt.Contains(pattern, StringComparison.OrdinalIgnoreCase))));
+    }
+
+    // === NoSQL Injection Probe Tests ===
+
+    [Fact]
+    public void GetProbes_NoSqlProbesExistAtComprehensiveIntensity()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive);
+        var nosqlProbes = probes.Where(p => p.Technique == "nosql_injection").ToList();
+        Assert.Equal(2, nosqlProbes.Count);
+    }
+
+    [Fact]
+    public void GetProbes_NoSqlProbesContainMongoDbOperators()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive)
+            .Where(p => p.Technique == "nosql_injection")
+            .ToList();
+        
+        var nosqlPatterns = new[] { "$ne", "$gt", "MongoDB" };
+        Assert.All(probes, p => 
+            Assert.True(nosqlPatterns.Any(pattern => 
+                p.Prompt.Contains(pattern, StringComparison.OrdinalIgnoreCase))));
+    }
+
+    // === Deserialization Injection Probe Tests ===
+
+    [Fact]
+    public void GetProbes_DeserializationProbesExistAtComprehensiveIntensity()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive);
+        var deserProbes = probes.Where(p => p.Technique == "deserialization_injection").ToList();
+        Assert.Equal(2, deserProbes.Count);
+    }
+
+    [Fact]
+    public void GetProbes_DeserializationProbesContainSerializationPatterns()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive)
+            .Where(p => p.Technique == "deserialization_injection")
+            .ToList();
+        
+        var deserPatterns = new[] { "pickle", "YAML", "!!python", "os.system" };
+        Assert.All(probes, p => 
+            Assert.True(deserPatterns.Any(pattern => 
+                p.Prompt.Contains(pattern, StringComparison.OrdinalIgnoreCase))));
+    }
+
+    // === Supply Chain Injection Probe Tests ===
+
+    [Fact]
+    public void GetProbes_SupplyChainProbesExistAtComprehensiveIntensity()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive);
+        var supplyChainProbes = probes.Where(p => p.Technique == "supply_chain_injection").ToList();
+        Assert.Equal(2, supplyChainProbes.Count);
+    }
+
+    [Fact]
+    public void GetProbes_SupplyChainProbesContainPackagePatterns()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive)
+            .Where(p => p.Technique == "supply_chain_injection")
+            .ToList();
+        
+        var supplyPatterns = new[] { "package", "npm", "Python" };
+        Assert.All(probes, p => 
+            Assert.True(supplyPatterns.Any(pattern => 
+                p.Prompt.Contains(pattern, StringComparison.OrdinalIgnoreCase))));
+    }
+
+    // === HTTP Header Injection Probe Tests ===
+
+    [Fact]
+    public void GetProbes_HttpHeaderProbesExistAtComprehensiveIntensity()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive);
+        var headerProbes = probes.Where(p => p.Technique == "http_header_injection").ToList();
+        Assert.Equal(2, headerProbes.Count);
+    }
+
+    [Fact]
+    public void GetProbes_HttpHeaderProbesContainCrlfPatterns()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive)
+            .Where(p => p.Technique == "http_header_injection")
+            .ToList();
+        
+        var headerPatterns = new[] { "\\r\\n", "Set-Cookie", "Content-Type", "header" };
+        Assert.All(probes, p => 
+            Assert.True(headerPatterns.Any(pattern => 
+                p.Prompt.Contains(pattern, StringComparison.OrdinalIgnoreCase))));
+    }
+
+    // === Privilege Escalation Probe Tests ===
+
+    [Fact]
+    public void GetProbes_PrivilegeEscalationProbesExistAtComprehensiveIntensity()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive);
+        var privProbes = probes.Where(p => p.Technique == "privilege_escalation").ToList();
+        Assert.Equal(2, privProbes.Count);
+    }
+
+    [Fact]
+    public void GetProbes_PrivilegeEscalationProbesContainAdminPatterns()
+    {
+        var probes = _attack.GetProbes(Intensity.Comprehensive)
+            .Where(p => p.Technique == "privilege_escalation")
+            .ToList();
+        
+        var privPatterns = new[] { "admin", "role", "JWT", "permissions" };
+        Assert.All(probes, p => 
+            Assert.True(privPatterns.Any(pattern => 
                 p.Prompt.Contains(pattern, StringComparison.OrdinalIgnoreCase))));
     }
 }

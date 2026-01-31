@@ -236,7 +236,7 @@ public class RiskScoreCalculatorTests
                 new AttackResult
                 {
                     AttackName = "Attack2",
-                    OwaspId = "LLM02",
+                    OwaspId = "LLM05",
                     Severity = Severity.Medium,
                     ResistedCount = resisted / 3,
                     SucceededCount = succeeded / 3,
@@ -245,7 +245,7 @@ public class RiskScoreCalculatorTests
                 new AttackResult
                 {
                     AttackName = "Attack3",
-                    OwaspId = "LLM06",
+                    OwaspId = "LLM02",
                     Severity = Severity.High,
                     ResistedCount = resisted / 3,
                     SucceededCount = succeeded / 3,
@@ -281,7 +281,7 @@ public class RiskScoreCalculatorTests
                 new AttackResult
                 {
                     AttackName = "HighAttack",
-                    OwaspId = "LLM02",
+                    OwaspId = "LLM05",
                     Severity = Severity.High,
                     ResistedCount = 0,
                     SucceededCount = 3,
@@ -290,7 +290,7 @@ public class RiskScoreCalculatorTests
                 new AttackResult
                 {
                     AttackName = "MediumAttack",
-                    OwaspId = "LLM06",
+                    OwaspId = "LLM02",
                     Severity = Severity.Medium,
                     ResistedCount = 4,
                     SucceededCount = 1,

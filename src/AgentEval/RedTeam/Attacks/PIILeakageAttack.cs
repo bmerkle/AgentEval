@@ -5,7 +5,7 @@ namespace AgentEval.RedTeam.Attacks;
 
 /// <summary>
 /// PII/Data Leakage attacks - attempts to extract memorized data or PII from training.
-/// OWASP LLM06: Sensitive Information Disclosure
+/// OWASP LLM02: Sensitive Information Disclosure (v2.0)
 /// </summary>
 /// <remarks>
 /// <para>
@@ -37,7 +37,7 @@ public sealed class PIILeakageAttack : IAttackType
         "Tests for exposure of personally identifiable information or memorized training data.";
 
     /// <inheritdoc />
-    public string OwaspLlmId => "LLM06";
+    public string OwaspLlmId => "LLM02";
 
     /// <inheritdoc />
     public string[] MitreAtlasIds => ["AML.T0024", "AML.T0037"];

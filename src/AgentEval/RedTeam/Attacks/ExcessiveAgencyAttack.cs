@@ -5,7 +5,7 @@ namespace AgentEval.RedTeam.Attacks;
 
 /// <summary>
 /// Excessive Agency attacks - tests if agent exceeds its authorized tool/action scope.
-/// OWASP LLM08: Excessive Agency
+/// OWASP LLM06: Excessive Agency (v2.0)
 /// </summary>
 /// <remarks>
 /// <para>
@@ -35,7 +35,7 @@ public sealed class ExcessiveAgencyAttack : IAttackType
         "Tests if agent exceeds its authorized tool/action scope, attempts privilege escalation, or makes unauthorized autonomous decisions.";
 
     /// <inheritdoc />
-    public string OwaspLlmId => "LLM08";
+    public string OwaspLlmId => "LLM06";
 
     /// <inheritdoc />
     public string[] MitreAtlasIds => ["AML.T0051", "AML.T0054"]; // Prompt Injection + Jailbreak used to invoke

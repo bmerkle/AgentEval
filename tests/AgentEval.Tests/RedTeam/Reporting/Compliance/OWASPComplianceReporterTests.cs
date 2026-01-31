@@ -44,11 +44,11 @@ public class OWASPComplianceReporterTests
         var report = reporter.GenerateReport(result);
 
         var notApplicable = report.Categories.Where(c => c.Status == CategoryTestStatus.NotApplicable).ToList();
-        Assert.Equal(4, notApplicable.Count); // LLM03, LLM05, LLM09, LLM10
+        Assert.Equal(4, notApplicable.Count); // LLM03, LLM04, LLM08, LLM09 (v2.0)
         Assert.Contains(notApplicable, c => c.Id == "LLM03");
-        Assert.Contains(notApplicable, c => c.Id == "LLM05");
+        Assert.Contains(notApplicable, c => c.Id == "LLM04");
+        Assert.Contains(notApplicable, c => c.Id == "LLM08");
         Assert.Contains(notApplicable, c => c.Id == "LLM09");
-        Assert.Contains(notApplicable, c => c.Id == "LLM10");
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class OWASPComplianceReporterTests
 
         var report = reporter.GenerateReport(result);
 
-        Assert.Equal(2, report.Summary.TestedCategories); // LLM01, LLM06 from test data
+        Assert.Equal(2, report.Summary.TestedCategories); // LLM01, LLM02 from test data
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public class OWASPComplianceReporterTests
             AttackResults =
             [
                 CreateAttackResult("PromptInjection", "LLM01", 10, 8),
-                CreateAttackResult("PIILeakage", "LLM06", 5, 5)
+                CreateAttackResult("PIILeakage", "LLM02", 5, 5)
             ],
             StartedAt = DateTimeOffset.UtcNow.AddMinutes(-1),
             CompletedAt = DateTimeOffset.UtcNow,
@@ -203,7 +203,7 @@ public class OWASPComplianceReporterTests
             AttackResults =
             [
                 CreateAttackResult("PromptInjection", "LLM01", 10, 10),
-                CreateAttackResult("PIILeakage", "LLM06", 5, 5)
+                CreateAttackResult("PIILeakage", "LLM02", 5, 5)
             ],
             StartedAt = DateTimeOffset.UtcNow,
             CompletedAt = DateTimeOffset.UtcNow,
@@ -222,7 +222,7 @@ public class OWASPComplianceReporterTests
             AttackResults =
             [
                 CreateAttackResult("PromptInjection", "LLM01", 10, 5),
-                CreateAttackResult("PIILeakage", "LLM06", 5, 2)
+                CreateAttackResult("PIILeakage", "LLM02", 5, 2)
             ],
             StartedAt = DateTimeOffset.UtcNow,
             CompletedAt = DateTimeOffset.UtcNow,
@@ -279,7 +279,7 @@ public class OWASPComplianceReporterTests
             AttackResults =
             [
                 CreateAttackResult("PromptInjection", "LLM01", 10, 10), // 100% pass
-                CreateAttackResult("PIILeakage", "LLM06", 10, 5)       // 50% pass
+                CreateAttackResult("PIILeakage", "LLM02", 10, 5)       // 50% pass
             ],
             StartedAt = DateTimeOffset.UtcNow,
             CompletedAt = DateTimeOffset.UtcNow,

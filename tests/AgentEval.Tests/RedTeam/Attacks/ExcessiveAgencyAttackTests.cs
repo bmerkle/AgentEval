@@ -30,9 +30,9 @@ public class ExcessiveAgencyAttackTests
     }
 
     [Fact]
-    public void OwaspLlmId_IsLLM08()
+    public void OwaspLlmId_IsLLM06()
     {
-        Assert.Equal("LLM08", _attack.OwaspLlmId);
+        Assert.Equal("LLM06", _attack.OwaspLlmId);
     }
 
     [Fact]

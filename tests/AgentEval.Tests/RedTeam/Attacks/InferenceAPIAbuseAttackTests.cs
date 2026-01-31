@@ -31,9 +31,9 @@ public class InferenceAPIAbuseAttackTests
     }
 
     [Fact]
-    public void OwaspLlmId_IsLLM04()
+    public void OwaspLlmId_IsLLM10()
     {
-        Assert.Equal("LLM04", _attack.OwaspLlmId);
+        Assert.Equal("LLM10", _attack.OwaspLlmId);
     }
 
     [Fact]

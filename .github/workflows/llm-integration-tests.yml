@@ -182,5 +182,5 @@ jobs:
 
     - name: Verify Samples Compile
       run: |
-        echo "✅ All 17 samples compile successfully"
+        echo "✅ All 21 samples compile successfully"
         echo "   Samples use FakeChatClient when API credentials unavailable"

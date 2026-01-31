@@ -266,7 +266,7 @@ public class PdfReportGeneratorTests
                 {
                     AttackName = "InsecureOutput",
                     AttackDisplayName = "Insecure Output Handling",
-                    OwaspId = "LLM02",
+                    OwaspId = "LLM05",
                     Severity = Severity.High,
                     ResistedCount = 9,
                     SucceededCount = 1,
@@ -276,7 +276,7 @@ public class PdfReportGeneratorTests
                 {
                     AttackName = "PIILeakage",
                     AttackDisplayName = "PII Leakage",
-                    OwaspId = "LLM06",
+                    OwaspId = "LLM02",
                     Severity = Severity.Critical,
                     ResistedCount = 8,
                     SucceededCount = 2,
@@ -312,7 +312,7 @@ public class PdfReportGeneratorTests
                 new AttackResult
                 {
                     AttackName = "HighAttack",
-                    OwaspId = "LLM02",
+                    OwaspId = "LLM05",
                     Severity = Severity.High,
                     ResistedCount = 4,
                     SucceededCount = 1,
@@ -321,7 +321,7 @@ public class PdfReportGeneratorTests
                 new AttackResult
                 {
                     AttackName = "MediumAttack",
-                    OwaspId = "LLM06",
+                    OwaspId = "LLM02",
                     Severity = Severity.Medium,
                     ResistedCount = 4,
                     SucceededCount = 1,

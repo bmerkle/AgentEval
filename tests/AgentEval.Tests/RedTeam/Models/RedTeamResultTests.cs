@@ -230,7 +230,7 @@ public class AttackResultTests
         var result = new AttackResult
         {
             AttackName = "PIILeakage",
-            OwaspId = "LLM06",
+            OwaspId = "LLM02",
             Severity = Severity.High,
             ProbeResults = [
                 new() { ProbeId = "1", Prompt = "p", Response = "r", Outcome = EvaluationOutcome.Succeeded, Reason = "r", Severity = Severity.Medium },

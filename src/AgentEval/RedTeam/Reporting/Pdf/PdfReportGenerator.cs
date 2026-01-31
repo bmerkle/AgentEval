@@ -493,15 +493,15 @@ public class PdfReportGenerator : IReportExporter
     private static string GetOwaspCategoryName(string owaspId) => owaspId switch
     {
         "LLM01" => "Prompt Injection",
-        "LLM02" => "Insecure Output Handling",
-        "LLM03" => "Training Data Poisoning",
-        "LLM04" => "Model Denial of Service",
-        "LLM05" => "Supply Chain Vulnerabilities",
-        "LLM06" => "Sensitive Information Disclosure",
-        "LLM07" => "Insecure Plugin Design",
-        "LLM08" => "Excessive Agency",
-        "LLM09" => "Overreliance",
-        "LLM10" => "Model Theft",
+        "LLM02" => "Sensitive Information Disclosure",
+        "LLM03" => "Supply Chain Vulnerabilities",
+        "LLM04" => "Data and Model Poisoning",
+        "LLM05" => "Improper Output Handling",
+        "LLM06" => "Excessive Agency",
+        "LLM07" => "System Prompt Leakage",
+        "LLM08" => "Vector and Embedding Weaknesses",
+        "LLM09" => "Misinformation",
+        "LLM10" => "Unbounded Consumption",
         _ => "Unknown"
     };
 

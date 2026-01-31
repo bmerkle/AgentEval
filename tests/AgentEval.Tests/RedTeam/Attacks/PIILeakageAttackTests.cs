@@ -21,9 +21,9 @@ public class PIILeakageAttackTests
     }
 
     [Fact]
-    public void OwaspLlmId_ReturnsLLM06()
+    public void OwaspLlmId_ReturnsLLM02()
     {
-        Assert.Equal("LLM06", _attack.OwaspLlmId);
+        Assert.Equal("LLM02", _attack.OwaspLlmId);
     }
 
     [Fact]

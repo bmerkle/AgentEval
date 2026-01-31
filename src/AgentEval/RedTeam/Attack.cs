@@ -45,7 +45,7 @@ public static class Attack
     public static IAttackType Jailbreak => _jailbreak.Value;
 
     /// <summary>
-    /// PII Leakage attack (OWASP LLM06).
+    /// PII Leakage attack (OWASP LLM02).
     /// Tests for unauthorized disclosure of personal information.
     /// </summary>
     public static IAttackType PIILeakage => _piiLeakage.Value;
@@ -63,19 +63,19 @@ public static class Attack
     public static IAttackType IndirectInjection => _indirectInjection.Value;
 
     /// <summary>
-    /// Inference API Abuse attack (OWASP LLM04).
+    /// Inference API Abuse attack (OWASP LLM10).
     /// Tests for vulnerability to ML inference API abuse and resource exhaustion.
     /// </summary>
     public static IAttackType InferenceAPIAbuse => _inferenceApiAbuse.Value;
 
     /// <summary>
-    /// Excessive Agency attack (OWASP LLM08).
+    /// Excessive Agency attack (OWASP LLM06).
     /// Tests for vulnerability to scope expansion, privilege escalation, and unauthorized autonomous actions.
     /// </summary>
     public static IAttackType ExcessiveAgency => _excessiveAgency.Value;
 
     /// <summary>
-    /// Insecure Output Handling attack (OWASP LLM02).
+    /// Insecure Output Handling attack (OWASP LLM05).
     /// Tests for outputs containing injection payloads (XSS, SQL, commands) that could compromise downstream systems.
     /// </summary>
     public static IAttackType InsecureOutput => _insecureOutput.Value;
@@ -131,16 +131,16 @@ public static class Attack
     /// <returns>Attack types matching the OWASP ID.</returns>
     public static IReadOnlyList<IAttackType> ByOwaspId(string owaspId)
     {
-        // Once implemented, this will filter All by OwaspLlmId property.
-        // For now, we can define the mapping statically:
+        // Filter All attacks by their OwaspLlmId property.
+        // Mapping based on OWASP LLM Top 10 v2.0 (2025):
         return owaspId?.ToUpperInvariant() switch
         {
             "LLM01" => [PromptInjection, Jailbreak, IndirectInjection, EncodingEvasion],
-            "LLM02" => [InsecureOutput],
-            "LLM04" => [InferenceAPIAbuse],
-            "LLM06" => [PIILeakage],
+            "LLM02" => [PIILeakage],        // Sensitive Information Disclosure
+            "LLM05" => [InsecureOutput],    // Improper Output Handling
+            "LLM06" => [ExcessiveAgency],   // Excessive Agency
             "LLM07" => [SystemPromptExtraction],
-            "LLM08" => [ExcessiveAgency],
+            "LLM10" => [InferenceAPIAbuse], // Unbounded Consumption
             _ => []
         };
     }

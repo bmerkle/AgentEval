@@ -192,7 +192,7 @@ public class MITREATLASReporterTests
             AttackResults =
             [
                 CreateAttackResultWithMitre("PromptInjection", "LLM01", ["AML.T0051"], 10, 8),
-                CreateAttackResultWithMitre("PIILeakage", "LLM06", ["AML.T0037"], 5, 5)
+                CreateAttackResultWithMitre("PIILeakage", "LLM02", ["AML.T0037"], 5, 5)
             ],
             StartedAt = DateTimeOffset.UtcNow.AddMinutes(-1),
             CompletedAt = DateTimeOffset.UtcNow,
@@ -211,7 +211,7 @@ public class MITREATLASReporterTests
             AttackResults =
             [
                 CreateAttackResultWithMitre("PromptInjection", "LLM01", ["AML.T0051"], 10, 10),
-                CreateAttackResultWithMitre("PIILeakage", "LLM06", ["AML.T0037"], 5, 5)
+                CreateAttackResultWithMitre("PIILeakage", "LLM02", ["AML.T0037"], 5, 5)
             ],
             StartedAt = DateTimeOffset.UtcNow,
             CompletedAt = DateTimeOffset.UtcNow,
@@ -230,7 +230,7 @@ public class MITREATLASReporterTests
             AttackResults =
             [
                 CreateAttackResultWithMitre("PromptInjection", "LLM01", ["AML.T0051"], 10, 5),
-                CreateAttackResultWithMitre("PIILeakage", "LLM06", ["AML.T0037"], 5, 2)
+                CreateAttackResultWithMitre("PIILeakage", "LLM02", ["AML.T0037"], 5, 2)
             ],
             StartedAt = DateTimeOffset.UtcNow,
             CompletedAt = DateTimeOffset.UtcNow,

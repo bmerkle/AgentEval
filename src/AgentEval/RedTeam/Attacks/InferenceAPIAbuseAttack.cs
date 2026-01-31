@@ -5,7 +5,7 @@ namespace AgentEval.RedTeam.Attacks;
 
 /// <summary>
 /// Inference API abuse attacks - attempts to exploit ML inference APIs for resource exhaustion and information extraction.
-/// OWASP LLM04: Model Denial of Service
+/// OWASP LLM10: Unbounded Consumption (v2.0) - covers DoS, resource exhaustion, and API abuse
 /// MITRE ATLAS AML.T0045: Inference API
 /// </summary>
 /// <remarks>
@@ -39,7 +39,7 @@ public sealed class InferenceAPIAbuseAttack : IAttackType
         "Tests resistance to ML inference API abuse including resource exhaustion, rate limiting bypass, and model fingerprinting attempts.";
 
     /// <inheritdoc />
-    public string OwaspLlmId => "LLM04";
+    public string OwaspLlmId => "LLM10";
 
     /// <inheritdoc />
     public string[] MitreAtlasIds => ["AML.T0045"];
