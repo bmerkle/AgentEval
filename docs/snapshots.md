@@ -1,10 +1,10 @@
-# Snapshot Testing
+# Snapshot Evaluation
 
-AgentEval provides snapshot testing capabilities for comparing agent responses against saved baselines. This is especially useful for detecting regressions in agent behavior and ensuring consistent responses over time.
+AgentEval provides snapshot evaluation capabilities for comparing agent responses against saved baselines. This is especially useful for detecting regressions in agent behavior and ensuring consistent responses over time.
 
 ## Overview
 
-Snapshot testing allows you to:
+Snapshot evaluation allows you to:
 
 - Save agent responses as baselines (snapshots)
 - Compare new responses against saved snapshots
@@ -199,9 +199,9 @@ Snapshots are stored as JSON files:
   └── error-handling.json
 ```
 
-## Usage in Tests
+## Usage in Evaluations
 
-### Basic Snapshot Test
+### Basic Snapshot Evaluation
 
 ```csharp
 [Fact]
@@ -292,7 +292,7 @@ The semantic comparison uses Jaccard similarity on word sets, which works well f
 
 ## Integration with Verify.Xunit
 
-AgentEval also supports the popular [Verify](https://github.com/VerifyTests/Verify) library for more advanced snapshot testing:
+AgentEval also supports the popular [Verify](https://github.com/VerifyTests/Verify) library for more advanced snapshot evaluation:
 
 ```csharp
 using VerifyXunit;
@@ -351,7 +351,7 @@ var options = new SnapshotOptions
 };
 ```
 
-### Testing Multiple Response Formats
+### Evaluating Multiple Response Formats
 
 ```csharp
 [Theory]
@@ -370,6 +370,6 @@ public async Task Response_Format_MatchesSnapshot(string format)
 
 ## See Also
 
-- [CLI Reference](cli.md) - Running snapshot tests from command line
-- [Conversations](conversations.md) - Snapshot testing multi-turn conversations
+- [CLI Reference](cli.md) - Running snapshot evaluations from command line
+- [Conversations](conversations.md) - Snapshot evaluating multi-turn conversations
 - [Extensibility](extensibility.md) - Custom snapshot comparers

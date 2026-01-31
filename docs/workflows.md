@@ -1,8 +1,8 @@
-# Workflow Testing
+# Workflow Evaluation
 
-> **Comprehensive guide to testing multi-agent workflows with AgentEval**
+> **Comprehensive guide to evaluating multi-agent workflows with AgentEval**
 
-AgentEval provides first-class support for testing multi-agent workflows, including graph-based execution, conditional routing, parallel branches, and edge traversal assertions.
+AgentEval provides first-class support for evaluating multi-agent workflows, including graph-based execution, conditional routing, parallel branches, and edge traversal assertions.
 
 ## Overview
 
@@ -15,7 +15,7 @@ Modern AI applications often orchestrate multiple agents in complex workflows:
 AgentEval captures the full execution graph, enabling you to:
 - Assert on which edges were traversed
 - Verify routing decisions
-- Test parallel branch completion
+- Evaluate parallel branch completion
 - Replay and visualize workflow execution
 
 ## Quick Start
@@ -474,9 +474,9 @@ foreach (var edge in result.Graph?.TraversedEdges ?? [])
 }
 ```
 
-## Testing Patterns
+## Evaluation Patterns
 
-### Test Sequential Workflow
+### Evaluate Sequential Workflow
 
 ```csharp
 [Fact]
@@ -498,7 +498,7 @@ public async Task SequentialWorkflow_Should_ExecuteInOrder()
 }
 ```
 
-### Test Conditional Routing
+### Evaluate Conditional Routing
 
 ```csharp
 [Fact]
@@ -520,7 +520,7 @@ public async Task ConditionalWorkflow_Should_RouteCorrectly()
 }
 ```
 
-### Test Parallel Execution
+### Evaluate Parallel Execution
 
 ```csharp
 [Fact]
@@ -541,7 +541,7 @@ public async Task ParallelWorkflow_Should_ExecuteConcurrently()
 }
 ```
 
-### Test Error Handling
+### Evaluate Error Handling
 
 ```csharp
 [Fact]
@@ -647,6 +647,6 @@ await new JUnitXmlExporter().ExportAsync(report, outputStream);
 ## See Also
 
 - [Architecture Overview](architecture.md)
-- [Benchmarks](benchmarks.md) - Including BFCL workflow testing
-- [CLI Usage](cli.md) - Running workflow tests from command line
-- [Conversations](conversations.md) - Multi-turn conversation testing
+- [Benchmarks](benchmarks.md) - Including BFCL workflow evaluation
+- [CLI Usage](cli.md) - Running workflow evaluations from command line
+- [Conversations](conversations.md) - Multi-turn conversation evaluation

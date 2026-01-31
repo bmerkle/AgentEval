@@ -10,14 +10,14 @@ AgentEval is in **beta** with all core features complete and ready for productio
 
 ## What's Shipped
 
-### Core Evaluation & Testing
+### Core Evaluation
 - **evaluation harness** for AI agents (`MAFEvaluationHarness`, `IEvaluationHarness`)
 - **Fluent assertions** for tool usage, performance, and responses
 - **stochastic evaluation** - run N times, assert on pass rates
 - **Model comparison** with statistical significance
-- **Multi-turn conversation testing** (`ConversationRunner`)
-- **Workflow testing** for multi-agent orchestration
-- **Snapshot testing** for regression detection
+- **Multi-turn conversation evaluation** (`ConversationRunner`)
+- **Workflow evaluation** for multi-agent orchestration
+- **Snapshot evaluation** for regression detection
 
 ### Metrics & Evaluation
 - **RAG metrics:** Faithfulness, Relevance, Context Precision/Recall, Answer Correctness
@@ -58,8 +58,8 @@ We're focused on making AgentEval the most comprehensive evaluation toolkit for 
 - **CLI enhancements** - summary views, diff comparisons, visualization
 - **Additional framework adapters** - Semantic Kernel, LangChain.NET
 - **Visual reporting** - HTML reports, interactive diagrams
-- **Experiment management** - A/B testing, baseline comparison
-- **Safety testing** - red-teaming, adversarial inputs
+- **Experiment management** - A/B evaluation, baseline comparison
+- **Safety evaluation** - red-teaming, adversarial inputs
 
 ---
 

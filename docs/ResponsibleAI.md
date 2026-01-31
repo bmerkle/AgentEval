@@ -4,7 +4,7 @@ AgentEval's ResponsibleAI module provides **comprehensive safety metrics** for e
 
 ## Overview
 
-The ResponsibleAI namespace complements [Red Team security testing](redteam.md) by focusing on **content safety** rather than security vulnerabilities:
+The ResponsibleAI namespace complements [Red Team security evaluation](redteam.md) by focusing on **content safety** rather than security vulnerabilities:
 
 | Metric | Type | Focus Area |
 |--------|------|------------|
@@ -321,10 +321,10 @@ public async Task Agent_ProducesResponsibleContent()
 
 ## Combining with Red Team
 
-ResponsibleAI metrics complement Red Team security testing:
+ResponsibleAI metrics complement Red Team security evaluation:
 
 ```csharp
-// Security testing (Red Team)
+// Security evaluation (Red Team)
 var securityResult = await agent.QuickRedTeamScanAsync();
 securityResult.Should().HavePassed();
 
@@ -415,7 +415,7 @@ For production systems with high volume, consider using Azure AI Content Safety 
 
 ## See Also
 
-- [Red Team Evaluation](redteam.md) - Security-focused testing
+- [Red Team Evaluation](redteam.md) - Security-focused evaluation
 - [Metrics Reference](metrics-reference.md) - Complete metrics documentation
 - [Evaluation Guide](evaluation-guide.md) - End-to-end evaluation setup
 - [Assertions Reference](assertions.md) - Fluent assertion API

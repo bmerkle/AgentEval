@@ -294,5 +294,5 @@ DatasetLoaderFactory.Register(".custom", () => new JsonlDatasetLoader());
 ## See Also
 
 - [Benchmarks](benchmarks.md) - Running performance benchmarks
-- [Conversations](conversations.md) - Multi-turn testing
+- [Conversations](conversations.md) - Multi-turn evaluation
 - [Extensibility](extensibility.md) - Custom exporters and loaders

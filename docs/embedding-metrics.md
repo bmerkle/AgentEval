@@ -423,4 +423,4 @@ var fullResult = await faithfulnessMetric.EvaluateAsync(context);
 
 - [Architecture Overview](architecture.md) - Understanding the metric hierarchy
 - [Extensibility Guide](extensibility.md) - Creating custom metrics
-- [Benchmarks Guide](benchmarks.md) - Performance testing
+- [Benchmarks Guide](benchmarks.md) - Performance evaluation

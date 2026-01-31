@@ -2,7 +2,7 @@
 
 > **Time to complete:** 5 minutes
 
-This guide walks you through installing AgentEval and writing your first AI agent test.
+This guide walks you through installing AgentEval and writing your first AI agent evaluation.
 
 ## Quick Path
 
@@ -10,12 +10,12 @@ This guide walks you through installing AgentEval and writing your first AI agen
 |------|------|
 | **1 min** | Install NuGet package |
 | **2 min** | Create a MAF agent |
-| **2 min** | Write your first test |
+| **2 min** | Write your first evaluation |
 
 ## Prerequisites
 
 - .NET 8.0, 9.0, or 10.0 SDK
-- An xUnit, NUnit, or MSTest test project
+- An xUnit, NUnit, or MSTest project
 - Azure OpenAI or OpenAI API access (for LLM-as-judge evaluation)
 
 ### Mock vs Real Mode
@@ -141,9 +141,9 @@ static string GetWeather(
 }
 ```
 
-## Your First Test
+## Your First Evaluation
 
-### 1. Create a Test Class
+### 1. Create an Evaluation Class
 
 ```csharp
 using AgentEval;
@@ -155,7 +155,7 @@ using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Xunit;
 
-public class MyAgentTests
+public class MyAgentEvaluations
 {
     [Fact]
     public async Task Agent_ShouldRespondToGreeting()
@@ -165,15 +165,15 @@ public class MyAgentTests
         var adapter = new MAFAgentAdapter(agent);
         var harness = new MAFEvaluationHarness();
 
-        // Arrange: Define the test case
+        // Arrange: Define the evaluation case
         var testCase = new TestCase
         {
-            Name = "Greeting Test",
+            Name = "Greeting Evaluation",
             Input = "Hello, my name is Alice!",
             ExpectedOutputContains = "Alice"
         };
 
-        // Act: Run the test
+        // Act: Run the evaluation
         var result = await harness.RunEvaluationAsync(adapter, testCase);
 
         // Assert: Check results
@@ -204,7 +204,7 @@ public class MyAgentTests
 
 ### 2. Add Tool Assertions
 
-AgentEval shines when testing agents that use tools:
+AgentEval shines when evaluating agents that use tools:
 
 ```csharp
 [Fact]
@@ -217,7 +217,7 @@ public async Task Agent_ShouldUseWeatherTool()
 
     var testCase = new TestCase
     {
-        Name = "Weather Query",
+        Name = "Weather Query Evaluation",
         Input = "What's the weather in Seattle?"
     };
 
@@ -275,7 +275,7 @@ public async Task Agent_ShouldMeetPerformanceSLAs()
 
     var testCase = new TestCase
     {
-        Name = "Performance Test",
+        Name = "Performance Evaluation",
         Input = "Summarize the quarterly report."
     };
 
@@ -301,11 +301,11 @@ using Azure.AI.OpenAI;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
-public class AdvancedAgentTests
+public class AdvancedAgentEvaluations
 {
     private readonly IChatClient _evaluator;
 
-    public AdvancedAgentTests()
+    public AdvancedAgentEvaluations()
     {
         // Create an evaluator (any IChatClient implementation)
         var client = new AzureOpenAIClient(
@@ -326,7 +326,7 @@ public class AdvancedAgentTests
 
         var testCase = new TestCase
         {
-            Name = "Helpfulness Test",
+            Name = "Helpfulness Evaluation",
             Input = "How do I reset my password?",
             EvaluationCriteria = "Response should provide clear step-by-step instructions"
         };
@@ -361,7 +361,7 @@ public class AdvancedAgentTests
 }
 ```
 
-## Running Tests from CLI
+## Running from CLI
 
 AgentEval includes a CLI for batch evaluation:
 
@@ -376,9 +376,9 @@ agenteval eval --dataset tests.yaml --output results/
 agenteval list exporters
 ```
 
-## Dataset-Driven Testing
+## Dataset-Driven Evaluation
 
-Load test cases from files:
+Load evaluation cases from files:
 
 ```csharp
 using AgentEval.DataLoaders;
@@ -388,9 +388,9 @@ using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 [Fact]
-public async Task Agent_ShouldPassAllDatasetTests()
+public async Task Agent_ShouldPassAllDatasetEvaluations()
 {
-    // Load test cases from YAML
+    // Load evaluation cases from YAML
     var loader = new YamlDatasetLoader();
     var testCases = await loader.LoadAsync("testcases.yaml");
 
@@ -399,7 +399,7 @@ public async Task Agent_ShouldPassAllDatasetTests()
     var harness = new MAFEvaluationHarness(_evaluator);
     var adapter = new MAFAgentAdapter(agent);
 
-    // Run all test cases
+    // Run all evaluation cases
     var summary = await harness.RunBatchAsync(adapter, testCases);
 
     // Assert all passed
@@ -483,16 +483,16 @@ result.ActualOutput!.Should()
     .HaveLengthBetween(100, 500);
 ```
 
-### Common Test Patterns
+### Common Evaluation Patterns
 
 | Pattern | Use Case |
-|---------|----------|
+|---------|---------|
 | `ExpectedOutputContains` | Simple substring matching |
 | `EvaluationCriteria` | AI-powered quality evaluation |
 | `ToolCalls.Should()` | Assert tool usage |
 | `Performance.Should()` | Assert latency, cost, tokens |
-| `ConversationRunner` | Multi-turn testing |
-| `SnapshotComparer` | Regression testing |
+| `ConversationRunner` | Multi-turn evaluation |
+| `SnapshotComparer` | Regression evaluation |
 
 ---
 
@@ -526,11 +526,11 @@ $env:AZURE_OPENAI_DEPLOYMENT  # Required: Your deployment name (e.g., gpt-4o)
 
 ### Rate Limiting (HTTP 429)
 
-**Symptom:** `TooManyRequests` error during batch tests
+**Symptom:** `TooManyRequests` error during batch evaluations
 
-**Solution:** Add delays between tests:
+**Solution:** Add delays between evaluations:
 ```csharp
-var options = new TestRunOptions
+var options = new EvaluationRunOptions
 {
     DelayBetweenTests = TimeSpan.FromSeconds(1)
 };
@@ -538,13 +538,13 @@ var options = new TestRunOptions
 
 ### Timeout Errors
 
-**Symptom:** Tests timeout waiting for response
+**Symptom:** Evaluations timeout waiting for response
 
-**Solution:** Increase timeout in test configuration:
+**Solution:** Increase timeout in evaluation configuration:
 ```csharp
 var testCase = new TestCase
 {
-    Name = "Long Running Test",
+    Name = "Long Running Evaluation",
     Input = "Generate a detailed report...",
     TimeoutSeconds = 60  // Default is 30
 };

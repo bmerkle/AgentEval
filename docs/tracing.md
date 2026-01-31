@@ -1,16 +1,16 @@
 # Trace Record & Replay
 
-AgentEval provides powerful **Record & Replay** capabilities that enable deterministic testing of AI agents. This "time-travel debugging" feature allows you to capture agent executions once and replay them infinitely without calling the underlying LLM.
+AgentEval provides powerful **Record & Replay** capabilities that enable deterministic evaluation of AI agents. This "time-travel debugging" feature allows you to capture agent executions once and replay them infinitely without calling the underlying LLM.
 
 ## Why Record & Replay?
 
 | Benefit | Description |
 |---------|-------------|
-| **Deterministic Testing** | Replay produces identical responses every time |
+| **Deterministic Evaluation** | Replay produces identical responses every time |
 | **Cost Reduction** | No LLM API calls during replay |
 | **Speed** | Instant replay vs. network latency |
 | **CI/CD Integration** | Reliable tests without API credentials |
-| **Regression Testing** | Detect behavior changes over time |
+| **Regression Evaluation** | Detect behavior changes over time |
 | **Debugging** | Inspect and analyze past executions |
 
 ## Core Components
@@ -259,7 +259,7 @@ tests/
 ```
 
 ### 2. Version Control
-Commit traces to source control for regression testing:
+Commit traces to source control for regression evaluation:
 ```bash
 git add tests/traces/*.json
 git commit -m "Add baseline traces for v1.0"
@@ -273,7 +273,7 @@ Use replay in CI pipelines without API credentials:
   # No AZURE_OPENAI_API_KEY needed!
 ```
 
-### 4. Golden Master Testing
+### 4. Golden Master Evaluation
 Compare new responses against recorded "golden" responses:
 ```csharp
 var goldenTrace = TraceSerializer.Load("golden-weather.json");
@@ -301,8 +301,8 @@ Assert.True(newDuration <= oldDuration * 1.1,
 
 ## Related Guides
 
-- [Conversations](conversations.md) - Multi-turn conversation testing
-- [Workflow Testing](workflows.md) - Multi-agent orchestration testing
+- [Conversations](conversations.md) - Multi-turn conversation evaluation
+- [Workflow Evaluation](workflows.md) - Multi-agent orchestration evaluation
 - [Snapshots](snapshots.md) - Response comparison with diff
 - [Benchmarks](benchmarks.md) - Performance benchmarking
 

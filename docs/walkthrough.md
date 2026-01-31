@@ -1,14 +1,14 @@
-# Walkthrough: Testing Your First AI Agent
+# Walkthrough: Evaluating Your First AI Agent
 
-This walkthrough guides you through testing an AI agent with AgentEval, from setup to assertions.
+This walkthrough guides you through evaluating an AI agent with AgentEval, from setup to assertions.
 
 ---
 
 ## What You'll Learn
 
-1. Setting up a evaluation harness
-2. Wrapping an agent for testing
-3. Running a test and capturing results
+1. Setting up an evaluation harness
+2. Wrapping an agent for evaluation
+3. Running an evaluation and capturing results
 4. Asserting on tool usage
 5. Asserting on performance
 6. Exporting results for CI/CD
@@ -23,14 +23,14 @@ This walkthrough guides you through testing an AI agent with AgentEval, from set
 
 ---
 
-## Step 1: Create a evaluation harness
+## Step 1: Create an evaluation harness
 
 The evaluation harness runs your agent and captures all the data needed for assertions.
 
 ```csharp
 using AgentEval.MAF;
 
-// Create a evaluation harness with optional verbose logging
+// Create an evaluation harness with optional verbose logging
 var harness = new MAFEvaluationHarness(verbose: true);
 ```
 
@@ -68,7 +68,7 @@ var myAgent = new ChatClientAgent(
         ]
     });
 
-// Then wrap it for testing
+// Then wrap it for evaluation
 var adapter = new MAFAgentAdapter(myAgent);
 ```
 
@@ -83,16 +83,16 @@ var adapter = new ChatClientAgentAdapter(chatClient, "MyAgent");
 
 ---
 
-## Step 3: Define a Test Case
+## Step 3: Define an Evaluation Case
 
-Test cases describe what to test and how to evaluate the results:
+Evaluation cases describe what to evaluate and how to judge the results:
 
 ```csharp
 using AgentEval.Models;
 
 var testCase = new TestCase
 {
-    Name = "Travel Planning Test",
+    Name = "Travel Planning Evaluation",
     Input = "Plan a trip to Paris for next weekend",
     
     // Optional: Expected tools the agent should use
@@ -113,17 +113,17 @@ var testCase = new TestCase
 
 ---
 
-## Step 4: Run the Test
+## Step 4: Run the Evaluation
 
-Execute the test and capture results:
+Execute the evaluation and capture results:
 
 ```csharp
 using AgentEval.Core;
 
-// Run the test - tool tracking and performance metrics are captured automatically
+// Run the evaluation - tool tracking and performance metrics are captured automatically
 var result = await harness.RunEvaluationAsync(adapter, testCase);
 
-// Check if the test passed
+// Check if the evaluation passed
 Console.WriteLine($"Passed: {result.Passed}");
 Console.WriteLine($"Score: {result.Score}");
 Console.WriteLine($"Output: {result.ActualOutput}");
@@ -273,18 +273,18 @@ var harness = new MAFEvaluationHarness(verbose: true);
 var adapter = new MAFAgentAdapter(myAgent);
 
 // ═══════════════════════════════════════════════════════════════
-// 3. Define test case
+// 3. Define evaluation case
 // ═══════════════════════════════════════════════════════════════
 var testCase = new TestCase
 {
-    Name = "Travel Planning Test",
+    Name = "Travel Planning Evaluation",
     Input = "Plan a trip to Paris for next weekend",
     ExpectedTools = new[] { "SearchFlights", "SearchHotels", "GetWeather" },
     PassingScore = 70
 };
 
 // ═══════════════════════════════════════════════════════════════
-// 4. Run test
+// 4. Run evaluation
 // ═══════════════════════════════════════════════════════════════
 var result = await harness.RunEvaluationAsync(adapter, testCase);
 
@@ -308,7 +308,7 @@ result.Performance!
 var exporter = new JUnitExporter();
 await exporter.ExportAsync(new[] { result }, "results.xml");
 
-Console.WriteLine($"✅ Test {(result.Passed ? "PASSED" : "FAILED")}");
+Console.WriteLine($"✅ Evaluation {(result.Passed ? "PASSED" : "FAILED")}");
 Console.WriteLine($"   Output: {result.ActualOutput}");
 
 // ═══════════════════════════════════════════════════════════════
@@ -342,7 +342,7 @@ static string GetWeather(
 
 ## Using with xUnit/NUnit/MSTest
 
-AgentEval integrates naturally with test frameworks:
+AgentEval integrates naturally with evaluation frameworks:
 
 ```csharp
 using AgentEval.MAF;
@@ -386,7 +386,7 @@ public class TravelAgentTests
         var adapter = new MAFAgentAdapter(_agent);
         var testCase = new TestCase
         {
-            Name = "Travel Planning",
+            Name = "Travel Planning Evaluation",
             Input = "Plan a trip to Paris",
             ExpectedTools = new[] { "SearchFlights" }
         };
@@ -417,7 +417,7 @@ public class TravelAgentTests
 ## Next Steps
 
 - [Architecture](architecture.md) - Understand the framework design
-- [CLI Reference](cli.md) - Run tests from command line
-- [Benchmarks](benchmarks.md) - Performance testing at scale
-- [Conversations](conversations.md) - Multi-turn testing
-- [Snapshots](snapshots.md) - Regression testing
+- [CLI Reference](cli.md) - Run evaluations from command line
+- [Benchmarks](benchmarks.md) - Performance evaluation at scale
+- [Conversations](conversations.md) - Multi-turn evaluation
+- [Snapshots](snapshots.md) - Regression evaluation

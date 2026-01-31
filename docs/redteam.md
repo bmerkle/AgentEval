@@ -1,6 +1,6 @@
 # Red Team Evaluation
 
-AgentEval's Red Team module provides **automated security testing** for AI agents with probes based on [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/) and [MITRE ATLAS](https://atlas.mitre.org/) taxonomies.
+AgentEval's Red Team module provides **automated security evaluation** for AI agents with probes based on [OWASP LLM Top 10](https://owasp.org/www-project-top-10-for-large-language-model-applications/) and [MITRE ATLAS](https://atlas.mitre.org/) taxonomies.
 
 ## Background: Why OWASP LLM Top 10 & MITRE ATLAS?
 
@@ -113,12 +113,12 @@ The MVP includes **9 core attack types** covering the most critical OWASP LLM 20
 
 ## Intensity Levels
 
-Control the depth of testing with intensity levels:
+Control the depth of evaluation with intensity levels:
 
 | Intensity | Probes | Use Case |
 |-----------|--------|----------|
 | **Quick** | ~5-10 per attack | Fast feedback during development |
-| **Moderate** | ~15-25 per attack | Standard CI/CD testing |
+| **Moderate** | ~15-25 per attack | Standard CI/CD evaluation |
 | **Comprehensive** | ~30-50 per attack | Pre-release security audit |
 
 ```csharp
@@ -471,7 +471,7 @@ await exporter.ExportToFileAsync(result, "security-report.md");
 - **Attack Categories**: 3 of 10 OWASP LLM categories
 - **MITRE ATLAS Techniques**: 5 techniques tested
 - **Test Duration**: 12.45 seconds
-- **Parallel Execution**: Disabled (sequential testing)
+- **Parallel Execution**: Disabled (sequential evaluation)
 
 ### Attack Success Rate by Category
 - Overall ASR: **6.4%** (3 successful attacks / 47 total)

@@ -1,12 +1,12 @@
 # Stochastic Evaluation Guide
 
-> **LLMs are non-deterministic. Your tests should account for that.**
+> **LLMs are non-deterministic. Your evaluations should account for that.**
 
 ---
 
 ## The Problem: "It Worked When I Tried It"
 
-You run a test. It passes. You run it again. It fails. Welcome to LLM testing.
+You run an evaluation. It passes. You run it again. It fails. Welcome to LLM evaluation.
 
 ```
 Run 1: ✅ Pass (score: 95)
@@ -18,7 +18,7 @@ Run 5: ✅ Pass (score: 91)
 
 **Was that a bug? Random variation? How do you know if your agent "works"?**
 
-Traditional unit testing assumes determinism. LLM testing requires **statistical thinking**.
+Traditional unit checks assume determinism. LLM evaluation requires **statistical thinking**.
 
 ---
 
@@ -33,7 +33,7 @@ var result = await stochasticRunner.RunStochasticTestAsync(
     agent, 
     testCase, 
     new StochasticOptions(
-        Runs: 10,                    // Run the test 10 times
+        Runs: 10,                    // Run the evaluation 10 times
         SuccessRateThreshold: 0.8    // Expect 80%+ success
     ));
 
@@ -48,7 +48,7 @@ result.Statistics.MeanScore.Should().BeGreaterThan(90.0);
 
 ## Quick Start
 
-### Basic Stochastic Test
+### Basic Stochastic Evaluation
 
 ```csharp
 using AgentEval.Comparison;
@@ -116,10 +116,10 @@ Console.WriteLine($"Successes: {stats.SuccessCount}");
 
 ```csharp
 var options = new StochasticOptions(
-    Runs: 10,                         // Number of test iterations
+    Runs: 10,                         // Number of evaluation iterations
     SuccessRateThreshold: 0.8,        // Minimum success rate (0.0-1.0)
     ScoreThreshold: 70.0,             // Minimum score to count as "success"
-    ParallelExecution: false,         // Run tests in parallel?
+    ParallelExecution: false,         // Run evaluations in parallel?
     ContinueOnFailure: true,          // Continue after first failure?
     WarmupRuns: 1                     // Warm-up runs (not counted)
 );
@@ -129,7 +129,7 @@ var options = new StochasticOptions(
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `Runs` | 10 | Total test iterations |
+| `Runs` | 10 | Total evaluation iterations |
 | `SuccessRateThreshold` | 0.8 | Pass if success rate ≥ this |
 | `ScoreThreshold` | 70.0 | Score ≥ this counts as success |
 | `ParallelExecution` | false | Run iterations concurrently |
@@ -227,7 +227,7 @@ foreach (var run in result.IndividualRuns)
 
 ## Advanced Patterns
 
-### Stochastic Evaluation Across Test Cases
+### Stochastic Evaluation Across Evaluation Cases
 
 ```csharp
 var testCases = new[]
@@ -364,7 +364,7 @@ var options = new StochasticOptions(
 
 ## Combining with Trace Replay
 
-Run stochastic tests without API costs by recording once, replaying many times:
+Run stochastic evaluations without API costs by recording once, replaying many times:
 
 ```csharp
 // RECORD: Capture 10 real executions
@@ -405,7 +405,7 @@ Console.WriteLine($"Success Rate: {stats.SuccessRate:P0}");
 | Critical user-facing features | Know actual reliability, not lucky-run rate |
 | LLM/model upgrades | Detect regressions with statistical confidence |
 | Prompt changes | Measure impact across multiple runs |
-| A/B testing agents | Compare with proper statistics |
+| A/B evaluating agents | Compare with proper statistics |
 | SLA validation | "95% of requests succeed" needs measurement |
 
 ### ❌ Don't Use Stochastic Evaluation For:
@@ -413,8 +413,8 @@ Console.WriteLine($"Success Rate: {stats.SuccessRate:P0}");
 | Scenario | Why |
 |----------|-----|
 | Deterministic code | No benefit (same result every time) |
-| Trace replay tests | Already deterministic |
-| Quick feedback loops | Too slow (run unit tests instead) |
+| Trace replay evaluations | Already deterministic |
+| Quick feedback loops | Too slow (run unit evaluations instead) |
 | Cost-sensitive CI | API costs multiply by run count |
 
 ---
@@ -522,14 +522,14 @@ toolCallRates.Should().BeGreaterThan(0.9,
 | Confidence | Low (1 sample) | High (N samples) |
 | Cost | 1 API call | N API calls |
 
-**stochastic evaluation transforms LLM testing from "hope it works" to "know how often it works."**
+**stochastic evaluation transforms LLM evaluation from "hope it works" to "know how often it works."**
 
 ---
 
 ## Next Steps
 
 - [Model Comparison](model-comparison.md) - Compare models with stochastic evaluation
-- [Trace Record & Replay](tracing.md) - Reduce API costs in stochastic tests
+- [Trace Record & Replay](tracing.md) - Reduce API costs in stochastic evaluations
 - [Code Gallery](showcase/code-gallery.md) - See stochastic evaluation examples
 
 ---

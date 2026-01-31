@@ -159,7 +159,7 @@ dotnet test
 | "Tests fail randomly!" | **stochastic evaluation** - assert on pass *rate*, not single run |
 | "Which model should I use?" | **Model comparison** with cost/quality recommendations |
 | "Is my agent compliant?" | **Behavioral policies** - guardrails as code |
-| "Is my agent secure?" | **Red team testing** - 192 OWASP LLM 2025 security probes |
+| "Is my agent secure?" | **Red team evaluation** - 192 OWASP LLM 2025 security probes |
 | "Is content safe/unbiased?" | **ResponsibleAI metrics** - toxicity, bias, misinformation |
 | "Is my RAG hallucinating?" | **Faithfulness metrics** - grounding verification |
 | "How do I debug CI failures?" | **Trace replay** - capture and reproduce executions |
@@ -206,9 +206,9 @@ dotnet test
     
     Faithfulness, Relevance, Context Precision/Recall
 
--   **🔄 Multi-Turn Testing**
+-   **🔄 Multi-Turn Evaluation**
     
-    Full conversation flow testing
+    Full conversation flow evaluation
 
 </div>
 

@@ -22,7 +22,7 @@
     href: model-comparison.md
   - name: Conversations
     href: conversations.md
-  - name: Workflow Testing
+  - name: Workflow Evaluation
     href: workflows.md
   - name: Snapshots
     href: snapshots.md
@@ -47,7 +47,7 @@
     href: ci-cd-integration.md
   - name: CLI Reference
     href: cli.md
-  - name: Rich Test Output
+  - name: Rich Evaluation Output
     href: rich-test-output-guide.md
   - name: Security Scanning
     href: security-scanning.md
