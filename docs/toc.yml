@@ -1,4 +1,4 @@
-# AgentEval Documentation - Navigation (6 top-level items max)
+# AgentEval Documentation - Navigation
 
 - name: Home
   href: index.md
@@ -12,7 +12,7 @@
   - name: Step-by-Step Walkthrough
     href: walkthrough.md
 
-- name: Features
+- name: Core Features
   items:
   - name: Fluent Assertions
     href: assertions.md
@@ -20,24 +20,34 @@
     href: stochastic-evaluation.md
   - name: Model Comparison
     href: model-comparison.md
+  - name: Trace Recording
+    href: tracing.md
+
+- name: Evaluation Coverage
+  items:
+  - name: Red Team Security
+    href: redteam.md
+  - name: Responsible AI
+    href: ResponsibleAI.md
   - name: Conversations
     href: conversations.md
   - name: Workflow Evaluation
     href: workflows.md
   - name: Snapshots
     href: snapshots.md
-  - name: Trace Recording
-    href: tracing.md
-  - name: Evaluation Guide
-    href: evaluation-guide.md
+
+- name: Metrics
+  items:
   - name: Metrics Reference
     href: metrics-reference.md
   - name: RAG Metrics
     href: rag-metrics.md
   - name: Agentic Metrics
     href: agentic-metrics.md
-  - name: Implementing Embeddings
+  - name: Embedding Metrics
     href: embedding-metrics.md
+  - name: Evaluation Guide
+    href: evaluation-guide.md
   - name: Benchmarks
     href: benchmarks.md
 
@@ -51,10 +61,6 @@
     href: rich-test-output-guide.md
   - name: Security Scanning
     href: security-scanning.md
-  - name: Red Team Evaluation
-    href: redteam.md
-  - name: Responsible AI
-    href: ResponsibleAI.md
 
 - name: API Reference
   items:

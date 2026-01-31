@@ -351,37 +351,37 @@ misInfoResult.Should().HavePassed();
 
 ## Key Features
 
-### Evaluation and Assertions
-- Fluent tool assertions - order, arguments, results, duration
+### Core Features
+- Fluent assertions - tool order, arguments, results, duration
+- Stochastic evaluation - run N times, analyze statistics (mean, std dev, p90)
+- Model comparison - compare across models with recommendations
+- Trace recording - capture executions for debugging and reproduction
 - Performance assertions - latency, TTFT, tokens, cost
-- Response assertions - contains, patterns, length
-- Behavioral policies - NeverCallTool, MustConfirmBefore, NeverPassArgumentMatching
+
+### Evaluation Coverage
+- Red Team security - 192 probes, OWASP LLM 2025, MITRE ATLAS coverage
+- Responsible AI - toxicity, bias, misinformation detection
 - Multi-turn conversations - full conversation flow evaluation
+- Workflow evaluation - multi-agent orchestration and routing
 - Snapshot evaluation - regression detection with semantic similarity
 
-### Evaluation and Metrics  
+### Metrics
 - RAG metrics - faithfulness, relevance, context precision/recall, correctness
 - Agentic metrics - tool selection, arguments, success, efficiency
 - Embedding metrics - semantic similarity (100x cheaper than LLM)
 - Custom metrics - extensible for your domain
 
-### Reliability and Confidence
-- stochastic evaluation - run N times, analyze statistics (mean, std dev, p90)
-- Model comparison - compare across models with recommendations
-- Calibrated judging - multi-model consensus evaluation
-- Trace recording - capture executions for debugging and reproduction
-
 ### Developer Experience
 - Rich output - configurable verbosity (None/Summary/Detailed/Full)
 - Time-travel traces - step-by-step execution capture in JSON
 - Trace artifacts - auto-save traces for failed evaluations
-- AgentEvalTestBase - optional base class for auto-tracing
+- Behavioral policies - NeverCallTool, MustConfirmBefore, NeverPassArgumentMatching
 
-### Enterprise Ready
-- CI/CD integration - JUnit XML, Markdown, JSON export, trace artifacts
+### Integration
+- CI/CD integration - JUnit XML, Markdown, JSON, SARIF export
 - CLI tool - agenteval eval, agenteval init
 - Benchmarks - custom patterns with dataset loaders (JSON, YAML, CSV, JSONL)
-- 1,000+ tests (�3 TFMs) - production quality
+- 1,000+ tests (×3 TFMs) - production quality
 
 ---
 

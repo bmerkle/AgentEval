@@ -16,6 +16,12 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_NOLOGO: true
 
+# Required permissions for SARIF upload to GitHub Security tab
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
 jobs:
   security:
     runs-on: ubuntu-latest
@@ -45,7 +51,7 @@ jobs:
 
     - name: Upload DevSkim scan results to GitHub Security tab
       if: always()
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: devskim-results.sarif
       continue-on-error: true  # Don't fail if GHAS is not available
