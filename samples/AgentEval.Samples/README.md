@@ -36,13 +36,13 @@ You'll see an interactive menu to run each sample.
 | **05 - Comprehensive RAG** | **Complete RAG: Build, Retrieve, Evaluate (8 metrics + IR)** ⭐⭐ | 15 min |
 | **06 - Benchmarks** | PerformanceBenchmark, AgenticBenchmark | 7 min |
 | **07 - Snapshot Testing** | Regression testing, JSON diff, scrubbing | 5 min |
-| **08 - Conversation Testing** | Multi-turn, ConversationRunner | 7 min |
-| **09 - Workflow Testing** | Orchestration, edge assertions | 7 min |
+| **08 - Conversation Evaluation** | Multi-turn, ConversationRunner | 7 min |
+| **09 - Workflow Evaluation** | Orchestration, edge assertions | 7 min |
 | **10 - Datasets & Export** | Batch evaluation, JUnit/Markdown export | 5 min |
 | **11 - Because Assertions** | `.Because()` explanations, debugging context | 5 min |
-| **12 - Policy & Safety Testing** | Safety policies, content filters, red team testing | 7 min |
-| **13 - Trace Record & Replay** | Deterministic testing, time-travel debugging | 7 min |
-| **14 - Stochastic Testing** | Multi-run reliability, statistical analysis | 7 min |
+| **12 - Policy & Safety Evaluation** | Safety policies, content filters, red team evaluation | 7 min |
+| **13 - Trace Record & Replay** | Deterministic evaluation, time-travel debugging | 7 min |
+| **14 - Stochastic Evaluation** | Multi-run reliability, statistical analysis | 7 min |
 | **15 - Model Comparison** | Compare & rank multiple models | 7 min |
 | **16 - Combined Test** | Stochastic + Model Comparison together | 5 min |
 | **17 - Quality & Safety Metrics** | Groundedness, Coherence, Fluency metrics | 5 min |
@@ -82,7 +82,7 @@ Samples 1-13 work fully without credentials, demonstrating:
 - Tool tracking and assertions
 - Performance metrics
 - Conversation flows
-- Workflow testing
+- Workflow evaluation
 - Snapshot testing
 - Trace record/replay
 
@@ -268,8 +268,8 @@ result.ToolUsage
         .Because("Payment processing must be error-free");
 ```
 
-### Sample 12: Policy & Safety Testing
-Test safety policies and content filtering.
+### Sample 12: Policy & Safety Evaluation
+Evaluate safety policies and content filtering.
 
 ```csharp
 var safetyResult = await harness.RunSafetyTestAsync(adapter, new SafetyTestCase
@@ -361,4 +361,4 @@ result.Performance.Should()
 
 ---
 
-**Happy Testing!** 🎉
+**Happy Evaluating!** 🎉

@@ -4,17 +4,17 @@
 namespace AgentEval.Samples;
 
 /// <summary>
-/// Sample 08: Conversation Testing - Multi-turn agent interactions
+/// Sample 08: Conversation Evaluation - Multi-turn agent interactions
 /// 
 /// This demonstrates:
-/// - Using ConversationRunner for multi-turn testing
-/// - Defining conversation test cases with checkpoints
+/// - Using ConversationRunner for multi-turn evaluation
+/// - Defining conversation evaluation cases with checkpoints
 /// - Asserting behavior across turns
-/// - Testing memory/context retention
+/// - Evaluating memory/context retention
 /// 
 /// ⏱️ Time to understand: 5 minutes
 /// </summary>
-public static class Sample08_ConversationTesting
+public static class Sample08_ConversationEvaluation
 {
     public static async Task RunAsync()
     {
@@ -257,10 +257,10 @@ public static class Sample08_ConversationTesting
         Console.WriteLine(@"
 ╔═══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                               ║
-║                  Sample 08: Conversation Testing                              ║
+║                  Sample 08: Conversation Evaluation                           ║
 ║                                                                               ║
 ║   Learn how to:                                                               ║
-║   • Test multi-turn agent interactions                                        ║
+║   • Evaluate multi-turn agent interactions                                    ║
 ║   • Define checkpoints for each turn                                          ║
 ║   • Assert tool usage across the conversation                                 ║
 ║   • Verify context retention and memory                                       ║

@@ -8,10 +8,10 @@ using AgentEval.Models.Serialization;
 namespace AgentEval.Samples;
 
 /// <summary>
-/// Sample 09: Workflow Testing - Multi-agent orchestration testing
+/// Sample 09: Workflow Evaluation - Multi-agent orchestration evaluation
 /// 
 /// This demonstrates:
-/// - Testing multi-agent workflows (AgentGroupChat, Semantic Kernel, etc.)
+/// - Evaluating multi-agent workflows (AgentGroupChat, Semantic Kernel, etc.)
 /// - Workflow assertions for execution paths
 /// - Edge assertions for routing decisions
 /// - Mermaid diagram generation
@@ -19,7 +19,7 @@ namespace AgentEval.Samples;
 /// 
 /// ⏱️ Time to understand: 10 minutes
 /// </summary>
-public static class Sample09_WorkflowTesting
+public static class Sample09_WorkflowEvaluation
 {
     public static async Task RunAsync()
     {
@@ -367,10 +367,10 @@ public static class Sample09_WorkflowTesting
         Console.WriteLine(@"
 ╔═══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                               ║
-║                     Sample 09: Workflow Testing                               ║
+║                     Sample 09: Workflow Evaluation                            ║
 ║                                                                               ║
 ║   Learn how to:                                                               ║
-║   • Test multi-agent workflows (AgentGroupChat, Semantic Kernel, etc.)        ║
+║   • Evaluate multi-agent workflows (AgentGroupChat, Semantic Kernel, etc.)    ║
 ║   • Assert on execution paths and individual executors                        ║
 ║   • Validate edge routing and conditional branching                           ║
 ║   • Export to Mermaid diagrams and timeline JSON                              ║

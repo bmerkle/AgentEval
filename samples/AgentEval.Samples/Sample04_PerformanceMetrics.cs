@@ -16,7 +16,7 @@ namespace AgentEval.Samples;
 /// Sample 04: Performance Metrics - Latency, cost, TTFT, and tokens
 /// 
 /// This demonstrates:
-/// - Capturing performance metrics during tests
+/// - Capturing performance metrics during evaluations
 /// - Asserting on latency, cost, and token usage
 /// - Understanding Time To First Token (TTFT) in streaming
 /// 
@@ -31,7 +31,7 @@ public static class Sample04_PerformanceMetrics
         // ═══════════════════════════════════════════════════════════════
         // STEP 1: Create an agent
         // ═══════════════════════════════════════════════════════════════
-        Console.WriteLine("📝 Step 1: Creating agent for performance testing...\n");
+        Console.WriteLine("📝 Step 1: Creating agent for performance evaluation...\n");
         
         var agent = CreateAgent();
         Console.WriteLine($"   ✓ Agent '{agent.Name}' created\n");

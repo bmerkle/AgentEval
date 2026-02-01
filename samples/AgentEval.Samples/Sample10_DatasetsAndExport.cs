@@ -7,7 +7,7 @@ using AgentEval.Exporters;
 namespace AgentEval.Samples;
 
 /// <summary>
-/// Sample 10: Datasets and Export - Batch testing with data files
+/// Sample 10: Datasets and Export - Batch evaluation with data files
 /// 
 /// This demonstrates:
 /// - Loading test datasets from JSON, JSONL, CSV, YAML

@@ -13,7 +13,7 @@ namespace AgentEval.Samples;
 /// Sample 13: Trace Record &amp; Replay
 /// 
 /// Demonstrates how to record agent executions to trace files and replay them
-/// for deterministic testing without calling external AI services.
+/// for deterministic evaluation without calling external AI services.
 /// 
 /// Features covered:
 /// - Single-agent trace recording and replay
@@ -103,7 +103,7 @@ public static class Sample13_TraceRecordReplay
 
     /// <summary>
     /// Demo 2: Multi-Turn Chat Record &amp; Replay
-    /// Record a conversation and replay it for testing.
+    /// Record a conversation and replay it for evaluation.
     /// </summary>
     private static async Task DemoMultiTurnChatRecordReplay()
     {
@@ -143,7 +143,7 @@ public static class Sample13_TraceRecordReplay
         Console.WriteLine($"   📁 Trace has {trace.Entries.Count} entries\n");
 
         // Step 2: REPLAY for verification
-        Console.WriteLine("▶️  Replaying conversation for testing...\n");
+        Console.WriteLine("▶️  Replaying conversation for evaluation...\n");
         
         var chatReplayer = new TraceReplayingAgent(trace);
         

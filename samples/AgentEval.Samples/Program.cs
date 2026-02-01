@@ -79,10 +79,10 @@ public static class Program
                     await Sample07_SnapshotTesting.RunAsync();
                     break;
                 case 8:
-                    await Sample08_ConversationTesting.RunAsync();
+                    await Sample08_ConversationEvaluation.RunAsync();
                     break;
                 case 9:
-                    await Sample09_WorkflowTesting.RunAsync();
+                    await Sample09_WorkflowEvaluation.RunAsync();
                     break;
                 case 10:
                     await Sample10_DatasetsAndExport.RunAsync();
@@ -91,7 +91,7 @@ public static class Program
                     await Sample11_BecauseAssertions.RunAsync();
                     break;
                 case 12:
-                    await Sample12_PolicySafetyTesting.RunAsync();
+                    await Sample12_PolicySafetyEvaluation.RunAsync();
                     break;
                 case 13:
                     await Sample13_TraceRecordReplay.RunAsync();
@@ -171,12 +171,12 @@ public static class Program
         Console.WriteLine("│  5. 📊 Comprehensive RAG  - Build & evaluate RAG system    │");
         Console.WriteLine("│  6. 📈 Benchmarks         - Performance & agentic benchmarks│");
         Console.WriteLine("│  7. 📸 Snapshot Testing   - Regression detection            │");
-        Console.WriteLine("│  8. 💬 Conversations      - Multi-turn testing              │");
-        Console.WriteLine("│  9. 🔀 Workflow Testing   - Multi-agent orchestration       │");
-        Console.WriteLine("│ 10. 📂 Datasets & Export  - Batch testing, JUnit export     │");
-        Console.WriteLine("│ 11. 📝 Because Assertions - Self-documenting tests          │");
+        Console.WriteLine("│  8. 💬 Conversations      - Multi-turn evaluation            │");
+        Console.WriteLine("│  9. 🔀 Workflow Evaluation - Multi-agent orchestration       │");
+        Console.WriteLine("│ 10. 📂 Datasets & Export  - Batch evaluation, JUnit export   │");
+        Console.WriteLine("│ 11. 📝 Because Assertions - Self-documenting evaluation      │");
         Console.WriteLine("│ 12. 🛡️ Policy & Safety    - Enterprise guardrails           │");
-        Console.WriteLine("│ 13. 🔄 Trace Record/Replay - Deterministic testing          │");
+        Console.WriteLine("│ 13. 🔄 Trace Record/Replay - Deterministic evaluation        │");
         Console.WriteLine("│ 14. 🎲 Stochastic Evaluation - Multi-run reliability           │");
         Console.WriteLine("│ 15. ⚖️ Model Comparison   - Compare & rank models           │");
         Console.WriteLine("│ 16. 🔀 Combined Test      - Stochastic + Model Comparison   │");

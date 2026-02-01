@@ -8,10 +8,10 @@ using System.Text.RegularExpressions;
 namespace AgentEval.Samples;
 
 /// <summary>
-/// Sample 12: Policy and Safety Testing - Enterprise safety guardrails.
+/// Sample 12: Policy and Safety Evaluation - Enterprise safety guardrails.
 /// 
 /// ⚠️ WHAT THIS SAMPLE DEMONSTRATES:
-/// This sample shows how to use AgentEval's behavioral policy assertions for safety testing.
+/// This sample shows how to use AgentEval's behavioral policy assertions for safety evaluation.
 /// 
 /// FEATURES DEMONSTRATED:
 /// • NeverCallTool() - Blocklist dangerous tools with rich exception details
@@ -21,11 +21,11 @@ namespace AgentEval.Samples;
 /// • HaveCalledTool().BeforeTool() - Confirmation gate ordering
 /// • ForExecutor().HaveCalledTool() - Multi-agent security verification
 /// 
-/// USE CASE: Enterprise compliance, security testing, regulatory requirements
+/// USE CASE: Enterprise compliance, security evaluation, regulatory requirements
 /// 
 /// Time to understand: 8 minutes.
 /// </summary>
-public static class Sample12_PolicySafetyTesting
+public static class Sample12_PolicySafetyEvaluation
 {
     public static async Task RunAsync()
     {
@@ -34,10 +34,10 @@ public static class Sample12_PolicySafetyTesting
         await Task.Delay(1); // Keep async signature
 
         // ═══════════════════════════════════════════════════════════════
-        // WHY POLICY & SAFETY TESTING MATTERS
-        // ═══════════════════════════════════════════════════════════════
+        // WHY POLICY & SAFETY EVALUATION MATTERS
+        // ═════════════════════════════════════════════════════════════════
         Console.WriteLine(@"
-   📖 WHY POLICY & SAFETY TESTING?
+   📖 WHY POLICY & SAFETY EVALUATION?
    
    Enterprise AI agents need guardrails to prevent:
    
@@ -46,7 +46,7 @@ public static class Sample12_PolicySafetyTesting
    • 🚫 COMPLIANCE     - Violating regulatory requirements
    • 🚫 WRONG ORDERING - Skipping verification steps
    
-   AgentEval provides assertions to catch these at test time,
+   AgentEval provides assertions to catch these during evaluation,
    before they become production incidents.
 ");
 
@@ -295,9 +295,9 @@ public static class Sample12_PolicySafetyTesting
         }
 
         // ═══════════════════════════════════════════════════════════════
-        // STEP 6: Compliance Testing Patterns
+        // STEP 6: Compliance Evaluation Patterns
         // ═══════════════════════════════════════════════════════════════
-        Console.WriteLine("\n📝 Step 6: Compliance Testing Patterns...\n");
+        Console.WriteLine("\n📝 Step 6: Compliance Evaluation Patterns...\n");
         
         ShowCompliancePatterns();
 
@@ -332,7 +332,7 @@ public static class Sample12_PolicySafetyTesting
     {
         Console.ForegroundColor = ConsoleColor.Cyan;
         Console.WriteLine(@"   ┌─────────────────────────────────────────────────────────────────────┐
-   │                    COMPLIANCE TESTING PATTERNS                       │
+   │                    COMPLIANCE EVALUATION PATTERNS                    │
    ├─────────────────────────────────────────────────────────────────────┤
    │                                                                     │
    │  GDPR - Data Protection                                             │
@@ -504,7 +504,7 @@ public static class Sample12_PolicySafetyTesting
         Console.WriteLine(@"
 ╔═══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                               ║
-║              Sample 12: Policy & Safety Testing                               ║
+║              Sample 12: Policy & Safety Evaluation                            ║
 ║                                                                               ║
 ║   Learn how to:                                                               ║
 ║   • Prevent dangerous tool calls with blocklists                              ║

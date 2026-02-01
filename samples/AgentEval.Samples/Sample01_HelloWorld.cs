@@ -10,7 +10,7 @@ using AgentEval.Models;
 namespace AgentEval.Samples;
 
 /// <summary>
-/// Sample 01: Hello World - The simplest possible AgentEval test
+/// Sample 01: Hello World - The simplest possible AgentEval evaluation
 /// 
 /// This demonstrates:
 /// - Creating a simple agent
@@ -103,9 +103,9 @@ public static class Sample01_HelloWorld
         // Summary
         // ═══════════════════════════════════════════════════════════════
         Console.WriteLine("\n💡 KEY TAKEAWAYS:");
-        Console.WriteLine("   • MAFEvaluationHarness is the main entry point for testing");
-        Console.WriteLine("   • TestCase defines what to test and what to expect");
-        Console.WriteLine("   • MAFAgentAdapter wraps MAF agents for testing");
+        Console.WriteLine("   • MAFEvaluationHarness is the main entry point for evaluation");
+        Console.WriteLine("   • TestCase defines what to evaluate and what to expect");
+        Console.WriteLine("   • MAFAgentAdapter wraps MAF agents for evaluation");
         Console.WriteLine("   • TestResult contains pass/fail status, score, and output");
         
         Console.WriteLine("\n🔗 NEXT: Run Sample 02 to see tool tracking in action!\n");
@@ -157,7 +157,7 @@ public static class Sample01_HelloWorld
 ╔═══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                               ║
 ║   🌍 SAMPLE 01: HELLO WORLD                                                   ║
-║   The simplest possible AgentEval test                                        ║
+║   The simplest possible AgentEval evaluation                                  ║
 ║                                                                               ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 ");

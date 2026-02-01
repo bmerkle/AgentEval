@@ -7,7 +7,7 @@ using AgentEval.Assertions;
 namespace AgentEval.Samples;
 
 /// <summary>
-/// Sample 11: Because Assertions - Self-documenting tests with intent clarity
+/// Sample 11: Because Assertions - Self-documenting evaluations with intent clarity
 /// 
 /// This demonstrates:
 /// - Using the 'because' parameter for clear failure messages
@@ -325,9 +325,9 @@ public static class Sample11_BecauseAssertions
 ║              Sample 11: Because Assertions                                    ║
 ║                                                                               ║
 ║   Learn how to:                                                               ║
-║   • Use 'because' for self-documenting tests                                  ║
-║   • Create compliance-friendly test suites                                    ║
-║   • Get better error messages when tests fail                                 ║
+║   • Use 'because' for self-documenting evaluations                            ║
+║   • Create compliance-friendly evaluation suites                              ║
+║   • Get better error messages when evaluations fail                           ║
 ║   • Document business requirements in code                                    ║
 ║                                                                               ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
