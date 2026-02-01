@@ -18,9 +18,13 @@ Install-Package AgentEval -Pre
 
 ### PackageReference
 
+Add to your `.csproj` file:
+
 ```xml
-<PackageReference Include="AgentEval" Version="0.2.1-beta" />
+<PackageReference Include="AgentEval" Version="*" />
 ```
+
+> **Note:** Replace `*` with a specific version from NuGet for reproducible builds.
 
 **NuGet Gallery:** https://www.nuget.org/packages/AgentEval
 

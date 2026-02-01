@@ -135,7 +135,7 @@ if (IsProductionSample())
 
 **Goal:** Account for LLM non-determinism.
 
-**Approach:** Run same test multiple times, analyze statistics.
+**Approach:** Run same evaluation multiple times, analyze statistics.
 
 ```csharp
 var runner = new StochasticRunner(harness, options);

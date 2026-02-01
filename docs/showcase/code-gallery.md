@@ -6,7 +6,7 @@
 
 ## Model Comparison with Recommendations
 
-Compare models across your test suite and get actionable recommendations:
+Compare models across your evaluation suite and get actionable recommendations:
 
 ```csharp
 var comparer = new ModelComparer(harness);
@@ -44,7 +44,7 @@ Console.WriteLine(result.ToMarkdown());
 
 ## stochastic evaluation with Statistics
 
-LLMs are non-deterministic. Run tests multiple times and analyze statistics:
+LLMs are non-deterministic. Run evaluations multiple times and analyze statistics:
 
 ```csharp
 var result = await stochasticRunner.RunStochasticTestAsync(
@@ -230,7 +230,7 @@ await TraceSerializer.SaveAsync(trace, "debug-traces/booking-issue-123.json");
 
 ---
 
-## Snapshot Testing
+## Snapshot Evaluation
 
 Detect regressions with semantic similarity:
 
@@ -279,7 +279,7 @@ turn3.ToolUsage!.Should()
 
 ## See Also
 
-- [stochastic evaluation Guide](../stochastic-evaluation.md) - Full statistical testing documentation
+- [stochastic evaluation Guide](../stochastic-evaluation.md) - Full statistical evaluation documentation
 - [Model Comparison Guide](../model-comparison.md) - Comparing models in depth
 - [Assertions Reference](../assertions.md) - Complete assertion API
 - [Sample 16](https://github.com/joslat/AgentEval/blob/main/samples/AgentEval.Samples/Sample16_CombinedStochasticComparison.cs) - Full working example

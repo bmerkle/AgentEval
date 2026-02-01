@@ -10,7 +10,7 @@ AgentEval is designed for extensibility. You can:
 
 - Create custom metrics for domain-specific evaluation
 - Wrap external evaluation frameworks
-- Build plugins for custom test workflows
+- Build plugins for custom evaluation workflows
 - Integrate with Microsoft's official evaluators
 
 ---
@@ -614,4 +614,4 @@ public MyMetric(double threshold = 70)
 
 - [Architecture Overview](architecture.md) - Understanding the metric hierarchy
 - [Embedding Metrics](embedding-metrics.md) - Fast similarity evaluation
-- [Benchmarks Guide](benchmarks.md) - Performance testing
+- [Benchmarks Guide](benchmarks.md) - Performance benchmarking

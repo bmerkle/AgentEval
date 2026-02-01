@@ -571,7 +571,7 @@ public async Task Workflow_Should_CaptureErrors()
 ("agent", "...")
 ```
 
-### 2. Test Edge Types Explicitly
+### 2. Verify Edge Types Explicitly
 
 ```csharp
 result.Should()

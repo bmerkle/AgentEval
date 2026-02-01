@@ -30,7 +30,7 @@ Metrics are also categorized by evaluation domain:
 | RAG | `IRAGMetric` | `MetricCategory.RAG` | Faithfulness, Relevance |
 | Agentic | `IAgenticMetric` | `MetricCategory.Agentic` | Tool Selection, Tool Success |
 | Conversation | Special | `MetricCategory.Conversation` | ConversationCompleteness |
-| Safety | `ISafetyMetric` | `MetricCategory.Safety` | Toxicity (planned) |
+| Safety | `ISafetyMetric` | `MetricCategory.Safety` | Toxicity, Bias |
 
 ### Complete Metric Reference
 

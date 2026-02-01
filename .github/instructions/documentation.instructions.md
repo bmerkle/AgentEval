@@ -1,4 +1,3 @@
-````instructions
 ---
 applyTo: "**/*.md"
 description: Comprehensive guidelines for AgentEval documentation - brand alignment, terminology, and structure
@@ -200,5 +199,3 @@ For the complete assertion API, see [Assertions Guide](docs/assertions.md).
 - [ ] Code examples compile and run
 - [ ] All links work
 - [ ] Follows required section order
-
-````

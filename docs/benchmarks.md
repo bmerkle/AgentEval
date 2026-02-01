@@ -4,37 +4,30 @@
 
 ---
 
-## Implementation Status
+## What You Can Do
 
-| Feature | Status | Description |
-|---------|--------|-------------|
-| **Custom benchmark suites** | ✅ Available | Create your own domain-specific benchmarks |
-| **Performance benchmarks** | ✅ Available | Latency, throughput, cost measurement |
-| **Manual BFCL-style tests** | ✅ Available | Create test cases following BFCL patterns |
-| **Manual GAIA-style tests** | ✅ Available | Create task completion test cases |
-| **BFCL dataset loader** | 🚧 Planned Q1 2026 | Auto-download from HuggingFace |
-| **GAIA dataset loader** | 🚧 Planned Q1 2026 | Auto-download from HuggingFace |
-| **ToolBench loader** | 🚧 Planned Q2 2026 | Auto-download from GitHub |
-| **HumanEval** | ❌ Out of Scope | Requires code execution sandbox |
-| **WebArena** | ❌ Out of Scope | Requires browser simulation |
+AgentEval provides comprehensive benchmarking capabilities for AI agents:
 
-> 📖 See [ADR-009: Benchmark Strategy](adr/009-benchmark-strategy.md) for rationale.
+| Feature | Description |
+|---------|-------------|
+| **Custom benchmark suites** | Create your own domain-specific benchmarks |
+| **Performance benchmarks** | Measure latency, throughput, and cost |
+| **BFCL-style evaluations** | Tool calling accuracy with industry-standard patterns |
+| **GAIA-style evaluations** | Task completion with multi-step reasoning |
+| **Regression detection** | Track scores over time, fail CI on regressions |
 
 ---
 
-## Quick Reference: What You Can Do Today
+## Quick Start
 
 ### ✅ Create Custom Benchmarks
-Write your own benchmark test suites for your domain.
+Write your own benchmark suites for your domain.
 
 ### ✅ Run Performance Benchmarks
 Measure latency, throughput, and cost across your agents.
 
-### ✅ Manual Benchmark-Style Tests
-Create tests following BFCL/GAIA patterns and compare against published leaderboards.
-
-### 🚧 Coming Soon: Dataset Loaders
-One-line download and run of BFCL, GAIA, ToolBench benchmarks.
+### ✅ Industry-Standard Patterns
+Create evaluations following BFCL/GAIA patterns and compare against published leaderboards.
 
 ---
 
@@ -70,26 +63,9 @@ var evaluator = azureClient.GetChatClient("gpt-4o").AsIChatClient();
 
 ---
 
-## Supported Benchmarks
-
-| Benchmark | Focus | Status | What It Tests |
-|-----------|-------|--------|---------------|
-| **BFCL** | Function Calling | ✅ Manual / 🚧 Loader | Tool selection, arguments, multi-turn |
-| **GAIA** | General AI Assistants | ✅ Manual / 🚧 Loader | Multi-step reasoning, tool use |
-| **ToolBench** | API Tool Use | ✅ Manual / 🚧 Loader | Complex API workflows |
-| **MINT** | Multi-turn Interaction | ✅ Manual | Conversation handling |
-| **HumanEval** | Code Generation | ❌ Out of Scope | Requires code execution |
-| **WebArena** | Web Browsing | ❌ Out of Scope | Requires browser simulation |
-
----
-
 ## Berkeley Function Calling Leaderboard (BFCL)
 
-BFCL is the industry standard for evaluating function/tool calling accuracy.
-
-### What You Can Do Today ✅
-
-Create BFCL-style test cases manually:
+BFCL is the industry standard for evaluating function/tool calling accuracy. AgentEval supports creating BFCL-style evaluation cases:
 
 ```csharp
 var bfclTests = new List<ToolAccuracyTestCase>
@@ -139,19 +115,9 @@ Console.WriteLine($"  Accuracy: {results.OverallAccuracy:P1}");
 Console.WriteLine($"  Passed: {results.PassedTests}/{results.TotalTests}");
 ```
 
-### Coming Soon: Auto-Download 🚧
-
-```csharp
-// PLANNED - Not yet implemented
-var loader = new BfclDatasetLoader();
-var dataset = await loader.LoadAsync(BfclCategory.SimplePython);
-var benchmark = new BfclBenchmark(dataset);
-var result = await benchmark.RunAsync(agent, options);
-```
-
 ### Compare Against Published Leaderboard
 
-BFCL publishes scores for major models. Run your tests and compare:
+BFCL publishes scores for major models. Run your evaluations and compare:
 
 | Model | Simple | Parallel | Multiple | Multi-turn | Overall |
 |-------|--------|----------|----------|------------|---------|
@@ -164,9 +130,7 @@ BFCL publishes scores for major models. Run your tests and compare:
 
 ## GAIA (General AI Assistants)
 
-GAIA tests multi-step reasoning and real-world task completion.
-
-### What You Can Do Today ✅
+GAIA tests multi-step reasoning and real-world task completion:
 
 ```csharp
 var gaiaCases = new List<TaskCompletionTestCase>
@@ -227,7 +191,9 @@ Console.WriteLine($"  Pass Rate: {(double)results.PassedTests / results.TotalTes
 
 ## Performance Benchmarks
 
-### Latency Benchmark ✅
+Measure latency, throughput, and cost across your agents.
+
+### Latency Benchmark
 
 ```csharp
 var benchmark = new PerformanceBenchmark(agent);
@@ -244,7 +210,7 @@ Console.WriteLine($"  P99: {latencyResults.P99Latency.TotalMilliseconds:F0}ms");
 Console.WriteLine($"  Avg: {latencyResults.AverageLatency.TotalMilliseconds:F0}ms");
 ```
 
-### Throughput Benchmark ✅
+### Throughput Benchmark
 
 ```csharp
 var throughputResults = await benchmark.RunThroughputBenchmarkAsync(
@@ -257,7 +223,7 @@ Console.WriteLine($"  Requests/sec: {throughputResults.RequestsPerSecond:F1}");
 Console.WriteLine($"  Success Rate: {throughputResults.SuccessRate:P1}");
 ```
 
-### Cost Benchmark ✅
+### Cost Benchmark
 
 ```csharp
 var costResults = await benchmark.RunCostBenchmarkAsync(testCases);
@@ -272,7 +238,7 @@ Console.WriteLine($"  Total Tokens: {costResults.TotalTokens}");
 
 ## Creating Custom Benchmark Suites
 
-### Define Your Domain Benchmark ✅
+Create domain-specific benchmarks tailored to your use case:
 
 ```csharp
 public class CustomerSupportBenchmark
@@ -391,35 +357,6 @@ OVERALL SCORE: 90.0/100
 
 ---
 
-## Benchmark Roadmap
-
-### Phase 1: Core Infrastructure (Current)
-- ✅ Manual BFCL/GAIA-style test cases
-- ✅ Performance benchmarks (latency, throughput, cost)
-- ✅ Custom benchmark suites
-- ✅ Result aggregation and reporting
-
-### Phase 2: Dataset Loaders (Q1 2026)
-- 🚧 `BfclDatasetLoader` - Download from HuggingFace
-- 🚧 `GaiaDatasetLoader` - Download from HuggingFace
-- 🚧 Local caching with version management
-- 🚧 Subset selection for quick validation
-
-### Phase 3: Additional Benchmarks (Q2 2026)
-- 🚧 `ToolBenchDatasetLoader` - Download from GitHub
-- 🚧 CLI integration: `agenteval benchmark bfcl --model gpt-4o`
-- 🚧 Leaderboard submission format export
-- 🚧 Regression tracking across versions
-
-### Phase 4: Future Considerations
-- ❓ HumanEval (requires secure code execution sandbox)
-- ❓ SWE-bench (requires git/code editing capabilities)
-- ❓ WebArena (requires browser automation)
-
-> � Want to contribute to benchmark implementation? See our [Contributing Guide](https://github.com/joslat/AgentEval/blob/main/CONTRIBUTING.md).
-
----
-
 ## Regression Detection
 
 Track benchmark scores over time:
@@ -501,27 +438,8 @@ jobs:
 
 ---
 
-## Why HumanEval is Out of Scope
-
-HumanEval requires executing LLM-generated code, which presents:
-
-1. **Security risks**: Untrusted code could be malicious
-2. **Sandboxing complexity**: Requires Docker, process isolation, resource limits
-3. **Language dependencies**: Python runtime, package management
-4. **Maintenance burden**: Keeping sandbox secure is ongoing work
-
-If you need HumanEval support, consider:
-- [OpenAI's official human-eval](https://github.com/openai/human-eval)
-- [Evalplus](https://github.com/evalplus/evalplus)
-- Building your own Docker-based sandbox
-
-> 📖 See [ADR-009](adr/009-benchmark-strategy.md) for full rationale and future considerations.
-
----
-
 ## See Also
 
-- [ADR-009: Benchmark Strategy](adr/009-benchmark-strategy.md) - Architecture decision
-- [stochastic evaluation](stochastic-evaluation.md) - Statistical testing for benchmarks
+- [Stochastic Evaluation](stochastic-evaluation.md) - Statistical evaluation for benchmarks
 - [Model Comparison](model-comparison.md) - Compare models on benchmarks
 - [Extensibility Guide](extensibility.md) - Creating custom metrics

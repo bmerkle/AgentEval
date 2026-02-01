@@ -58,7 +58,7 @@
   - name: CLI Reference
     href: cli.md
   - name: Rich Evaluation Output
-    href: rich-test-output-guide.md
+    href: rich-evaluation-output-guide.md
   - name: Security Scanning
     href: security-scanning.md
 

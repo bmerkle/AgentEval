@@ -8,7 +8,7 @@
 
 ## Context
 
-AgentEval aims to provide comprehensive testing capabilities for AI agents. A key question is: **How should AgentEval support industry-standard benchmarks like BFCL, GAIA, ToolBench, and HumanEval?**
+AgentEval aims to provide comprehensive evaluation capabilities for AI agents. A key question is: **How should AgentEval support industry-standard benchmarks like BFCL, GAIA, ToolBench, and HumanEval?**
 
 The agentic AI ecosystem has several established benchmarks:
 
@@ -67,7 +67,7 @@ We will implement benchmark support in **three tiers**:
 - **Security**: Executing untrusted LLM-generated code is dangerous
 - **Complexity**: Sandboxing requires Docker, process isolation, resource limits
 - **Maintenance**: These are moving targets with frequent updates
-- **Focus**: AgentEval's core value is agent testing, not code execution
+- **Focus**: AgentEval's core value is agent evaluation, not code execution
 
 ### HumanEval: If We Did It
 

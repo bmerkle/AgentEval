@@ -10,12 +10,12 @@
 
 AgentEval needs to support two closely related features:
 
-1. **Stochastic Pass Criteria** — Run tests multiple times to handle LLM non-determinism and report statistical results (pass rate, confidence intervals, latency percentiles)
+1. **Stochastic Pass Criteria** — Run evaluations multiple times to handle LLM non-determinism and report statistical results (pass rate, confidence intervals, latency percentiles)
 
-2. **Model Comparison** — Run the same test suite across multiple LLM models (e.g., GPT-4o, Claude 3.5, GPT-4o-mini) and recommend the best model based on accuracy, latency, and cost
+2. **Model Comparison** — Run the same evaluation suite across multiple LLM models (e.g., GPT-4o, Claude 3.5, GPT-4o-mini) and recommend the best model based on accuracy, latency, and cost
 
 These features are tightly coupled because:
-- Model comparison requires running tests multiple times per model (stochastic)
+- Model comparison requires running evaluations multiple times per model (stochastic)
 - Both features share infrastructure for parallel execution and result aggregation
 - Statistical significance testing between models requires stochastic run data
 
@@ -162,7 +162,7 @@ Test Cases → Stochastic Runner → Statistical Aggregation → Results
 
 ### Neutral
 
-1. **Optional Feature** — Simple single-model testing doesn't require factories
+1. **Optional Feature** — Simple single-model evaluation doesn't require factories
 2. **MAF-Specific Factory** — We provide `AzureOpenAIAgentFactory` for common case
 
 ---

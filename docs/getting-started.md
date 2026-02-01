@@ -448,7 +448,7 @@ Example `testcases.yaml`:
 - **[Architecture Guide](architecture.md)** — Understand AgentEval's component model
 - **[Benchmarks Guide](benchmarks.md)** — Run performance and agentic benchmarks
 - **[CLI Reference](cli.md)** — Full CLI command documentation
-- **[Conversations Guide](conversations.md)** — Test multi-turn agent interactions
+- **[Conversations Guide](conversations.md)** — Evaluate multi-turn agent interactions
 - **[Extensibility Guide](extensibility.md)** — Create custom metrics and plugins
 
 ## Quick Reference

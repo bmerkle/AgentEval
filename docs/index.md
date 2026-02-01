@@ -12,7 +12,6 @@
   <a href="https://www.nuget.org/packages/AgentEval">
     <img src="https://img.shields.io/nuget/v/AgentEval.svg" alt="NuGet Version" />
   </a>
-  <img src="https://img.shields.io/badge/tests-3000%2B-brightgreen" alt="Test Count" />
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License" />
 </p>
 
@@ -235,7 +234,7 @@ dotnet tool install -g AgentEval.Cli
 agenteval eval --dataset tests.yaml --format junit -o results.xml
 ```
 
-**21 runnable samples** included—from Hello World to Red Team Security. [View Samples →](https://github.com/joslat/AgentEval/tree/main/samples/AgentEval.Samples)
+**Detailed samples** included—from Hello World to Red Team Security. [View Samples →](https://github.com/joslat/AgentEval/tree/main/samples/AgentEval.Samples)
 
 ---
 
@@ -265,9 +264,9 @@ agenteval eval --dataset tests.yaml --format junit -o results.xml
 
 ---
 
-## Test Coverage: 67%+ | 3,000+ Tests
+## Test Coverage
 
-AgentEval has **1,000+ tests** running across **3 target frameworks** (net8.0, net9.0, net10.0), totaling **3,000+ test executions** per CI run.
+AgentEval maintains a **comprehensive test suite** running across **multiple target frameworks**, ensuring reliability.
 
 [![codecov](https://codecov.io/gh/joslat/AgentEval/graph/badge.svg?token=Y28TAK3LNH)](https://codecov.io/gh/joslat/AgentEval)
 

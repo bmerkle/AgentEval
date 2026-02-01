@@ -10,7 +10,7 @@
 
 AgentEval includes embedding-based metrics that compute semantic similarity using vector embeddings. These metrics are significantly faster and cheaper than LLM-based evaluation, making them ideal for:
 
-- High-volume test suites
+- High-volume evaluations
 - Continuous integration pipelines
 - Quick feedback during development
 - Baseline comparison before more expensive LLM evaluation

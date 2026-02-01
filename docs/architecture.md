@@ -551,7 +551,7 @@ AgentEval organizes metrics into a clear taxonomy to aid discovery and selection
 | RAG | `IRAGMetric` | Faithfulness, Relevance, Context Precision |
 | Agentic | `IAgenticMetric` | Tool Selection, Tool Success, Task Completion |
 | Conversation | Special | ConversationCompleteness |
-| Safety | `ISafetyMetric` (planned) | Toxicity, Groundedness |
+| Safety | `ISafetyMetric` | Toxicity, Groundedness |
 
 ### Category Flags (ADR-007)
 

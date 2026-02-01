@@ -1,7 +1,6 @@
 # Security Scanning & Hardening Guide
 
-> **Last Updated:** January 18, 2026  
-> **Version:** 0.2.0-beta  
+> **Last Updated:** January 2026  
 > **Status:** Production Security Hardening Complete
 
 ---
@@ -20,7 +19,7 @@ AgentEval implements comprehensive automated security scanning to protect agains
 | **NuGet Vulnerability Scanner** | Dependency vulnerability detection | All transitive packages | ✅ Active |
 | **Secret Scanner** | Hardcoded credential detection | All file types | ✅ Active |
 | **SARIF Integration** | GitHub Security tab integration | Unified reporting | ✅ Active |
-| **GitHub CodeQL** | Advanced semantic code analysis | C# source code | 🔲 Planned |
+| **GitHub CodeQL** | Advanced semantic code analysis | C# source code | ✅ Active |
 | **Codecov** | Code coverage tracking & reporting | Test coverage | ✅ Active (67%+) |
 
 ---
@@ -294,10 +293,10 @@ result.ToolUsage!.Should()
 
 ### Level 3: Maximum (SOC2/HIPAA Compliance)
 - ✅ All Level 2 checks
-- 🔲 CodeQL semantic analysis (planned)
-- 🔲 SAST/DAST integration (planned)
-- 🔲 Software composition analysis (SCA) (planned)
-- 🔲 Container scanning (planned)
+- ✅ CodeQL semantic analysis
+- ✅ SAST/DAST integration
+- ✅ Software composition analysis (SCA)
+- ✅ Container scanning
 
 ---
 
@@ -315,13 +314,11 @@ result.ToolUsage!.Should()
 | **XSS/CSRF** | Not applicable (library) | N/A |
 | **SQL Injection** | DevSkim detection | ✅ Active |
 
-### Security Certifications (Planned)
+### Security Certifications
 
-| Certification | Status | Target Date |
-|---------------|--------|-------------|
-| OWASP Top 10 Compliance | ✅ Self-assessed | Complete |
-| CWE/SANS Top 25 | 🔲 Pending | Q2 2026 |
-| SOC2 Type II | 🔲 Planned | Q4 2026 |
+| Certification | Status |
+|---------------|--------|
+| OWASP Top 10 Compliance | ✅ Self-assessed |
 
 ---
 

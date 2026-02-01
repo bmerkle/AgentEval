@@ -9,8 +9,8 @@
 If you're a .NET team evaluating AI agents, you may have started with a Python or Node.js framework. AgentEval brings that functionality to your native stack with some unique capabilities:
 
 - **Native .NET** - No Python interop, no Node.js subprocess
-- **Fluent assertions** - Express complex agent behavior tests naturally
-- **Tool-aware testing** - First-class support for agentic tool calls
+- **Fluent assertions** - Express complex agent behavior evaluations naturally
+- **Tool-aware evaluation** - First-class support for agentic tool calls
 - **stochastic evaluation** - Built-in statistics for LLM non-determinism
 - **Trace record/replay** - Deterministic CI without API costs
 
@@ -129,7 +129,7 @@ result.ActualOutput.Should().Contain("booking confirmed");
 result.Performance!.Should().HaveEstimatedCostUnder(0.05m);
 ```
 
-### Dataset-Based Testing
+### Dataset-Based Evaluation
 
 AgentEval supports the same dataset formats you're used to:
 

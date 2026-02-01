@@ -1,10 +1,10 @@
-# Multi-Turn Conversation Testing
+# Multi-Turn Conversation Evaluation
 
-AgentEval provides comprehensive support for testing multi-turn conversations with AI agents, including fluent builders, execution runners, and evaluation metrics.
+AgentEval provides comprehensive support for evaluating multi-turn conversations with AI agents, including fluent builders, execution runners, and evaluation metrics.
 
 ## Overview
 
-Multi-turn conversation testing allows you to:
+Multi-turn conversation evaluation allows you to:
 
 - Define complex conversation flows with multiple turns
 - Specify expected tool calls per turn
@@ -282,6 +282,6 @@ if (!result.Success && result.TotalDuration >= testCase.MaxDuration)
 
 ## See Also
 
-- [CLI Reference](cli.md) - Running conversation tests from command line
-- [Benchmarks](benchmarks.md) - Performance testing conversations
+- [CLI Reference](cli.md) - Running conversation evaluations from command line
+- [Benchmarks](benchmarks.md) - Performance benchmarks for conversations
 - [Extensibility](extensibility.md) - Custom conversation metrics

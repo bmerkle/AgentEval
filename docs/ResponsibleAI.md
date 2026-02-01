@@ -178,7 +178,7 @@ if (!result.Passed)
 
 ### Counterfactual Generator
 
-Use the `CounterfactualGenerator` to automatically create test variations:
+Use the `CounterfactualGenerator` to automatically create evaluation variations:
 
 ```csharp
 var generator = new CounterfactualGenerator();
@@ -360,10 +360,10 @@ var llmToxicity = new ToxicityMetric(chatClient, useLlmFallback: true);
 return await llmToxicity.EvaluateAsync(context);
 ```
 
-### 2. Test Counterfactuals Systematically
+### 2. Evaluate Counterfactuals Systematically
 
 ```csharp
-// Test across all demographic dimensions
+// Evaluate across all demographic dimensions
 var dimensions = new[] { "gender", "race", "age", "socioeconomic" };
 
 foreach (var dimension in dimensions)
