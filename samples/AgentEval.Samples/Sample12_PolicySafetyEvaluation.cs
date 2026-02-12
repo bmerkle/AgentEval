@@ -270,10 +270,12 @@ public static class Sample12_PolicySafetyEvaluation
                     .HaveCalledTool("validate_request", 
                         because: "all requests must be validated")
                     .And()
+                .And()
                 .ForExecutor("auditor")
                     .HaveCalledTool("create_audit_log",
                         because: "all actions must be audited for compliance")
                     .And()
+                .And()
                 .Validate();
             
             PrintSuccess("Workflow security passed - all steps verified!");

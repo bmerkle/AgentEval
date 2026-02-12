@@ -449,6 +449,7 @@ public class WorkflowAssertionsTests
                 .ForExecutor("researcher")
                     .HaveCalledTool("search")
                 .And()
+                .And()
                 .Validate());
 
         Assert.Null(exception);
@@ -481,6 +482,7 @@ public class WorkflowAssertionsTests
             result.Should()
                 .ForExecutor("researcher")
                     .HaveCalledTool("database")
+                .And()
                 .And()
                 .Validate());
 

@@ -159,6 +159,7 @@ public static class Sample11_BecauseAssertions
                 .HaveNoErrors(because: "partial payment execution is not allowed")
                 .ForExecutor("processor")
                     .HaveCalledTool("process_payment", because: "processor must call payment gateway")
+                    .And()
                     .HaveCompletedWithin(TimeSpan.FromSeconds(2), 
                         because: "gateway timeout is 2 seconds")
                     .And()
