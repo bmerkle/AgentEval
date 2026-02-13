@@ -29,7 +29,7 @@ public static class StandaloneWorkflowTest
             return;
         }
 
-        // ── Build workflow (same pattern as Sample09B) ──
+        // ── Build workflow (same pattern as Sample10) ──
         var azureClient = new AzureOpenAIClient(AIConfig.Endpoint, AIConfig.KeyCredential);
         var chatClient = azureClient.GetChatClient(AIConfig.ModelDeployment).AsIChatClient();
 

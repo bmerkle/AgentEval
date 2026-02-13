@@ -29,7 +29,7 @@ namespace AgentEval.Samples;
 /// 
 /// Related samples:
 /// - Sample14_StochasticEvaluation: Foundation for statistical analysis
-/// - Sample10_DatasetsAndExport: Export formats (JUnit, JSON)
+/// - Sample11_DatasetsAndExport: Export formats (JUnit, JSON)
 /// </summary>
 public static class Sample15_ModelComparison
 {

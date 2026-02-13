@@ -14,7 +14,7 @@ using AgentEval.Models.Serialization;
 namespace AgentEval.Samples;
 
 /// <summary>
-/// Sample 09B: Workflow With Tools — TripPlanner Pipeline
+/// Sample 10: Workflow With Tools — TripPlanner Pipeline
 /// 
 /// This demonstrates:
 /// - MAF Workflow where multiple agents use tools (function calling)
@@ -27,7 +27,7 @@ namespace AgentEval.Samples;
 /// ⏱️ Time to understand: 15 minutes
 /// ⏱️ Time to run: ~60–120 seconds (4 sequential LLM calls with tools)
 /// </summary>
-public static class Sample09B_WorkflowWithTools
+public static class Sample10_WorkflowWithTools
 {
     public static async Task RunAsync()
     {
@@ -40,7 +40,7 @@ public static class Sample09B_WorkflowWithTools
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("  ⚠️  Azure OpenAI credentials are not configured.");
-            Console.WriteLine("      Sample 09B requires real Azure OpenAI credentials. Skipping.");
+            Console.WriteLine("      Sample 10 requires real Azure OpenAI credentials. Skipping.");
             Console.WriteLine();
             Console.WriteLine("      Set the following environment variables:");
             Console.WriteLine("        AZURE_OPENAI_ENDPOINT     = https://your-resource.openai.azure.com/");
@@ -601,7 +601,7 @@ public static class Sample09B_WorkflowWithTools
         Console.WriteLine(@"
 ╔═══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                               ║
-║          Sample 09B: Workflow With Tools — TripPlanner Pipeline              ║
+║          Sample 10: Workflow With Tools — TripPlanner Pipeline               ║
 ║                                                                               ║
 ║   Learn how to:                                                               ║
 ║   • Build MAF Workflows where agents use tools (function calling)            ║

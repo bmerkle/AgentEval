@@ -7,7 +7,7 @@ using AgentEval.Exporters;
 namespace AgentEval.Samples;
 
 /// <summary>
-/// Sample 10: Datasets and Export - Batch evaluation with data files
+/// Sample 11: Datasets and Export - Batch evaluation with data files
 /// 
 /// This demonstrates:
 /// - Loading test datasets from JSON, JSONL, CSV, YAML
@@ -22,7 +22,7 @@ namespace AgentEval.Samples;
 /// Related samples:
 /// - Sample15_ModelComparison: Uses ToGitHubComment() for model results
 /// </summary>
-public static class Sample10_DatasetsAndExport
+public static class Sample11_DatasetsAndExport
 {
     public static async Task RunAsync()
     {
@@ -352,7 +352,7 @@ public static class Sample10_DatasetsAndExport
         Console.WriteLine(@"
 ╔═══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                               ║
-║                   Sample 10: Datasets and Export                              ║
+║                   Sample 11: Datasets and Export                              ║
 ║                                                                               ║
 ║   Learn how to:                                                               ║
 ║   • Load test datasets from JSON, JSONL, CSV, YAML                            ║

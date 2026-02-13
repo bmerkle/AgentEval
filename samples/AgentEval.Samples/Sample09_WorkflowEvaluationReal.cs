@@ -416,9 +416,9 @@ public static class Sample09_WorkflowEvaluationReal
 │     result.Should().HaveStepCount(4).HaveExecutedInOrder(...)                  │
 │     The evaluation harness abstracts away the execution mode                   │
 │                                                                                 │
-│  6. See also Sample09B for workflow with tools:                                 │
+│  6. See also Sample10 for workflow with tools:                                  │
 │     Sample09  → Content pipeline (plan → research → write → edit)              │
-│     Sample09B → TripPlanner with tools (tools tracked per executor)            │
+│     Sample10  → TripPlanner with tools (tools tracked per executor)            │
 │                                                                                 │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ");
