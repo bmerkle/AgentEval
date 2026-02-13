@@ -1608,6 +1608,25 @@ public class ExecutorToolCallAssertionBuilder
     /// </summary>
     public ExecutorStepAssertionBuilder And() => _parent;
 
+    /// <summary>
+    /// Skip directly to the workflow builder, bypassing the executor step.
+    /// This is a convenience shortcut equivalent to <c>.And().And()</c>.
+    /// </summary>
+    /// <remarks>
+    /// Use <c>.Done()</c> when you don't need further executor-level assertions
+    /// and want to continue at the workflow level:
+    /// <code>
+    /// result.Should()
+    ///     .ForExecutor("FlightReservation")
+    ///         .HaveCalledTool("SearchFlights")
+    ///             .BeforeTool("BookFlight")
+    ///             .WithoutError()
+    ///         .Done()   // jumps straight to WorkflowAssertionBuilder
+    ///     .Validate();
+    /// </code>
+    /// </remarks>
+    public WorkflowAssertionBuilder Done() => _parent.And();
+
     private void AddFailure(string message, string? because)
     {
         var fullMessage = !string.IsNullOrEmpty(because)

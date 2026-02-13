@@ -265,31 +265,21 @@ public static class Sample09B_WorkflowWithTools
                 if (result.ToolUsage != null)
                 {
                     result.Should()
-                        .HaveAnyExecutorCalledTool("GetInfoAbout", because: "TripPlanner must research cities")
-                        .HaveAtLeastTotalToolCalls(4, because: "workflow uses at least 4 tool calls")
+                        .HaveCalledTool("GetInfoAbout", because: "TripPlanner must research cities")
+                            .WithoutError()
+                        .And()
+                        .HaveCalledTool("SearchFlights")
+                            .BeforeTool("BookFlight", because: "can't book without search results")
+                            .WithoutError()
+                        .And()
+                        .HaveCalledTool("BookFlight")
+                            .WithoutError()
+                        .And()
+                        .HaveCalledTool("BookHotel", because: "must book hotels")
+                            .WithoutError()
+                        .And()
                         .HaveNoToolErrors(because: "all tools must succeed for quality output")
-                        .ForExecutor("TripPlanner")
-                            .HaveCalledTool("GetInfoAbout")
-                                .WithoutError()
-                            .And()
-                        .And()
-                        .ForExecutor("FlightReservation")
-                            .HaveCalledTool("SearchFlights")
-                                .BeforeTool("BookFlight", because: "can't book without search results")
-                                .WithoutError()
-                            .And()
-                            .HaveCalledTool("BookFlight")
-                                .WithoutError()
-                            .And()
-                        .And()
-                        .ForExecutor("HotelReservation")
-                            .HaveCalledTool("BookHotel", because: "must book hotels")
-                            .And()
-                            .HaveNoToolErrors()
-                        .And()
-                        .ForExecutor("Presenter")
-                            .HaveToolCallCount(0, because: "presenter only formats output")
-                        .And()
+                        .HaveAtLeastTotalToolCalls(4, because: "workflow uses at least 4 tool calls")
                         .Validate();
 
                     Console.ForegroundColor = ConsoleColor.Green;
@@ -650,19 +640,25 @@ public static class Sample09B_WorkflowWithTools
 │     FunctionResultContent from MAF events and populates ToolCalls              │
 │     on each ExecutorStep, plus ToolUsage and Timeline on the result.           │
 │                                                                                 │
-│  4. Workflow + tool assertions validate the entire pipeline:                     │
+│  4. Workflow-level tool assertions validate the entire pipeline:                │
 │     result.Should()                                                            │
+│         .HaveCalledTool(""SearchFlights"")                                       │
+│             .BeforeTool(""BookFlight"")                                          │
+│             .WithoutError()                                                    │
+│         .And()                                                                 │
+│         .HaveCalledTool(""BookFlight"")                                          │
+│             .WithoutError()                                                    │
+│         .And()                                                                 │
 │         .HaveNoToolErrors()                                                    │
-│         .ForExecutor(""FlightReservation"")                                      │
-│             .ForToolCall(""SearchFlights"")                                       │
-│                 .BeforeTool(""BookFlight"")                                       │
-│                 .WithoutError()                                                │
-│             .And()                                                             │
-│         .And().Validate();                                                     │
+│         .Validate();                                                           │
 │                                                                                 │
-│  5. ToolUsage aggregates all calls; Timeline provides visual diagram:           │
-│     result.ToolUsage?.Count                                                    │
-│     result.Timeline?.ToAsciiDiagram()                                          │
+│  5. Use .ForExecutor() for executor-specific checks:                            │
+│     .ForExecutor(""Presenter"").HaveToolCallCount(0).And()                       │
+│     .ForExecutor(""Flight"").HaveCompletedWithin(...).And()                      │
+│                                                                                 │
+│  6. Use .Done() to jump from tool→workflow (skip executor level):               │
+│     .ForExecutor(""X"").HaveCalledTool(""Y"").WithoutError().Done()              │
+│     // .Done() = .And().And() but cleaner                                      │
 │                                                                                 │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ");
