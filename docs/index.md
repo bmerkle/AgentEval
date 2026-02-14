@@ -234,7 +234,7 @@ dotnet tool install -g AgentEval.Cli
 agenteval eval --dataset tests.yaml --format junit -o results.xml
 ```
 
-**Detailed samples** included—from Hello World to Red Team Security. [View Samples →](https://github.com/joslat/AgentEval/tree/main/samples/AgentEval.Samples)
+**Detailed examples** included—from Hello World to advanced Multi-Agent Workflows and Red Team Security. [View Examples →](https://github.com/joslat/AgentEval/tree/main/samples/AgentEval.Samples)
 
 ---
 

@@ -58,8 +58,33 @@ AgentEval is designed with a layered architecture that separates concerns and en
 │  │  │  .BeforeTool()      │  │  .HaveTTFTUnder()   │  │  .MatchPattern()│  │ │
 │  │  │  .WithArguments()   │  │  .HaveCostUnder()   │  │  .HaveLength()  │  │ │
 │  │  └─────────────────────┘  └─────────────────────┘  └─────────────────┘  │ │
-│  │                                                                         │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
+│  │                                                                         │ │  │  ┌─────────────────────────────────────────────────────────────────────┐  │ │
+  │  │                  WorkflowAssertions                                  │ │ │
+  │  │  .HaveStepCount()      .ForExecutor()        .HaveGraphStructure()  │ │ │
+  │  │  .HaveExecutedInOrder() .HaveCompletedWithin() .HaveTraversedEdge() │ │ │
+  │  │  .HaveNoErrors()       .HaveNonEmptyOutput() .HaveExecutionPath()   │ │ │
+  │  └─────────────────────────────────────────────────────────────────────┘  │ │
+  │                                                                         │ │
+  └────────────────────────────────────────────────────────────────────────┘ │
+                                                                              │
+  ┌────────────────────────────────────────────────────────────────────────┐ │
+  │                     Workflow Evaluation Layer                          │ │
+  ├────────────────────────────────────────────────────────────────────────┤ │
+  │                                                                         │ │
+  │  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────┐  │ │
+  │  │ WorkflowEvaluationHarness │ │  MAFWorkflowAdapter │ │ MAFWorkflowEventBridge │ │ │
+  │  │  .RunWorkflowTestAsync() │ │  .FromMAFWorkflow()  │ │ .ProcessEventsAsync() │ │ │
+  │  │  .WithTimeout()        │ │  .ExtractGraph()     │ │ .HandleTimeout()    │ │ │
+  │  │  .WithAssertions()     │ │  .TrackPerformance() │ │ .StreamEvents()     │ │ │
+  │  └─────────────────────┘  └─────────────────────┘  └─────────────────┘  │ │
+  │                                                                         │ │
+  │  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────┐  │ │
+  │  │WorkflowTraceRecorder│ │   WorkflowBuilder    │ │WorkflowAssemblyBinder│ │ │  
+  │  │ .RecordStep()        │ │ .BindAsExecutor()    │ │ .BuildFromAssembly()│ │ │
+  │  │ .ToAgentTrace()      │ │ .UseEventStreaming() │ │ .DiscoverAgents()   │ │ │
+  │  │ .Serialize()         │ │ .WithTimeout()       │ │ .ValidateBinding()  │ │ │
+  │  └─────────────────────┘  └─────────────────────┘  └─────────────────┘  │ │
+  │                                                                         │ ││  └────────────────────────────────────────────────────────────────────────┘ │
 │                                                                              │
 │  ┌────────────────────────────────────────────────────────────────────────┐ │
 │  │                        Benchmarks Layer                                 │ │
@@ -154,6 +179,7 @@ IMetric (base interface)
 
 ## Data Flow
 
+### Single Agent Evaluation
 ```
 ┌─────────────┐    ┌──────────────┐    ┌─────────────┐    ┌──────────────┐
 │  Test Case  │───▶│ IEvaluationHarness │───▶│ Agent Under │───▶│   Response   │
@@ -195,6 +221,55 @@ IMetric (base interface)
                                     │  • Markdown      │
                                     │  • JSON          │
                                     └──────────────────┘
+```
+
+### Workflow Evaluation  
+```
+┌─────────────────┐    ┌────────────────────┐    ┌─────────────────┐
+│ WorkflowTestCase│───▶│WorkflowEvaluationHarness │───▶│  MAFWorkflow    │
+│ (Agents+Graph)  │    │                    │    │ (Multi-Agent)   │
+└─────────────────┘    └────────────────────┘    └─────────────────┘
+                              │                           │
+                              │                           ▼
+                              │                  ┌─────────────────┐
+                              │                  │ WorkflowExecution│
+                              │                  │ • Agent 1       │
+                              │                  │ • Agent 2       │
+                              │                  │ • Agent N       │
+                              │                  │ • Event Stream  │
+                              │                  │ • Graph Traversal│
+                              │                  └─────────────────┘
+                              │                           │
+                              ▼                           ▼
+                   ┌─────────────────────┐       ┌────────────────────┐
+                   │ MAFWorkflowEventBridge │       │WorkflowExecutionResult│
+                   │ • Event Processing  │       │ • Per-Executor Data│
+                   │ • Timeout Handling  │       │ • Graph Definition │
+                   │ • Tool Aggregation  │       │ • Tool Usage       │
+                   │ • Performance Tracking│      │ • Performance      │
+                   └─────────────────────┘       └────────────────────┘
+                              │                           │
+                              └─────────────┬─────────────┘
+                                            │
+                                            ▼
+                                  ┌──────────────────────┐
+                                  │ Workflow Assertions  │
+                                  │ • Structure validation│
+                                  │ • Per-executor checks│
+                                  │ • Graph verification │
+                                  │ • Tool chain analysis│
+                                  │ • Performance bounds │
+                                  └──────────────────────┘
+                                            │
+                                            ▼
+                                  ┌──────────────────────┐
+                                  │ WorkflowTestResult   │
+                                  │ • Overall Pass/Fail  │
+                                  │ • Per-Executor Results│
+                                  │ • Graph Visualization│
+                                  │ • Tool Usage Report  │
+                                  │ • Performance Summary│
+                                  └──────────────────────┘
 ```
 
 ---
@@ -284,6 +359,73 @@ public class PerformanceMetrics
     
     // Fluent assertions
     public PerformanceAssertions Should();
+}
+```
+
+### WorkflowExecutionResult
+
+Result of workflow evaluation with multi-agent data:
+
+```csharp
+public class WorkflowExecutionResult
+{
+    public required string WorkflowId { get; init; }
+    public required DateTimeOffset StartedAt { get; init; }
+    public required TimeSpan Duration { get; init; }
+    
+    // Graph structure
+    public WorkflowGraphDefinition? GraphDefinition { get; init; }
+    
+    // Per-executor results
+    public IReadOnlyDictionary<string, ExecutorResult> ExecutorResults { get; init; }
+    
+    // Aggregated data
+    public ToolUsageReport? ToolUsage { get; init; }        // All tool calls
+    public PerformanceMetrics? Performance { get; init; }   // Total cost/timing
+    public string? FinalOutput { get; init; }               // Workflow output
+    
+    // Assertions
+    public WorkflowResultAssertions Should();
+}
+```
+
+### ExecutorResult
+
+Individual agent performance within a workflow:
+
+```csharp  
+public class ExecutorResult
+{
+    public required string ExecutorId { get; init; }
+    public required string AgentName { get; init; }
+    public string? Input { get; init; }
+    public string? Output { get; init; }
+    public DateTimeOffset? StartedAt { get; init; }
+    public TimeSpan? Duration { get; init; }
+    public ToolUsageReport? ToolUsage { get; init; }
+    public PerformanceMetrics? Performance { get; init; }
+    public bool HasError { get; init; }
+    public string? ErrorMessage { get; init; }
+}
+```
+
+### WorkflowGraphDefinition
+
+Represents the workflow structure and execution path:
+
+```csharp
+public class WorkflowGraphDefinition
+{
+    public IReadOnlyList<WorkflowNode> Nodes { get; init; }
+    public IReadOnlyList<WorkflowEdge> Edges { get; init; }
+    public string? EntryPoint { get; init; }
+    public string? ExitPoint { get; init; }
+    public IReadOnlyList<string>? ExecutionPath { get; init; }
+    
+    // Validation helpers
+    public bool HasNode(string nodeId);
+    public bool HasEdge(string source, string target);
+    public IEnumerable<string> GetExecutionOrder();
 }
 ```
 
@@ -408,6 +550,7 @@ AgentEval/
 │
 ├── Models/                  # Data models
 │   ├── TestModels.cs        # TestCase, TestResult, TestSummary
+│   ├── WorkflowModels.cs    # WorkflowTestCase, WorkflowTestResult
 │   ├── ToolCallRecord.cs
 │   ├── ToolUsageReport.cs
 │   ├── ToolCallTimeline.cs
@@ -429,7 +572,8 @@ AgentEval/
 ├── Assertions/              # Fluent assertions
 │   ├── ToolUsageAssertions.cs
 │   ├── PerformanceAssertions.cs
-│   └── ResponseAssertions.cs
+│   ├── ResponseAssertions.cs
+│   └── WorkflowResultAssertions.cs
 │
 ├── Benchmarks/              # Benchmarking infrastructure
 │   ├── PerformanceBenchmark.cs
@@ -467,6 +611,7 @@ AgentEval/
 │   ├── MAFIdentifiableAgentAdapter.cs
 │   ├── MAFEvaluationHarness.cs
 │   ├── MAFWorkflowAdapter.cs
+│   ├── MAFWorkflowEventBridge.cs
 │   └── WorkflowEvaluationHarness.cs
 │
 ├── Embeddings/              # Embedding utilities

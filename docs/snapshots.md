@@ -373,3 +373,4 @@ public async Task Response_Format_MatchesSnapshot(string format)
 - [CLI Reference](cli.md) - Running snapshot evaluations from command line
 - [Conversations](conversations.md) - Snapshot evaluating multi-turn conversations
 - [Extensibility](extensibility.md) - Custom snapshot comparers
+- [Sample 07](https://github.com/joslat/AgentEval/blob/main/samples/AgentEval.Samples/Sample07_SnapshotTesting.cs) - Runnable snapshot testing example

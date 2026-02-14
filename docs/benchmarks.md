@@ -12,6 +12,7 @@ AgentEval provides comprehensive benchmarking capabilities for AI agents:
 |---------|-------------|
 | **Custom benchmark suites** | Create your own domain-specific benchmarks |
 | **Performance benchmarks** | Measure latency, throughput, and cost |
+| **Workflow performance benchmarks** | Multi-agent pipeline performance and scaling analysis |
 | **BFCL-style evaluations** | Tool calling accuracy with industry-standard patterns |
 | **GAIA-style evaluations** | Task completion with multi-step reasoning |
 | **Regression detection** | Track scores over time, fail CI on regressions |
@@ -25,6 +26,9 @@ Write your own benchmark suites for your domain.
 
 ### ✅ Run Performance Benchmarks
 Measure latency, throughput, and cost across your agents.
+
+### ✅ Workflow Performance Analysis
+Evaluate multi-agent pipeline performance, bottlenecks, and scaling characteristics.
 
 ### ✅ Industry-Standard Patterns
 Create evaluations following BFCL/GAIA patterns and compare against published leaderboards.
@@ -233,6 +237,148 @@ Console.WriteLine($"  Total Cost: ${costResults.TotalCost:F4}");
 Console.WriteLine($"  Avg per Request: ${costResults.AverageCostPerRequest:F6}");
 Console.WriteLine($"  Total Tokens: {costResults.TotalTokens}");
 ```
+
+---
+
+## Workflow Performance Benchmarks
+
+Multi-agent workflows introduce additional performance considerations beyond single-agent benchmarks: orchestration overhead, inter-agent communication, and pipeline bottlenecks.
+
+### Workflow Latency Benchmark
+
+Measure end-to-end workflow execution time and per-executor breakdown:
+
+```csharp
+using AgentEval.MAF;
+using AgentEval.Benchmarks;
+
+// Create workflow (using MAF WorkflowBuilder)
+var workflow = new WorkflowBuilder()
+    .BindAsExecutor("Planner", plannerAgent, emitEvents: true)
+    .BindAsExecutor("Researcher", researcherAgent, emitEvents: true)
+    .BindAsExecutor("Writer", writerAgent, emitEvents: true)
+    .BindAsExecutor("Editor", editorAgent, emitEvents: true)
+    .Build();
+
+var workflowAdapter = MAFWorkflowAdapter.FromMAFWorkflow(workflow, "ContentPipeline");
+
+// Run workflow latency benchmark
+var workflowBenchmark = new WorkflowPerformanceBenchmark(workflowAdapter);
+var latencyResults = await workflowBenchmark.RunLatencyBenchmarkAsync(
+    workflowTestCases,
+    iterations: 10,
+    warmupIterations: 2);
+
+Console.WriteLine($"Workflow Latency Benchmark");
+Console.WriteLine($"  End-to-End P50: {latencyResults.OverallP50.TotalSeconds:F1}s");
+Console.WriteLine($"  End-to-End P90: {latencyResults.OverallP90.TotalSeconds:F1}s");
+Console.WriteLine($"  Pipeline Overhead: {latencyResults.OrchestrationOverhead.TotalMilliseconds:F0}ms");
+
+// Per-executor breakdown
+foreach (var (executorId, timing) in latencyResults.PerExecutorTimings)
+{
+    Console.WriteLine($"  {executorId}: {timing.AverageLatency.TotalMilliseconds:F0}ms avg");
+}
+```
+
+### Workflow Throughput Benchmark
+
+Measure workflow pipeline throughput with concurrent execution:
+
+```csharp
+var throughputResults = await workflowBenchmark.RunThroughputBenchmarkAsync(
+    workflowTestCases,
+    durationMinutes: 5,
+    maxConcurrentWorkflows: 3);  // Limited by workflow complexity
+
+Console.WriteLine($"Workflow Throughput Benchmark");
+Console.WriteLine($"  Workflows/hour: {throughputResults.WorkflowsPerHour:F1}");
+Console.WriteLine($"  Avg Workflow Duration: {throughputResults.AverageWorkflowDuration.TotalMinutes:F1}min");
+Console.WriteLine($"  Success Rate: {throughputResults.SuccessRate:P1}");
+Console.WriteLine($"  Bottleneck Executor: {throughputResults.BottleneckExecutor}");
+```
+
+### Workflow Cost Benchmark
+
+Analyze cost distribution across multiple agents and identify expensive executors:
+
+```csharp
+var costResults = await workflowBenchmark.RunCostBenchmarkAsync(workflowTestCases);
+
+Console.WriteLine($"Workflow Cost Benchmark");
+Console.WriteLine($"  Total Cost per Workflow: ${costResults.AverageCostPerWorkflow:F4}");
+Console.WriteLine($"  Most Expensive: {costResults.MostExpensiveExecutor} (${costResults.HighestExecutorCost:F4})");
+Console.WriteLine($"  Cost Efficiency: {costResults.TokensPerDollar:F0} tokens/$");
+
+// Per-executor cost breakdown
+foreach (var (executorId, cost) in costResults.PerExecutorCosts)
+{
+    var percentage = (cost / costResults.AverageCostPerWorkflow) * 100;
+    Console.WriteLine($"  {executorId}: ${cost:F4} ({percentage:F1}% of total)");
+}
+```
+
+### Workflow Scaling Benchmark
+
+Test how workflow performance scales with different configurations:
+
+```csharp
+// Test different workflow configurations
+var configurations = new[]
+{
+    new WorkflowConfiguration { MaxConcurrency = 1, TimeoutMinutes = 10 },
+    new WorkflowConfiguration { MaxConcurrency = 2, TimeoutMinutes = 8 },
+    new WorkflowConfiguration { MaxConcurrency = 3, TimeoutMinutes = 6 }
+};
+
+foreach (var config in configurations)
+{
+    var results = await workflowBenchmark.RunScalingBenchmarkAsync(
+        workflowTestCases, 
+        config);
+    
+    Console.WriteLine($"Concurrency {config.MaxConcurrency}:");
+    Console.WriteLine($"  Success Rate: {results.SuccessRate:P1}");
+    Console.WriteLine($"  Avg Duration: {results.AverageDuration.TotalMinutes:F1}min");
+    Console.WriteLine($"  Timeout Rate: {results.TimeoutRate:P1}");
+}
+```
+
+### Workflow Quality vs Performance Trade-offs
+
+Measure the relationship between workflow speed and output quality:
+
+```csharp
+var tradeoffResults = await workflowBenchmark.RunQualityPerformanceTradeoffAsync(
+    workflowTestCases,
+    timeoutConfigurations: new[] { 
+        TimeSpan.FromMinutes(2),    // Fast but potentially lower quality
+        TimeSpan.FromMinutes(5),    // Balanced
+        TimeSpan.FromMinutes(10)    // Thorough but slower
+    });
+
+Console.WriteLine($"Quality vs Performance Trade-offs:");
+foreach (var result in tradeoffResults)
+{
+    Console.WriteLine($"  {result.Timeout.TotalMinutes}min timeout:");
+    Console.WriteLine($"    Quality Score: {result.AverageQualityScore:F1}%");
+    Console.WriteLine($"    Success Rate: {result.SuccessRate:P1}");
+    Console.WriteLine($"    Cost: ${result.AverageCost:F4}");
+}
+```
+
+**Key Workflow Performance Metrics:**
+
+| Metric | Description | Optimal Range |
+|--------|-------------|---------------|
+| **End-to-End Latency** | Total workflow completion time | < 5 minutes for most use cases |
+| **Orchestration Overhead** | Time spent on workflow coordination | < 5% of total time |
+| **Executor Load Balance** | Variance in executor durations | Low variance indicates good balance |
+| **Pipeline Efficiency** | Useful work time / total time | > 85% |
+| **Cost per Workflow** | Total cost across all executors | Domain-specific target |
+| **Bottleneck Detection** | Which executor limits throughput | Minimize via optimization |
+
+> **💡 Workflow Performance Tip:** [Sample 09](https://github.com/joslat/AgentEval/tree/main/samples/AgentEval.Samples) (Sequential Workflows) and [Sample 10](https://github.com/joslat/AgentEval/tree/main/samples/AgentEval.Samples) (Tool-Enabled Workflows) demonstrate performance monitoring techniques for multi-agent systems.
 
 ---
 

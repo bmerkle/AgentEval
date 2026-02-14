@@ -489,6 +489,176 @@ var result = await metric.EvaluateAsync(new EvaluationContext
 
 ---
 
+## Workflow Metrics
+
+Metrics for evaluating multi-agent workflows and complex execution pipelines.
+
+### code_workflow_structure_validity
+
+**Purpose:** Validates workflow graph structure (nodes, edges, entry/exit points).
+
+| Property | Value |
+|----------|-------|
+| Interface | `IWorkflowMetric` |
+| Requires Workflow Graph | ✅ Yes |
+| Cost | Free (code validation) |
+
+**When to Use:**
+- Ensuring workflow topology is correct
+- Validating graph connectivity
+- CI/CD workflow validation
+- Detecting broken workflow definitions
+
+**Example:**
+```csharp
+var metric = new WorkflowStructureValidityMetric();
+var result = await metric.EvaluateAsync(new WorkflowEvaluationContext
+{
+    WorkflowGraph = workflowDefinition,
+    ExpectedNodes = new[] { "Planner", "Writer", "Editor" }
+});
+// result.Score: 100 (valid structure)
+```
+
+---
+
+### code_workflow_execution_order
+
+**Purpose:** Verifies agents executed in the expected order.
+
+| Property | Value |
+|----------|-------|
+| Interface | `IWorkflowMetric` |
+| Requires Execution Result | ✅ Yes |
+| Cost | Free (sequence validation) |
+
+**When to Use:**
+- Sequential pipeline validation
+- Dependency checking
+- Ensuring proper workflow orchestration
+- Debugging execution flow
+
+**Example:**
+```csharp
+var metric = new WorkflowExecutionOrderMetric(
+    expectedOrder: new[] { "Planner", "Researcher", "Writer", "Editor" }
+);
+var result = await metric.EvaluateAsync(context);
+// result.Score: Based on sequence correctness
+```
+
+---
+
+### code_workflow_executor_success
+
+**Purpose:** Measures the success rate of individual executors within the workflow.
+
+| Property | Value |
+|----------|-------|
+| Interface | `IWorkflowMetric` |
+| Requires Executor Results | ✅ Yes |
+| Cost | Free (success rate calculation) |
+
+**When to Use:**
+- Per-agent reliability tracking
+- Identifying problematic workflow steps
+- Quality assurance for complex pipelines
+- Performance monitoring
+
+**Example:**
+```csharp
+var metric = new WorkflowExecutorSuccessMetric();
+var result = await metric.EvaluateAsync(context);
+// result.Score: Percentage of successful executor completions
+```
+
+---
+
+### llm_workflow_output_quality
+
+**Purpose:** LLM-based evaluation of final workflow output quality.
+
+| Property | Value |
+|----------|-------|
+| Interface | `IWorkflowMetric` |
+| Requires Workflow Output | ✅ Yes |
+| Cost | LLM API call |
+
+**When to Use:**
+- End-to-end workflow quality assessment
+- Complex pipeline output validation
+- Production quality gates
+- Multi-agent collaboration evaluation
+
+**Example:**
+```csharp
+var metric = new WorkflowOutputQualityMetric(chatClient, criteria: 
+    "Evaluate if the content creation workflow produced high-quality, coherent output"
+);
+var result = await metric.EvaluateAsync(context);
+// result.Score: LLM assessment of final output quality
+```
+
+---
+
+### code_workflow_tool_chain_validity
+
+**Purpose:** Validates tool usage patterns across multiple agents in the workflow.
+
+| Property | Value |
+|----------|-------|
+| Interface | `IWorkflowMetric` |
+| Requires Tool Usage | ✅ Yes |
+| Cost | Free (tool pattern analysis) |
+
+**When to Use:**
+- Multi-agent tool coordination
+- Tool dependency validation
+- Complex tool chain verification
+- Cross-agent tool state management
+
+**Example:**
+```csharp
+var metric = new WorkflowToolChainValidityMetric(
+    requiredPatterns: new[] {
+        new ToolPattern("Search", beforeTool: "Book"),
+        new ToolPattern("Confirm", beforeTool: "Execute")
+    }
+);
+var result = await metric.EvaluateAsync(context);
+// result.Score: Tool chain pattern compliance
+```
+
+---
+
+### code_workflow_performance_efficiency
+
+**Purpose:** Measures overall workflow performance (timing, cost, resource usage).
+
+| Property | Value |
+|----------|-------|
+| Interface | `IWorkflowMetric` |
+| Requires Performance Data | ✅ Yes |
+| Cost | Free (performance calculation) |
+
+**When to Use:**
+- Workflow optimization
+- Cost monitoring across multiple agents
+- SLA validation for complex pipelines
+- Performance regression detection
+
+**Example:**
+```csharp
+var metric = new WorkflowPerformanceEfficiencyMetric(
+    maxDuration: TimeSpan.FromMinutes(5),
+    maxTotalCost: 0.50m
+);
+var result = await metric.EvaluateAsync(context);
+// result.Score: Based on performance vs. thresholds
+```
+
+---
+
 ## Quick Reference Table
 
 | Metric | Category | Context | Ground Truth | Tool Usage | Cost |
@@ -511,12 +681,19 @@ var result = await metric.EvaluateAsync(new EvaluationContext
 | `llm_groundedness` | Quality | ✅ | ❌ | ❌ | LLM |
 | `llm_coherence` | Quality | ❌ | ❌ | ❌ | LLM |
 | `llm_fluency` | Quality | ❌ | ❌ | ❌ | LLM |
+| `code_workflow_structure_validity` | Workflow | ❌ | ❌ | ❌ | Free |
+| `code_workflow_execution_order` | Workflow | ❌ | ❌ | ❌ | Free |
+| `code_workflow_executor_success` | Workflow | ❌ | ❌ | ❌ | Free |
+| `llm_workflow_output_quality` | Workflow | ❌ | ❌ | ❌ | LLM |
+| `code_workflow_tool_chain_validity` | Workflow | ❌ | ❌ | ✅ | Free |
+| `code_workflow_performance_efficiency` | Workflow | ❌ | ❌ | ❌ | Free |
 
 ---
 
 ## See Also
 
 - [RAG Metrics](rag-metrics.md) - Complete RAG evaluation guide
+- [Workflows](workflows.md) - Multi-agent workflow evaluation guide
 - [Evaluation Guide](evaluation-guide.md) - How to choose the right metrics
 - [Naming Conventions](naming-conventions.md) - Metric naming standards
 - [Architecture](architecture.md) - System design

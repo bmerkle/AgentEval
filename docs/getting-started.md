@@ -31,7 +31,7 @@ AgentEval follows the principle: **"Evaluation Always Real, Structure Optionally
 | RAG quality metrics | ❌ Skipped | ✅ Real evaluation |
 | Model comparison | ❌ Skipped | ✅ Real comparison |
 
-**Without credentials:** Samples 1-13 work fully; samples 14-19 gracefully skip evaluation parts.
+**Without credentials:** Samples 1-4 work fully in mock mode; samples 5-22 gracefully skip or show credential-required messages.
 
 ### Required Environment Variables
 
@@ -63,7 +63,7 @@ cd samples/AgentEval.Samples
 dotnet run
 ```
 
-You'll see samples 1-13 demonstrate tool tracking, performance metrics, conversations, workflows, and more—all without real LLM calls. Samples 14-19 will show informative "credentials required" messages.
+You'll see samples 1-4 demonstrate tool tracking, performance metrics, and more—all without real LLM calls. Samples 5-22 will show informative "credentials required" messages.
 
 ## Installation
 

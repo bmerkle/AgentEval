@@ -655,6 +655,8 @@ var weights = new ComparisonWeights
 - [stochastic evaluation](stochastic-evaluation.md) - The foundation for model comparison
 - [Trace Record & Replay](tracing.md) - Reduce comparison costs
 - [Code Gallery](showcase/code-gallery.md) - More examples
+- [Sample 15](https://github.com/joslat/AgentEval/blob/main/samples/AgentEval.Samples/Sample15_ModelComparison.cs) - Runnable model comparison example
+- [Sample 16](https://github.com/joslat/AgentEval/blob/main/samples/AgentEval.Samples/Sample16_CombinedStochasticComparison.cs) - Combined stochastic + model comparison
 
 ---
 

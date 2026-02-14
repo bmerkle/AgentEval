@@ -16,12 +16,19 @@ AgentEval is in **beta** with all core features complete and ready for productio
 - **stochastic evaluation** - run N times, assert on pass rates
 - **Model comparison** with statistical significance
 - **Multi-turn conversation evaluation** (`ConversationRunner`)
-- **Workflow evaluation** for multi-agent orchestration
+- **Multi-agent workflow evaluation** - comprehensive pipeline evaluation with MAF integration
+  - Sequential and parallel workflow orchestration
+  - Per-executor performance analysis and assertions
+  - Workflow graph structure validation and visualization
+  - Tool chain coordination across multiple agents
+  - Event streaming and timeout handling
+  - `WorkflowResultAssertions` with hierarchical validation
 - **Snapshot evaluation** for regression detection
 
 ### Metrics & Evaluation
 - **RAG metrics:** Faithfulness, Relevance, Context Precision/Recall, Answer Correctness
 - **Agentic metrics:** Tool Selection, Tool Arguments, Tool Success, Task Completion, Efficiency
+- **Workflow metrics:** Structure validity, execution order, executor success, tool chain validation, output quality
 - **Embedding-based similarity** metrics
 - **Calibrated judges** with confidence intervals and voting strategies
 
@@ -31,6 +38,7 @@ AgentEval is in **beta** with all core features complete and ready for productio
 - **Per-tool timing** and execution waterfall
 - **Token counting and cost estimation** (8+ models)
 - **Performance benchmarks** (latency, throughput, cost)
+- **Workflow performance benchmarks** - end-to-end latency, per-executor analysis, scaling characteristics, quality vs performance trade-offs
 - **Trace record/replay** - capture and reproduce executions deterministically
 
 ### Behavioral Policies
@@ -40,12 +48,16 @@ AgentEval is in **beta** with all core features complete and ready for productio
 
 ### CI/CD Integration
 - **CLI tool** (`agenteval eval`, `agenteval init`, `agenteval list`)
-- **Result exporters:** JSON, JUnit XML, Markdown, TRX
-- **Dataset loaders:** JSON, JSONL, CSV, YAML
+- **Workflow CLI commands** (`agenteval workflow-eval`, `workflow-init`, `workflow-validate`)
+- **Result exporters:** JSON, JUnit XML, Markdown, TRX, Mermaid (workflow graphs)
+- **Dataset loaders:** JSON, JSONL, CSV, YAML (including workflow test cases)
 - **Rich test output** with verbosity levels and trace artifacts
 
 ### Framework Support
-- **Microsoft Agent Framework (MAF)** adapter
+- **Microsoft Agent Framework (MAF)** adapter with comprehensive workflow support
+  - `MAFWorkflowAdapter` for multi-agent pipeline evaluation
+  - `MAFWorkflowEventBridge` for event processing and timeout handling
+  - Native MAF `WorkflowBuilder` integration with `BindAsExecutor`
 - **Generic `IChatClient`** adapter
 - **Microsoft.Extensions.AI.Evaluation** integration
 
@@ -75,7 +87,7 @@ We prioritize based on community needs and contributions.
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| 0.2.0-beta | Jan 2026 | Evaluation toolkit, stochastic evaluation, model comparison, trace replay |
-| 0.1.x-alpha | Jan 2026 | Initial alpha releases |
+| 0.2.0-beta | Feb 2026 | Multi-agent workflow evaluation, comprehensive MAF integration, workflow performance benchmarks, CLI workflow commands |
+| 0.1.x-alpha | Jan 2026 | Core evaluation toolkit, stochastic evaluation, model comparison, trace replay |
 
 See [CHANGELOG.md](https://github.com/joslat/AgentEval/blob/main/CHANGELOG.md) for detailed release notes.

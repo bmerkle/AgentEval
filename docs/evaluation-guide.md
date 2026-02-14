@@ -37,6 +37,23 @@ What are you evaluating?
 │   └─► Does it complete tasks?
 │       └─► Use: llm_task_completion
 │
+├─► Multi-Agent Workflow (orchestrated system)
+│   │
+│   ├─► Is the workflow structure correct?
+│   │   └─► Use: code_workflow_structure_validity (FREE!)
+│   │
+│   ├─► Do agents execute in the right order?
+│   │   └─► Use: code_workflow_execution_order (FREE!)
+│   │
+│   ├─► Are tools coordinated across agents?
+│   │   └─► Use: code_workflow_tool_chain_validity (FREE!)
+│   │
+│   ├─► Do individual agents perform well?
+│   │   └─► Use: Per-executor assertions + agent metrics
+│   │
+│   └─► Is the final workflow output high quality?
+│       └─► Use: llm_workflow_output_quality
+│
 └─► General LLM Quality
     │
     └─► Is the response relevant?
@@ -165,6 +182,135 @@ var results = await comparer.CompareModelsAsync(
 results.PrintComparisonTable();
 // Shows: Model | Mean Score | Cost | Latency
 ```
+
+---
+
+### 6. Multi-Agent Workflow Evaluation
+
+**Goal:** Evaluate complex multi-agent systems and orchestrated workflows.
+
+**Key Challenges:**
+- Multiple agents with different capabilities
+- Sequential or parallel execution coordination
+- Tool sharing and state management across agents
+- End-to-end workflow performance
+- Error propagation and recovery
+
+**Recommended Approach:**
+
+**Phase 1: Structural Validation (FREE)**
+```csharp
+// Fast workflow structure validation
+var structureMetric = new WorkflowStructureValidityMetric();
+var orderMetric = new WorkflowExecutionOrderMetric(
+    expectedOrder: ["Planner", "Researcher", "Writer", "Editor"]
+);
+
+// Verify workflow topology and execution sequence
+var result = await harness.RunWorkflowTestAsync(workflowAdapter, testCase);
+result.ExecutionResult!.Should()
+    .HaveStepCount(4, because: "content pipeline has 4 stages")
+    .HaveExecutedInOrder("Planner", "Researcher", "Writer", "Editor")
+    .HaveNoErrors();
+```
+
+**Phase 2: Per-Agent Performance**
+```csharp
+// Individual agent validation within workflow context
+result.ExecutionResult!
+    .ForExecutor("Researcher")
+        .HaveCompletedWithin(TimeSpan.FromMinutes(3))
+        .HaveCalledTool("ResearchTool")
+        .HaveEstimatedCostUnder(0.20m)
+        .And()
+    .ForExecutor("Writer")
+        .HaveOutputLongerThan(500, because: "content should be substantial")
+        .HaveNonEmptyOutput()
+        .And();
+```
+
+**Phase 3: Tool Chain Validation**
+```csharp
+// Multi-agent tool coordination
+result.ExecutionResult!.Should()
+    .HaveCalledTool("GetInfoAbout", because: "TripPlanner must research")
+        .InExecutor("TripPlanner")
+        .WithoutError()
+        .And()
+    .HaveCalledTool("SearchFlights")
+        .BeforeTool("BookFlight", because: "must search before booking")
+        .InExecutor("FlightReservation")
+        .And()
+    .HaveToolCallPattern("Search", "Book")  // Pattern across workflow
+    .HaveNoToolErrors();
+```
+
+**Phase 4: End-to-End Quality (LLM-BASED)**
+```csharp
+// Overall workflow output assessment
+var workflowQuality = new WorkflowOutputQualityMetric(chatClient, 
+    criteria: "Evaluate if the multi-agent workflow produced coherent, complete output");
+
+var qualityResult = await workflowQuality.EvaluateAsync(workflowContext);
+qualityResult.Score.Should().BeGreaterThan(80);
+```
+
+**Cost-Optimized Workflow Strategy:**
+1. **Structure Validation (FREE):** Always validate graph topology and execution order
+2. **Performance Bounds (FREE):** Check timing, costs, basic success metrics
+3. **Tool Coordination (FREE):** Validate multi-agent tool usage patterns
+4. **Quality Sampling ($$):** Use LLM evaluation on subset of workflow outputs
+
+**Example: Content Creation Pipeline**
+```csharp
+// Sample 09 
+var testCase = new WorkflowTestCase
+{
+    Name = "Content Creation Pipeline",
+    Input = "Create an article about sustainable technology",
+    Agents = ["Planner", "Researcher", "Writer", "Editor"],
+    WorkflowTimeout = TimeSpan.FromMinutes(10)
+};
+
+var result = await harness.RunWorkflowTestAsync(workflowAdapter, testCase);
+
+// Comprehensive workflow validation
+result.ExecutionResult!.Should()
+    // Structure (FREE)
+    .HaveStepCount(4)
+    .HaveExecutedInOrder("Planner", "Researcher", "Writer", "Editor") 
+    .HaveCompletedWithin(TimeSpan.FromMinutes(10))
+    
+    // Per-agent validation (FREE)  
+    .ForExecutor("Writer")
+        .HaveOutputLongerThan(200)
+        .HaveEstimatedCostUnder(0.15m)
+        .And()
+        
+    // Graph validation (FREE)
+    .HaveGraphStructure()
+        .HaveEntryPoint("Planner")
+        .HaveExecutionPath("Planner", "Researcher", "Writer", "Editor")
+        .And()
+        
+    // Final validation
+    .HaveNoErrors();
+
+// Optional: Deep quality assessment (LLM-based, for samples)
+if (IsProductionSample())
+{
+    var qualityMetric = new WorkflowOutputQualityMetric(chatClient);
+    var quality = await qualityMetric.EvaluateAsync(workflowContext);
+    quality.Score.Should().BeGreaterThan(75);
+}
+```
+
+**Workflow-Specific Metrics:**
+- `code_workflow_structure_validity` - Graph topology validation (FREE)
+- `code_workflow_execution_order` - Sequence verification (FREE)
+- `code_workflow_executor_success` - Per-agent success rate (FREE)
+- `code_workflow_tool_chain_validity` - Multi-agent tool patterns (FREE)
+- `llm_workflow_output_quality` - End-to-end quality assessment (LLM)
 
 ---
 

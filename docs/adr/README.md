@@ -30,6 +30,9 @@ Each ADR follows this structure:
 | [007](007-metrics-taxonomy.md) | Metrics Taxonomy | Accepted | 2026-01-10 |
 | [008](008-calibrated-judge-multi-model.md) | Calibrated Judge for Multi-Model LLM Evaluation | Accepted | 2026-01-12 |
 | [009](009-benchmark-strategy.md) | Benchmark Strategy | Accepted | 2026-01-13 |
+| [010](010-maf-workflow-integration-architecture.md) | MAF Workflow Integration Architecture | Accepted | 2026-02-14 |
+| [011](011-workflow-event-processing-timeout-handling.md) | Workflow Event Processing and Timeout Handling | Accepted | 2026-02-14 |
+| [012](012-workflow-assertion-design.md) | Workflow Assertion Design | Accepted | 2026-02-14 |
 
 ---
 

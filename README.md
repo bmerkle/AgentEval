@@ -428,8 +428,8 @@ dotnet run --project samples/AgentEval.Samples
 | **07: Snapshot Evaluation** | Regression detection with baselines | 5 min |
 | **08: Conversation Evaluation** | Multi-turn agent interactions | 5 min |
 | **09: Workflow Evaluation** | Multi-agent orchestration and routing | 10 min |
-| **10: Datasets and Export** | Batch evaluation with JSON/YAML/CSV/JSONL | 5 min |
-| **11: Because Assertions** | Self-documenting evaluations with intent clarity | 5 min |
+| **10: Workflow with Tools** | Workflow agents with tool integration | 8 min |
+| **11: Datasets and Export** | Batch evaluation with JSON/YAML/CSV/JSONL | 5 min |
 | **12: Policy & Safety Evaluation** | Enterprise guardrails (NeverCallTool, MustConfirmBefore) | 8 min |
 | **13: Trace Record & Replay** | Capture executions for deterministic evaluation | 8 min |
 | **14: stochastic evaluation** | Run evaluations N times for statistical confidence | 5 min |
@@ -437,6 +437,9 @@ dotnet run --project samples/AgentEval.Samples
 | **16: Combined Stochastic + Comparison** | Stochastic evaluations across multiple models | 10 min |
 | **17: Quality & Safety Metrics** | Groundedness, coherence, fluency evaluation | 5 min |
 | **18: Judge Calibration** | Multi-model consensus for reliable LLM-as-judge | 8 min |
+| **19: Streaming vs Async Performance** | Performance comparison of different execution modes | 5 min |
+| **20: Red Team Basic** | Security evaluation with prompt injection and jailbreak | 8 min |
+| **21: Red Team Advanced** | Comprehensive security testing across all attack types | 10 min |
 
 ---
 

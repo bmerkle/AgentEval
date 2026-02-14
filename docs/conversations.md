@@ -285,3 +285,4 @@ if (!result.Success && result.TotalDuration >= testCase.MaxDuration)
 - [CLI Reference](cli.md) - Running conversation evaluations from command line
 - [Benchmarks](benchmarks.md) - Performance benchmarks for conversations
 - [Extensibility](extensibility.md) - Custom conversation metrics
+- [Sample 08](https://github.com/joslat/AgentEval/blob/main/samples/AgentEval.Samples/Sample08_ConversationEvaluation.cs) - Runnable conversation evaluation example

@@ -414,10 +414,201 @@ public class TravelAgentTests
 
 ---
 
+## All Samples Guide
+
+AgentEval includes comprehensive examples covering every evaluation scenario. Here's what each sample demonstrates:
+
+### Foundation Samples (1-4): Getting Started
+**Mock Mode Available (No Azure OpenAI Required)**
+
+- **Sample01**: Hello World - Basic agent evaluation setup
+- **Sample02**: Tool Usage Assertions - Validate tool calls with fluent syntax
+- **Sample03**: Performance Assertions - Check latency, cost, and token usage
+- **Sample04**: RAG Metrics - Evaluate retrieval-augmented generation quality
+
+### Core Evaluation Samples (5-12): Essential Patterns
+
+- **Sample05**: RAG Quality Metrics - Faithfulness, relevance, context precision
+- **Sample06**: Behavioral Policies - Safety guards (`NeverCallTool`, `MustConfirmBefore`)  
+- **Sample07**: Snapshot Testing - Detect regressions against golden responses
+- **Sample08**: Multi-Turn Conversations - Conversation flow evaluation
+- **Sample09**: **Sequential Workflows** - Multi-agent pipeline evaluation
+- **Sample10**: **Tool-Enabled Workflows** - Complex multi-agent tool chains
+- **Sample11**: LLM-as-Judge - Using LLMs for quality assessment
+- **Sample12**: Embedding Metrics - Semantic similarity evaluation
+
+### Advanced Evaluation Samples (13-18): Production Patterns
+
+- **Sample13**: Trace Record & Replay - API-free evaluation for CI/CD
+- **Sample14**: stochastic evaluation - Handle non-deterministic behavior
+- **Sample15**: Model Comparison - Compare models side-by-side
+- **Sample16**: Statistical Analysis - Advanced statistical evaluation
+- **Sample17**: Custom Metrics - Building domain-specific evaluators
+- **Sample18**: Calibrated Judges - Multi-model consensus evaluation
+
+### Security & Compliance Samples (19-22): Enterprise Features
+
+- **Sample19**: ResponsibleAI Evaluation - Toxicity, bias, misinformation detection
+- **Sample20**: Quick Red Team Scan - One-line security assessment
+- **Sample21**: Advanced Red Team Pipeline - Comprehensive security evaluation
+- **Sample22**: Compliance & Audit - Enterprise compliance reporting
+
+### Running Samples
+
+```bash
+# Clone and run
+git clone https://github.com/joslat/AgentEval
+cd AgentEval/samples/AgentEval.Samples
+
+# Mock mode (no API keys required) - Samples 1-4
+dotnet run -- 1    # Hello World
+dotnet run -- 2    # Tool assertions  
+dotnet run -- 3    # Performance assertions
+dotnet run -- 4    # RAG metrics
+
+# Azure OpenAI required - Samples 5-22  
+export AZURE_OPENAI_ENDPOINT="https://your-resource.openai.azure.com/"
+export AZURE_OPENAI_API_KEY="your-api-key"
+
+dotnet run -- 9    # Sequential Workflows
+dotnet run -- 10   # Tool-Enabled Workflows  
+dotnet run -- 20   # Quick Red Team Scan
+dotnet run -- 21   # Advanced Red Team Pipeline
+```
+
+---
+
+## Workflow Evaluation Deep Dive
+
+**Samples 09 & 10** demonstrate multi-agent workflow evaluation—one of AgentEval's most powerful features.
+
+### Sequential Pipeline Workflow (Sample 09)
+
+Evaluate a content creation pipeline with multiple agents:
+
+```csharp
+// 1. Define workflow agents
+var plannerAgent = CreateAgent("ContentPlanner", "Create content outlines");
+var researcherAgent = CreateAgent("Researcher", "Research topics and gather facts");  
+var writerAgent = CreateAgent("Writer", "Write engaging content");
+var editorAgent = CreateAgent("Editor", "Edit and polish content");
+
+// 2. Build MAF workflow
+var workflow = new WorkflowBuilder()
+    .BindAsExecutor("Planner", plannerAgent, emitEvents: true)
+    .BindAsExecutor("Researcher", researcherAgent, emitEvents: true)
+    .BindAsExecutor("Writer", writerAgent, emitEvents: true)
+    .BindAsExecutor("Editor", editorAgent, emitEvents: true)
+    .Build();
+
+// 3. Create workflow adapter for evaluation
+var workflowAdapter = MAFWorkflowAdapter.FromMAFWorkflow(workflow, "ContentPipeline");
+
+// 4. Define test case
+var testCase = new WorkflowTestCase
+{
+    Name = "Content Creation Pipeline",
+    Input = "Create an article about sustainable technology",
+    Agents = new[] { "Planner", "Researcher", "Writer", "Editor" },
+    TimeoutPerAgent = TimeSpan.FromMinutes(2),
+    WorkflowTimeout = TimeSpan.FromMinutes(10)
+};
+
+// 5. Run workflow evaluation  
+var harness = new WorkflowEvaluationHarness();
+var result = await harness.RunWorkflowTestAsync(workflowAdapter, testCase);
+
+// 6. Assert on workflow structure and execution
+result.ExecutionResult!.Should()
+    .HaveStepCount(4, because: "pipeline has 4 agents")
+    .HaveExecutedInOrder("Planner", "Researcher", "Writer", "Editor")
+    .HaveCompletedWithin(TimeSpan.FromMinutes(10))
+    .HaveNoErrors();
+
+// 7. Assert on individual agent performance
+result.ExecutionResult!
+    .ForExecutor("Writer")
+        .HaveOutputLongerThan(200, because: "articles should be substantial")
+        .HaveEstimatedCostUnder(0.15m)
+        .And()
+    .ForExecutor("Editor")
+        .HaveOutputNotContaining("DRAFT")
+        .And();
+
+// 8. Validate workflow graph structure
+result.ExecutionResult!
+    .HaveGraphStructure()
+        .HaveEntryPoint("Planner")
+        .HaveExecutionPath("Planner", "Researcher", "Writer", "Editor")  
+        .HaveTraversedEdge("Planner", "Researcher")
+        .HaveTraversedEdge("Writer", "Editor");
+```
+
+### Tool-Enabled Workflow (Sample 10)
+
+Evaluate workflows where agents use tools:
+
+```csharp
+// 1. Create agents with tools
+var tripPlannerAgent = new ChatClientAgent(chatClient, new()
+{
+    Name = "TripPlanner", 
+    Tools = [AIFunctionFactory.Create(GetInfoAbout)]
+});
+
+var flightReservationAgent = new ChatClientAgent(chatClient, new()
+{
+    Name = "FlightReservation",
+    Tools = [AIFunctionFactory.Create(SearchFlights), AIFunctionFactory.Create(BookFlight)]
+});
+
+// 2. Build workflow with tool-enabled agents
+var workflow = new WorkflowBuilder()
+    .BindAsExecutor("TripPlanner", tripPlannerAgent, emitEvents: true)
+    .BindAsExecutor("FlightReservation", flightReservationAgent, emitEvents: true)
+    .Build();
+
+var workflowAdapter = MAFWorkflowAdapter.FromMAFWorkflow(workflow, "TravelBooking");
+
+// 3. Run evaluation
+var result = await harness.RunWorkflowTestAsync(workflowAdapter, testCase);
+
+// 4. Assert on tool usage across workflow  
+result.ExecutionResult!.Should()
+    .HaveCalledTool("GetInfoAbout", because: "TripPlanner must research cities")
+        .AtLeast(2.Times())
+        .WithoutError()
+        .InExecutor("TripPlanner")
+        .And()
+    .HaveCalledTool("SearchFlights")
+        .BeforeTool("BookFlight", because: "can't book without search")
+        .InExecutor("FlightReservation")
+        .WithArgument("from", "Seattle")
+        .And()
+    .HaveNoToolErrors();
+
+// 5. Export workflow visualization
+await result.ExportWorkflowVisualizationAsync("workflow-execution.mmd");
+```
+
+### Workflow Evaluation Benefits
+
+- **Structure Validation**: Verify workflow topology and execution order
+- **Per-Agent Analysis**: Individual agent performance within workflow context  
+- **Tool Chain Validation**: Tool usage patterns across multiple agents
+- **Performance Monitoring**: Total workflow cost/timing with per-agent breakdown
+- **Error Propagation**: Track how errors flow through workflow pipeline
+- **Visualization Export**: Mermaid diagrams of workflow execution
+
+See [Workflows Documentation](workflows.md) for complete workflow evaluation guide.
+
+---
+
 ## Next Steps
 
 - [Architecture](architecture.md) - Understand the framework design
 - [CLI Reference](cli.md) - Run evaluations from command line
+- [Workflows](workflows.md) - Complete workflow evaluation guide
 - [Benchmarks](benchmarks.md) - Performance evaluation at scale
 - [Conversations](conversations.md) - Multi-turn evaluation
 - [Snapshots](snapshots.md) - Regression evaluation
