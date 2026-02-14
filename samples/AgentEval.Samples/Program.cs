@@ -123,12 +123,11 @@ public static class Program
                 case 21:
                     await Sample21_RedTeamAdvanced.RunAsync();
                     break;
-
-                case 23:
-                    await Sample23_ResponsibleAI.RunAsync();
+                case 22:
+                    await Sample22_ResponsibleAI.RunAsync();
                     break;
-                case 24:
-                    await Sample24_BenchmarkSystem.RunAsync();
+                case 23:
+                    await Sample23_BenchmarkSystem.RunAsync();
                     break;
                 default:
                     Console.WriteLine($"❌ Sample {sampleNumber} not found.\n");
@@ -196,8 +195,8 @@ public static class Program
         Console.WriteLine("│ 19. ⚡ Streaming vs Async - Performance comparison          │");
         Console.WriteLine("│ 20. 🛡️ Red Team Basic    - Security vulnerability scan       │");
         Console.WriteLine("│ 21. 🛡️ Red Team Advanced - Pipeline, reports, compliance    │");
-        Console.WriteLine("│ 23. 🛡️ ResponsibleAI     - Content safety, bias, misinfo   │");
-        Console.WriteLine("│ 24. 📊 Benchmark System  - Performance, agentic & standard  │");
+        Console.WriteLine("│ 22. 🛡️ ResponsibleAI     - Content safety, bias, misinfo   │");
+        Console.WriteLine("│ 23. 📊 Benchmark System  - Performance, agentic & standard  │");
         
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("├─────────────────────────────────────────────────────────────┤");

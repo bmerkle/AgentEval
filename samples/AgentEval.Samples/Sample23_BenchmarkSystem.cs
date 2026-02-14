@@ -4,7 +4,7 @@
 namespace AgentEval.Samples;
 
 /// <summary>
-/// Sample 24: Benchmark System — Performance &amp; Agentic Benchmarking
+/// Sample 23: Benchmark System — Performance &amp; Agentic Benchmarking
 /// 
 /// This demonstrates AgentEval's comprehensive benchmark system:
 /// - Performance benchmarks: Latency, throughput, scalability testing
@@ -19,7 +19,7 @@ namespace AgentEval.Samples;
 /// ⏱️ Time to understand: 10 minutes
 /// ⏱️ Time to run: ~2–5 minutes (depends on benchmark selection)
 /// </summary>
-public static class Sample24_BenchmarkSystem
+public static class Sample23_BenchmarkSystem
 {
     public static async Task RunAsync()
     {
@@ -342,7 +342,7 @@ public static class Sample24_BenchmarkSystem
     {
         Console.WriteLine();
         Console.WriteLine("╔══════════════════════════════════════════════════════════════════════════════╗");
-        Console.WriteLine("║                    📊 Sample 24: Benchmark System                          ║");  
+        Console.WriteLine("║                    📊 Sample 23: Benchmark System                          ║");  
         Console.WriteLine("║              Performance, Agentic & Standard Benchmarks                     ║");
         Console.WriteLine("╚══════════════════════════════════════════════════════════════════════════════╝");
         Console.WriteLine();
@@ -351,7 +351,7 @@ public static class Sample24_BenchmarkSystem
     private static void PrintMissingCredentialsBox()
     {
         Console.WriteLine("┌─────────────────────────────────────────────────────────────────────────────┐");
-        Console.WriteLine("│  ⚠️  SKIPPING SAMPLE 24 - Azure OpenAI Credentials Required                │");
+        Console.WriteLine("│  ⚠️  SKIPPING SAMPLE 23 - Azure OpenAI Credentials Required                │");
         Console.WriteLine("│                                                                             │");
         Console.WriteLine("│  Benchmarking requires AI model access for performance and quality tests.  │");
         Console.WriteLine("│  Set AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT  │");
@@ -369,7 +369,7 @@ public static class Sample24_BenchmarkSystem
         Console.WriteLine("   • Cost Optimization: Quality-adjusted cost analysis for budget-conscious deployment");
         Console.WriteLine("   • Comparative Analysis: Data-driven model selection across performance dimensions");
         Console.WriteLine("   • Custom Benchmarks: Build domain-specific benchmarks for specialized use cases");
-        Console.WriteLine("\n🔗 NEXT: Run Sample 25 for embedding-based similarity evaluation!");
+        Console.WriteLine("\n🔗 NEXT: Explore embedding-based similarity evaluation techniques!");
         Console.WriteLine("📊 TIP: Use benchmark results to justify model selection and configuration choices!\n");
     }
 }

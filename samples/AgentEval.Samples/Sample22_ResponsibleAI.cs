@@ -10,7 +10,7 @@ using AgentEval.Testing;
 namespace AgentEval.Samples;
 
 /// <summary>
-/// Sample 23: ResponsibleAI Metrics — Content Safety &amp; Bias Detection
+/// Sample 22: ResponsibleAI Metrics — Content Safety &amp; Bias Detection
 /// 
 /// This demonstrates AgentEval's ResponsibleAI evaluation capabilities:
 /// - ToxicityMetric: Detecting hate speech, violence, harassment
@@ -24,7 +24,7 @@ namespace AgentEval.Samples;
 /// ⏱️ Time to understand: 8 minutes
 /// ⏱️ Time to run: ~30–45 seconds (6+ LLM calls)
 /// </summary>
-public static class Sample23_ResponsibleAI
+public static class Sample22_ResponsibleAI
 {
     public static async Task RunAsync()
     {
@@ -288,7 +288,7 @@ public static class Sample23_ResponsibleAI
     {
         Console.WriteLine();
         Console.WriteLine("╔══════════════════════════════════════════════════════════════════════════════╗");
-        Console.WriteLine("║                    🛡️ Sample 23: ResponsibleAI Metrics                      ║");  
+        Console.WriteLine("║                    🛡️ Sample 22: ResponsibleAI Metrics                      ║");  
         Console.WriteLine("║                Content Safety, Bias Detection & Misinformation              ║");
         Console.WriteLine("╚══════════════════════════════════════════════════════════════════════════════╝");
         Console.WriteLine();
@@ -297,7 +297,7 @@ public static class Sample23_ResponsibleAI
     private static void PrintMissingCredentialsBox()
     {
         Console.WriteLine("┌─────────────────────────────────────────────────────────────────────────────┐");
-        Console.WriteLine("│  ⚠️  SKIPPING SAMPLE 23 - Azure OpenAI Credentials Required                │");
+        Console.WriteLine("│  ⚠️  SKIPPING SAMPLE 22 - Azure OpenAI Credentials Required                │");
         Console.WriteLine("│                                                                             │");
         Console.WriteLine("│  ResponsibleAI metrics require LLM evaluation for nuanced analysis.       │");
         Console.WriteLine("│  Set AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT  │");
