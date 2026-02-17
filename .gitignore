@@ -429,3 +429,4 @@ strategy/
 
 # MAF source reference (local only - not for distribution)
 /MAF/
+/MAFvnext/
