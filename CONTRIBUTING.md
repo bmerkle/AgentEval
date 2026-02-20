@@ -43,7 +43,7 @@ dotnet build
 dotnet test
 ```
 
-All 2,100+ tests should pass across all three target frameworks (net8.0, net9.0, net10.0).
+All tests should pass across all target frameworks (net8.0, net9.0, net10.0).
 
 ---
 

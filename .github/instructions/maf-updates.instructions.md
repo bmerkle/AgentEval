@@ -53,9 +53,7 @@ Also update the Microsoft.Extensions.AI packages if the MAF release requires a n
 <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Quality" Version="..." />
 ```
 
-**Current versions (as of RC1 upgrade):**
-- MAF packages: `1.0.0-rc1`
-- M.E.AI packages: `10.3.0`
+**Current versions — always check `Directory.Packages.props` for the actual pinned versions.**
 
 **Which projects reference which MAF packages:**
 - `src/AgentEval/AgentEval.csproj` → `Microsoft.Agents.AI`, `Microsoft.Agents.AI.Workflows`

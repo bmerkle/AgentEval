@@ -48,7 +48,7 @@ AgentEval has minimal dependencies:
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| Microsoft.Extensions.AI.Abstractions | 9.0.0+ | AI abstractions (IChatClient) |
+| Microsoft.Extensions.AI.Abstractions | See `Directory.Packages.props` | AI abstractions (IChatClient) |
 | System.Text.Json | 9.0.0+ | JSON serialization |
 
 ---

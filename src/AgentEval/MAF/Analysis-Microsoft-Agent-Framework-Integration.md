@@ -1,9 +1,11 @@
 # Analysis: Microsoft Agent Framework (MAF) Integration in AgentEval
 
-**Date:** February 17, 2026 (originally); updated June 2025 for MAF RC1  
+**Date:** February 17, 2026 (originally); updated February 2026 for MAF RC1  
 **Scope:** Full review of MAF NuGet package usage, abstraction quality, interface isolation, and versioning strategy  
-**MAF Version:** `1.0.0-rc1` (Microsoft.Agents.AI, Microsoft.Agents.AI.Workflows, Microsoft.Agents.AI.OpenAI)  
+**MAF Version:** See `Directory.Packages.props` for current pinned versions  
 **See also:** [ADR-013](../../docs/adr/013-maf-rc1-upgrade.md) for the preview → RC1 upgrade decision and breaking changes
+
+> **Note:** Version numbers cited in this document (e.g., `1.0.0-rc1`, `10.3.0`) reflect the state at time of writing. Always check `Directory.Packages.props` for the current pinned versions.
 
 ---
 
