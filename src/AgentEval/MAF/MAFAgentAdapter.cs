@@ -33,8 +33,8 @@ public class MAFAgentAdapter : IStreamableAgent
     /// <inheritdoc/>
     public async Task<AgentResponse> InvokeAsync(string prompt, CancellationToken cancellationToken = default)
     {
-        var session = _session ?? await _agent.CreateSessionAsync(cancellationToken);
-        var response = await _agent.RunAsync(prompt, session, cancellationToken: cancellationToken);
+        var session = _session ?? await _agent.CreateSessionAsync(cancellationToken).ConfigureAwait(false);
+        var response = await _agent.RunAsync(prompt, session, cancellationToken: cancellationToken).ConfigureAwait(false);
         
         // Extract token usage from AgentResponse.Usage property
         TokenUsage? tokenUsage = null;
@@ -60,10 +60,10 @@ public class MAFAgentAdapter : IStreamableAgent
         string prompt, 
         [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        var session = _session ?? await _agent.CreateSessionAsync(cancellationToken);
+        var session = _session ?? await _agent.CreateSessionAsync(cancellationToken).ConfigureAwait(false);
         TokenUsage? capturedUsage = null;
         
-        await foreach (var update in _agent.RunStreamingAsync(prompt, session, cancellationToken: cancellationToken))
+        await foreach (var update in _agent.RunStreamingAsync(prompt, session, cancellationToken: cancellationToken).ConfigureAwait(false))
         {
             foreach (var content in update.Contents)
             {
@@ -117,12 +117,12 @@ public class MAFAgentAdapter : IStreamableAgent
     /// </summary>
     public async Task ResetSessionAsync(CancellationToken cancellationToken = default)
     {
-        _session = await _agent.CreateSessionAsync(cancellationToken);
+        _session = await _agent.CreateSessionAsync(cancellationToken).ConfigureAwait(false);
     }
     
     /// <summary>
     /// Create a new session for fresh conversations.
     /// </summary>
     public async Task<AgentSession> CreateSessionAsync(CancellationToken cancellationToken = default)
-        => await _agent.CreateSessionAsync(cancellationToken);
+        => await _agent.CreateSessionAsync(cancellationToken).ConfigureAwait(false);
 }
