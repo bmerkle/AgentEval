@@ -2,7 +2,7 @@
 
 AgentEval is actively developed. This page outlines completed features and what's coming next.
 
-## Current Status: v0.2.0-beta
+## Current Status
 
 AgentEval is in **beta** with all core features complete and ready for production use.
 
