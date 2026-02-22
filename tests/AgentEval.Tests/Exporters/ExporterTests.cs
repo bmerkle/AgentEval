@@ -74,12 +74,38 @@ public class ExporterTests
     }
 
     [Fact]
+    public void Factory_Creates_CsvExporter()
+    {
+        var exporter = ResultExporterFactory.Create(ExportFormat.Csv);
+        
+        Assert.IsType<CsvExporter>(exporter);
+        Assert.Equal(ExportFormat.Csv, exporter.Format);
+        Assert.Equal(".csv", exporter.FileExtension);
+    }
+
+    [Fact]
     public void Factory_CreateFromExtension_Works()
     {
         Assert.IsType<JsonExporter>(ResultExporterFactory.CreateFromExtension(".json"));
         Assert.IsType<JUnitXmlExporter>(ResultExporterFactory.CreateFromExtension(".xml"));
         Assert.IsType<MarkdownExporter>(ResultExporterFactory.CreateFromExtension(".md"));
+        Assert.IsType<MarkdownExporter>(ResultExporterFactory.CreateFromExtension(".markdown"));
         Assert.IsType<TrxExporter>(ResultExporterFactory.CreateFromExtension(".trx"));
+        Assert.IsType<CsvExporter>(ResultExporterFactory.CreateFromExtension(".csv"));
+    }
+
+    [Fact]
+    public void Factory_Create_ThrowsOnUnknownFormat()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            ResultExporterFactory.Create((ExportFormat)999));
+    }
+
+    [Fact]
+    public void Factory_CreateFromExtension_ThrowsOnUnknownExtension()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            ResultExporterFactory.CreateFromExtension(".xyz"));
     }
 
     #endregion
@@ -130,6 +156,37 @@ public class ExporterTests
         Assert.Contains("llm_faithfulness", json);
         Assert.Contains("llm_task_completion", json);
         Assert.Contains("Incomplete reasoning", json);
+    }
+
+    [Fact]
+    public async Task JsonExporter_Includes_MetricScores()
+    {
+        var exporter = new JsonExporter();
+        var report = CreateSampleReport();
+        report.TestResults[0].MetricScores = new Dictionary<string, double>
+        {
+            ["relevance"] = 92.5,
+            ["correctness"] = 88.0
+        };
+
+        var json = await exporter.ExportToStringAsync(report);
+
+        Assert.Contains("\"metricScores\"", json);
+        Assert.Contains("relevance", json);
+        Assert.Contains("92.5", json);
+    }
+
+    [Fact]
+    public async Task JsonExporter_Omits_EmptyMetricScores()
+    {
+        var exporter = new JsonExporter();
+        var report = CreateSampleReport();
+        // Default CreateSampleReport has no MetricScores
+
+        var json = await exporter.ExportToStringAsync(report);
+
+        // Empty MetricScores should be omitted (WhenWritingNull)
+        Assert.DoesNotContain("\"metricScores\"", json);
     }
 
     #endregion
@@ -200,6 +257,44 @@ public class ExporterTests
         
         Assert.Contains("AgentEval.Agentic", xml);
         Assert.Contains("AgentEval.RAG", xml);
+    }
+
+    [Fact]
+    public async Task JUnitXmlExporter_Handles_SkippedTests()
+    {
+        var exporter = new JUnitXmlExporter();
+        var report = CreateSampleReport();
+        report.TestResults[0].Skipped = true;
+        report.TestResults[0].Passed = false;
+        report.SkippedTests = 1;
+
+        using var stream = new MemoryStream();
+        await exporter.ExportAsync(report, stream);
+        
+        stream.Position = 0;
+        var xml = await new StreamReader(stream).ReadToEndAsync();
+        
+        Assert.Contains("<skipped", xml);
+    }
+
+    [Fact]
+    public async Task JUnitXmlExporter_Includes_MetricScores_In_SystemOut()
+    {
+        var exporter = new JUnitXmlExporter();
+        var report = CreateSampleReport();
+        report.TestResults[0].MetricScores = new Dictionary<string, double>
+        {
+            ["relevance"] = 92.5
+        };
+
+        using var stream = new MemoryStream();
+        await exporter.ExportAsync(report, stream);
+        
+        stream.Position = 0;
+        var xml = await new StreamReader(stream).ReadToEndAsync();
+        
+        Assert.Contains("<system-out>", xml);
+        Assert.Contains("relevance: 92.5", xml);
     }
 
     #endregion
@@ -285,6 +380,69 @@ public class ExporterTests
         Assert.DoesNotContain("Run ID:", md);
     }
 
+    [Fact]
+    public void MarkdownExporter_FailuresFirst_OrdersCorrectly()
+    {
+        var exporter = new MarkdownExporter { Options = new() { FailuresFirst = true } };
+        var report = CreateSampleReport();
+
+        var md = exporter.ExportToString(report);
+        var lines = md.Split('\n');
+
+        // Find first test row (after header + separator)
+        var testRows = lines.Where(l => l.StartsWith("| ") && !l.StartsWith("| Test") && !l.StartsWith("|--")).ToList();
+        Assert.True(testRows.Count > 0);
+        // First test row should be the failed test
+        Assert.Contains("llm\\_task\\_completion", testRows[0]);
+    }
+
+    [Fact]
+    public void MarkdownExporter_Includes_MetricBreakdown()
+    {
+        var exporter = new MarkdownExporter { Options = new() { IncludeMetricBreakdown = true } };
+        var report = CreateSampleReport();
+        report.TestResults[0].MetricScores = new Dictionary<string, double>
+        {
+            ["relevance"] = 92.5,
+            ["correctness"] = 88.0
+        };
+
+        var md = exporter.ExportToString(report);
+
+        Assert.Contains("### 📊 Metric Breakdown", md);
+        Assert.Contains("relevance", md);
+        Assert.Contains("correctness", md);
+        Assert.Contains("92.5", md);
+    }
+
+    [Fact]
+    public void MarkdownExporter_Hides_MetricBreakdown_WhenDisabled()
+    {
+        var exporter = new MarkdownExporter { Options = new() { IncludeMetricBreakdown = false } };
+        var report = CreateSampleReport();
+        report.TestResults[0].MetricScores = new Dictionary<string, double>
+        {
+            ["relevance"] = 92.5
+        };
+
+        var md = exporter.ExportToString(report);
+
+        Assert.DoesNotContain("Metric Breakdown", md);
+    }
+
+    [Fact]
+    public void MarkdownExporter_Shows_Skipped_Status()
+    {
+        var exporter = new MarkdownExporter();
+        var report = CreateSampleReport();
+        report.TestResults[0].Skipped = true;
+        report.TestResults[0].Passed = false;
+
+        var md = exporter.ExportToString(report);
+
+        Assert.Contains("⏭️", md);
+    }
+
     #endregion
 
     #region TRX Exporter Tests
@@ -340,6 +498,49 @@ public class ExporterTests
         Assert.Contains("Incomplete reasoning", xml);
     }
 
+    [Fact]
+    public async Task TrxExporter_Produces_DeterministicGuids()
+    {
+        var exporter = new TrxExporter();
+        var report = CreateSampleReport();
+
+        using var stream1 = new MemoryStream();
+        await exporter.ExportAsync(report, stream1);
+        stream1.Position = 0;
+        var xml1 = await new StreamReader(stream1).ReadToEndAsync();
+
+        using var stream2 = new MemoryStream();
+        await exporter.ExportAsync(report, stream2);
+        stream2.Position = 0;
+        var xml2 = await new StreamReader(stream2).ReadToEndAsync();
+
+        // TestDefinitions and TestEntries should use deterministic GUIDs
+        // (testRunId and testListId are random, so compare testId attributes)
+        var testIdPattern = new System.Text.RegularExpressions.Regex("testId=\"([^\"]+)\"");
+        var ids1 = testIdPattern.Matches(xml1).Select(m => m.Groups[1].Value).ToList();
+        var ids2 = testIdPattern.Matches(xml2).Select(m => m.Groups[1].Value).ToList();
+
+        Assert.Equal(ids1, ids2);
+    }
+
+    [Fact]
+    public async Task TrxExporter_Handles_SkippedTests()
+    {
+        var exporter = new TrxExporter();
+        var report = CreateSampleReport();
+        report.TestResults[0].Skipped = true;
+        report.TestResults[0].Passed = false;
+        report.SkippedTests = 1;
+
+        using var stream = new MemoryStream();
+        await exporter.ExportAsync(report, stream);
+        
+        stream.Position = 0;
+        var xml = await new StreamReader(stream).ReadToEndAsync();
+        
+        Assert.Contains("outcome=\"NotExecuted\"", xml);
+    }
+
     #endregion
 
     #region EvaluationReport Tests
@@ -374,6 +575,109 @@ public class ExporterTests
         var report = new EvaluationReport { TotalTests = 0, PassedTests = 0 };
         
         Assert.Equal(0.0, report.PassRate);
+    }
+
+    [Fact]
+    public void EvaluationReport_RunId_IsAutoGenerated()
+    {
+        var report = new EvaluationReport();
+        
+        Assert.NotNull(report.RunId);
+        Assert.Equal(8, report.RunId.Length);
+        Assert.True(report.RunId.All(c => "0123456789abcdef".Contains(c)));
+    }
+
+    #endregion
+
+    #region CSV Exporter Tests
+
+    [Fact]
+    public async Task CsvExporter_Produces_ValidCsv()
+    {
+        var exporter = new CsvExporter();
+        var report = CreateSampleReport();
+
+        using var stream = new MemoryStream();
+        await exporter.ExportAsync(report, stream);
+        
+        stream.Position = 0;
+        var csv = await new StreamReader(stream).ReadToEndAsync();
+        
+        Assert.Contains("RunId,TestName", csv);
+        Assert.Contains("code_tool_selection", csv);
+        Assert.Contains("llm_faithfulness", csv);
+        Assert.Contains("llm_task_completion", csv);
+    }
+
+    [Fact]
+    public async Task CsvExporter_EscapesSpecialCharacters()
+    {
+        var exporter = new CsvExporter();
+        var report = CreateSampleReport();
+        report.TestResults[2].Error = "Error with, commas and \"quotes\"";
+
+        using var stream = new MemoryStream();
+        await exporter.ExportAsync(report, stream);
+        
+        stream.Position = 0;
+        var csv = await new StreamReader(stream).ReadToEndAsync();
+        
+        Assert.Contains("\"Error with, commas and \"\"quotes\"\"\"", csv);
+    }
+
+    [Fact]
+    public async Task CsvExporter_IncludesMetricScoreColumns()
+    {
+        var exporter = new CsvExporter();
+        var report = CreateSampleReport();
+        report.TestResults[0].MetricScores = new Dictionary<string, double>
+        {
+            ["relevance"] = 92.5,
+            ["correctness"] = 88.0
+        };
+
+        using var stream = new MemoryStream();
+        await exporter.ExportAsync(report, stream);
+        
+        stream.Position = 0;
+        var csv = await new StreamReader(stream).ReadToEndAsync();
+        var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        
+        // Header should include metric columns
+        Assert.Contains("correctness", lines[0]);
+        Assert.Contains("relevance", lines[0]);
+        
+        // First data row should have metric values
+        Assert.Contains("92.50", lines[1]);
+        Assert.Contains("88.00", lines[1]);
+    }
+
+    [Fact]
+    public async Task CsvExporter_ExportToString_Works()
+    {
+        var exporter = new CsvExporter();
+        var report = CreateSampleReport();
+
+        var csv = await exporter.ExportToStringAsync(report);
+        
+        Assert.Contains("RunId,TestName", csv);
+        Assert.Contains("abc12345", csv);
+    }
+
+    [Fact]
+    public async Task CsvExporter_WithoutMetricScores_HasBaseColumnsOnly()
+    {
+        var exporter = new CsvExporter();
+        var report = CreateSampleReport();
+        // Default report has no MetricScores
+
+        var csv = await exporter.ExportToStringAsync(report);
+        var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+        // Header should end with AgentModel (no extra metric columns)
+        Assert.EndsWith("AgentModel", lines[0].TrimEnd());
+        // Should have header + 3 data rows
+        Assert.Equal(4, lines.Length);
     }
 
     #endregion

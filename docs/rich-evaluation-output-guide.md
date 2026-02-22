@@ -557,6 +557,7 @@ Environment variables are read at startup. If you change them:
 
 ## See Also
 
-- [CI/CD Integration](ci-cd-integration.md) - Detailed CI/CD setup
+- [Export Formats](export.md) - Complete guide to JSON, JUnit XML, Markdown, TRX, CSV export via `IResultExporter`
+- [Step-by-Step Walkthrough](walkthrough.md) - End-to-end evaluation walkthrough including export
 - [Tracing](tracing.md) - Trace Record & Replay patterns
 - [Assertions](assertions.md) - Fluent assertion API

@@ -73,6 +73,7 @@ public static class ResultExporterFactory
         ".xml" => new JUnitXmlExporter(),
         ".md" or ".markdown" => new MarkdownExporter(),
         ".trx" => new TrxExporter(),
+        ".csv" => new CsvExporter(),
         _ => throw new ArgumentException($"Unknown file extension: {extension}", nameof(extension))
     };
 }

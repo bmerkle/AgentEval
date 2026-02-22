@@ -55,6 +55,8 @@
 
 - name: Integration
   items:
+  - name: Export Formats
+    href: export.md
   - name: Rich Evaluation Output
     href: rich-evaluation-output-guide.md
   - name: Security Scanning

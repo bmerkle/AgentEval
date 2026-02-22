@@ -26,8 +26,18 @@ public class CsvExporter : IResultExporter
     {
         using var writer = new StreamWriter(output, Encoding.UTF8, leaveOpen: true);
         
+        // Collect all unique metric names for dynamic columns
+        var metricNames = report.TestResults
+            .SelectMany(r => r.MetricScores.Keys)
+            .Distinct()
+            .OrderBy(n => n)
+            .ToList();
+        
         // Write header row
-        await writer.WriteLineAsync("RunId,TestName,Category,Score,Passed,Skipped,DurationMs,Error,AgentName,AgentModel");
+        var header = "RunId,TestName,Category,Score,Passed,Skipped,DurationMs,Error,AgentName,AgentModel";
+        if (metricNames.Count > 0)
+            header += "," + string.Join(",", metricNames);
+        await writer.WriteLineAsync(header);
         
         // Write data rows
         foreach (var result in report.TestResults)
@@ -43,22 +53,15 @@ public class CsvExporter : IResultExporter
                      $"{EscapeCsvField(report.Agent?.Name ?? "")}," +
                      $"{EscapeCsvField(report.Agent?.Model ?? "")}";
             
+            // Append metric score values
+            foreach (var metric in metricNames)
+            {
+                var value = result.MetricScores.TryGetValue(metric, out var s) ? s.ToString("F2") : "";
+                row += $",{value}";
+            }
+            
             await writer.WriteLineAsync(row);
         }
-        
-        // Write summary row
-        await writer.WriteLineAsync();
-        await writer.WriteLineAsync("# Summary");
-        await writer.WriteLineAsync($"Name,{EscapeCsvField(report.Name ?? "")}");
-        await writer.WriteLineAsync($"StartTime,{report.StartTime:yyyy-MM-dd HH:mm:ss}");
-        await writer.WriteLineAsync($"EndTime,{report.EndTime:yyyy-MM-dd HH:mm:ss}");
-        await writer.WriteLineAsync($"DurationMs,{report.Duration.TotalMilliseconds:F0}");
-        await writer.WriteLineAsync($"TotalTests,{report.TotalTests}");
-        await writer.WriteLineAsync($"PassedTests,{report.PassedTests}");
-        await writer.WriteLineAsync($"FailedTests,{report.FailedTests}");
-        await writer.WriteLineAsync($"SkippedTests,{report.SkippedTests}");
-        await writer.WriteLineAsync($"PassRate,{report.PassRate:F4}");
-        await writer.WriteLineAsync($"OverallScore,{report.OverallScore:F2}");
     }
     
     /// <summary>

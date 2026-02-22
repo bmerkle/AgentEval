@@ -210,22 +210,50 @@ result.Response
 
 ## Step 8: Export Results for CI/CD
 
-Export results in formats your CI/CD system understands:
+Export results in formats your CI/CD system understands. Use `ResultExporterFactory` to create exporters:
 
 ```csharp
 using AgentEval.Exporters;
 
+// Build an EvaluationReport from your test results
+var report = new EvaluationReport
+{
+    Name = "My Evaluation",
+    TotalTests = 3, PassedTests = 2, FailedTests = 1,
+    OverallScore = 78.3,
+    StartTime = DateTimeOffset.UtcNow.AddSeconds(-5),
+    EndTime = DateTimeOffset.UtcNow,
+    Agent = new AgentInfo { Name = "MyAgent", Model = "gpt-4o" },
+    TestResults = testResults // List<TestResultSummary>
+};
+
 // JUnit XML for GitHub Actions, Azure DevOps, Jenkins
-var junitExporter = new JUnitExporter();
-await junitExporter.ExportAsync(new[] { result }, "results.xml");
+var junitExporter = ResultExporterFactory.Create(ExportFormat.Junit);
+await using var junitStream = File.Create("results.xml");
+await junitExporter.ExportAsync(report, junitStream);
 
 // Markdown for PR comments
-var markdownExporter = new MarkdownExporter();
-await markdownExporter.ExportAsync(new[] { result }, "results.md");
+var mdExporter = ResultExporterFactory.Create(ExportFormat.Markdown);
+await using var mdStream = File.Create("results.md");
+await mdExporter.ExportAsync(report, mdStream);
 
 // JSON for custom dashboards
-var jsonExporter = new JsonExporter();
-await jsonExporter.ExportAsync(new[] { result }, "results.json");
+var jsonExporter = ResultExporterFactory.Create(ExportFormat.Json);
+await using var jsonStream = File.Create("results.json");
+await jsonExporter.ExportAsync(report, jsonStream);
+
+// TRX for Visual Studio / Azure DevOps
+var trxExporter = ResultExporterFactory.Create(ExportFormat.Trx);
+await using var trxStream = File.Create("results.trx");
+await trxExporter.ExportAsync(report, trxStream);
+
+// CSV for Excel / Power BI analysis
+var csvExporter = ResultExporterFactory.Create(ExportFormat.Csv);
+await using var csvStream = File.Create("results.csv");
+await csvExporter.ExportAsync(report, csvStream);
+
+// Or create from file extension:
+var exporter = ResultExporterFactory.CreateFromExtension(".json");
 ```
 
 ---
@@ -311,8 +339,22 @@ result.Performance!
 // ═══════════════════════════════════════════════════════════════
 // 6. Export results
 // ═══════════════════════════════════════════════════════════════
-var exporter = new JUnitExporter();
-await exporter.ExportAsync(new[] { result }, "results.xml");
+var report = new EvaluationReport
+{
+    Name = "Travel Planning",
+    TotalTests = 1, PassedTests = result.Passed ? 1 : 0, FailedTests = result.Passed ? 0 : 1,
+    OverallScore = result.Score,
+    StartTime = DateTimeOffset.UtcNow.AddSeconds(-5),
+    EndTime = DateTimeOffset.UtcNow,
+    TestResults = new List<TestResultSummary>
+    {
+        new() { Name = testCase.Name, Score = result.Score, Passed = result.Passed }
+    }
+};
+
+var exporter = ResultExporterFactory.Create(ExportFormat.Junit);
+await using var exportStream = File.Create("results.xml");
+await exporter.ExportAsync(report, exportStream);
 
 Console.WriteLine($"✅ Evaluation {(result.Passed ? "PASSED" : "FAILED")}");
 Console.WriteLine($"   Output: {result.ActualOutput}");

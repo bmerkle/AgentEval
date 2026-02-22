@@ -126,7 +126,7 @@ Examples:
 
 Examples:
 - `JsonExporter`
-- `JUnitExporter`
+- `JUnitXmlExporter`
 - `MarkdownExporter`
 - `DirectoryExporter`
 

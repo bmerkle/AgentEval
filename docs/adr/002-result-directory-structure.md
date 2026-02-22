@@ -18,6 +18,7 @@ AgentEval currently exports results via `IResultExporter` implementations:
 | `JUnitXmlExporter` | Single `.xml` file | CI/CD (Jenkins, Azure DevOps) |
 | `TrxExporter` | Single `.trx` file | Visual Studio Test Explorer |
 | `MarkdownExporter` | Single `.md` file | Human-readable reports |
+| `CsvExporter` | Single `.csv` file | Excel, Power BI, business intelligence |
 
 **Current Usage:**
 ```csharp

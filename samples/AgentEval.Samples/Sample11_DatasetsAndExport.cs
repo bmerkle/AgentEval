@@ -108,7 +108,12 @@ public static class Sample11_DatasetsAndExport
                 Score = passed ? 100 : 0,
                 Passed = passed,
                 DurationMs = sw.ElapsedMilliseconds,
-                Output = actualOutput.Length > 200 ? actualOutput[..200] : actualOutput
+                Output = actualOutput.Length > 200 ? actualOutput[..200] : actualOutput,
+                MetricScores = new Dictionary<string, double>
+                {
+                    ["relevance"] = passed ? 95.0 : 30.0,
+                    ["correctness"] = passed ? 90.0 : 20.0
+                }
             });
         }
 
@@ -155,36 +160,51 @@ public static class Sample11_DatasetsAndExport
     private static async Task ExportJUnit(EvaluationReport report, string outputDir)
     {
         var junitPath = Path.Combine(outputDir, "results.xml");
-        var junitExporter = new JUnitXmlExporter();
+        var exporter = ResultExporterFactory.Create(ExportFormat.Junit);
         await using var junitStream = File.Create(junitPath);
-        await junitExporter.ExportAsync(report, junitStream);
+        await exporter.ExportAsync(report, junitStream);
         Console.WriteLine($"      ✅ JUnit XML:     {Path.GetFileName(junitPath)} (CI/CD integration)");
     }
     
     private static async Task ExportMarkdown(EvaluationReport report, string outputDir)
     {
         var mdPath = Path.Combine(outputDir, "results.md");
-        var mdExporter = new MarkdownExporter();
+        var exporter = ResultExporterFactory.Create(ExportFormat.Markdown);
         await using var mdStream = File.Create(mdPath);
-        await mdExporter.ExportAsync(report, mdStream);
+        await exporter.ExportAsync(report, mdStream);
         Console.WriteLine($"      ✅ Markdown:      {Path.GetFileName(mdPath)} (GitHub/docs)");
+        
+        // Demonstrate MarkdownExportOptions for customized output
+        var customMdPath = Path.Combine(outputDir, "results-failures-first.md");
+        var customExporter = new MarkdownExporter
+        {
+            Options = new MarkdownExportOptions
+            {
+                FailuresFirst = true,
+                IncludeMetricBreakdown = true,
+                IncludeFailureDetails = true
+            }
+        };
+        await using var customStream = File.Create(customMdPath);
+        await customExporter.ExportAsync(report, customStream);
+        Console.WriteLine($"      ✅ Markdown:      {Path.GetFileName(customMdPath)} (failures-first, metrics)");
     }
     
     private static async Task ExportJson(EvaluationReport report, string outputDir)
     {
         var jsonPath = Path.Combine(outputDir, "results.json");
-        var jsonExporter = new JsonExporter();
+        var exporter = ResultExporterFactory.Create(ExportFormat.Json);
         await using var jsonStream = File.Create(jsonPath);
-        await jsonExporter.ExportAsync(report, jsonStream);
+        await exporter.ExportAsync(report, jsonStream);
         Console.WriteLine($"      ✅ JSON:          {Path.GetFileName(jsonPath)} (API/programmatic)");
     }
     
     private static async Task ExportTrx(EvaluationReport report, string outputDir)
     {
         var trxPath = Path.Combine(outputDir, "results.trx");
-        var trxExporter = new TrxExporter();
+        var exporter = ResultExporterFactory.Create(ExportFormat.Trx);
         await using var trxStream = File.Create(trxPath);
-        await trxExporter.ExportAsync(report, trxStream);
+        await exporter.ExportAsync(report, trxStream);
         Console.WriteLine($"      ✅ TRX:           {Path.GetFileName(trxPath)} (Visual Studio)");
     }
     
@@ -199,9 +219,9 @@ public static class Sample11_DatasetsAndExport
     private static async Task ExportCsv(EvaluationReport report, string outputDir)
     {
         var csvPath = Path.Combine(outputDir, "results.csv");
-        var csvExporter = new CsvExporter();
+        var exporter = ResultExporterFactory.Create(ExportFormat.Csv);
         await using var csvStream = File.Create(csvPath);
-        await csvExporter.ExportAsync(report, csvStream);
+        await exporter.ExportAsync(report, csvStream);
         Console.WriteLine($"      ✅ CSV:           {Path.GetFileName(csvPath)} (Excel/analysis)");
     }
 
