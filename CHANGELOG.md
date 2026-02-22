@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+---
+
+## [0.4.0-beta] - 2026-02-22
+
+**Security, Responsible AI & MAF RC1** 🛡️🤖
+
+Major feature release: Red Team security scanning, Responsible AI metrics, Calibrated multi-model evaluation, MAF RC1 upgrade, and comprehensive tracing improvements. 42 commits, 2,191 tests × 3 TFMs = **6,573 total tests passing**.
+
+### ⚠️ BREAKING CHANGES
+
 - **MAF RC1 Upgrade** - Upgraded from `Microsoft.Agents.AI 1.0.0-preview.251110.2` to `1.0.0-rc1`
   - `Microsoft.Extensions.AI` upgraded from `10.0.0` to `10.3.0`
   - `Microsoft.Extensions.AI.OpenAI` upgraded from `10.0.0-preview.1.25559.3` to `10.3.0` (preview → stable)
@@ -37,9 +46,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `ToxicityMetric` - Pattern + LLM hybrid toxicity detection
   - `BiasMetric` - LLM-based bias detection with counterfactual testing
   - `MisinformationMetric` - Claim verification and calibration assessment
+- **Calibrated Evaluator** - Multi-model criteria-based evaluation with `CalibratedEvaluator` for consensus-driven scoring
 - **CSV Export Format** - New `CsvExporter` for Excel and business intelligence tools
 - **Sample 23: Responsible AI** - Toxicity, bias, misinformation metrics with counterfactual testing
 - **Sample 24: Benchmark System** - Performance, agentic, standard, and cost benchmarks with comparative analysis
+- **SPDX License Identifiers** - Added to all source and test files for compliance
+
+### Changed
+- **Trace Record & Replay Improvements** (9 improvements from comprehensive audit)
+  - Added `IsComplete` property to `TraceReplayingAgent` for cleaner replay loops
+  - Implemented `RecordStreamingChunks` conditional check — streaming chunks now only recorded when option is enabled
+  - Wired up `SanitizeToolResult` in streaming recording — tool results are sanitized consistently
+  - Implemented `MaxTurns` enforcement in `ChatTraceRecorder` — throws `InvalidOperationException` when limit reached
+  - Fixed documentation API names across `docs/tracing.md`, `docs/conversations.md`, `docs/workflows.md`, and `docs/adr/004-trace-recording-replay.md`
+  - Added cross-reference sections in `docs/conversations.md` and `docs/workflows.md` linking to tracing guide
+  - Updated ADR-004 phase status to reflect current implementation state
+  - Sample 13 Demos 3 & 4 rewritten from mocked to fully operational real AI workflows
+  - Added 12 new tracing tests (Contains matching, Warn/Ignore mismatch, sanitization, MaxTurns)
+- **Sample 13 Audit Fixes** — fixed prompt display mismatch, added `DelayMultiplier = 0.1` for fast workflow replay, removed unused `System.Text.Json` import, corrected Key Takeaways API names
+- **docs/tracing.md** Performance Baseline example fixed: `Entries[0].Duration` → `Entries.First(e => e.Type == TraceEntryType.Response).DurationMs`
+- Added `ConfigureAwait(false)` to MAF adapter async calls for reliability
+- Replaced `Assert.True` with `Assert.Contains` for improved test readability
+- Removed hardcoded version strings from documentation
 
 ### Planned
 - CodeQL integration for advanced code analysis
@@ -488,7 +516,8 @@ This release marks the transition from alpha to beta. The framework is now featu
 - `AgentEval.Tracing` (OTel + run artifacts) - planned
 - `AgentEval.Studio` (workflow visualizer / time-travel UI) - future
 
-[Unreleased]: https://github.com/joslat/AgentEval/compare/v0.3.0-beta...HEAD
+[Unreleased]: https://github.com/joslat/AgentEval/compare/v0.4.0-beta...HEAD
+[0.4.0-beta]: https://github.com/joslat/AgentEval/compare/v0.3.0-beta...v0.4.0-beta
 [0.3.0-beta]: https://github.com/joslat/AgentEval/compare/v0.2.1-beta...v0.3.0-beta
 [0.2.1-beta]: https://github.com/joslat/AgentEval/compare/v0.2.0-beta...v0.2.1-beta
 [0.2.0-beta]: https://github.com/joslat/AgentEval/compare/v0.1.3-alpha...v0.2.0-beta
