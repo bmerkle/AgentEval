@@ -1006,6 +1006,24 @@ if (metrics.TotalCost > 0.50m)
 }
 ```
 
+## Recording Workflows for CI/CD
+
+Use `WorkflowTraceRecorder` to capture workflow executions for deterministic replay in CI — no LLM API calls needed:
+
+```csharp
+// Record a real workflow execution
+await using var recorder = new WorkflowTraceRecorder(adapter, "content_pipeline");
+var result = await recorder.ExecuteWorkflowAsync("Write article about AI testing");
+await recorder.SaveAsync("content-pipeline.trace.json");
+
+// In CI — replay without API calls
+var replayer = await WorkflowTraceReplayingAgent.FromFileAsync("content-pipeline.trace.json");
+var replayResult = await replayer.ExecuteWorkflowAsync("Write article about AI testing");
+// replayResult is identical to the original — zero cost, instant, deterministic
+```
+
+See [Tracing](tracing.md) for complete Record & Replay documentation.
+
 ## See Also
 
 **Core Documentation:**

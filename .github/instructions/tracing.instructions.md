@@ -25,21 +25,28 @@ description: Guidelines for implementing trace recording and replay
 ```csharp
 public class AgentTrace
 {
-    public string TraceId { get; set; }
-    public string AgentName { get; set; }
-    public DateTimeOffset RecordedAt { get; set; }
-    public IReadOnlyList<TraceEntry> Entries { get; set; }
-    public TraceMetadata Metadata { get; set; }
+    public string Version { get; set; }
+    public string TraceName { get; set; }
+    public DateTimeOffset CapturedAt { get; set; }
+    public string? AgentName { get; set; }
+    public string? ModelId { get; set; }
+    public List<TraceEntry> Entries { get; set; }
+    public TracePerformance? Performance { get; set; }
+    public Dictionary<string, object>? Metadata { get; set; }
 }
 
 public class TraceEntry
 {
-    public string Prompt { get; set; }
-    public string Response { get; set; }
-    public TimeSpan Duration { get; set; }
-    public TraceTokenUsage TokenUsage { get; set; }
-    public IReadOnlyList<TraceToolCall> ToolCalls { get; set; }
-    public TraceError Error { get; set; }
+    public TraceEntryType Type { get; set; }
+    public int Index { get; set; }
+    public string? Prompt { get; set; }
+    public string? Text { get; set; }
+    public long? DurationMs { get; set; }
+    public TraceTokenUsage? TokenUsage { get; set; }
+    public List<TraceToolCall>? ToolCalls { get; set; }
+    public TraceError? Error { get; set; }
+    public bool IsStreaming { get; set; }
+    public List<TraceStreamChunk>? StreamingChunks { get; set; }
 }
 ```
 
@@ -47,23 +54,23 @@ public class TraceEntry
 
 ```csharp
 // Wrap real agent
-var recorder = new TraceRecordingAgent(realAgent);
+await using var recorder = new TraceRecordingAgent(realAgent, "weather_test");
 
 // Execute (calls real agent, captures result)
-var response = await recorder.ExecuteAsync("query");
+var response = await recorder.InvokeAsync("query");
 
 // Get trace for storage
-var trace = recorder.GetTrace();
+var trace = recorder.Trace;
 
 // Save to file
-TraceSerializer.Save(trace, "trace.json");
+await TraceSerializer.SaveToFileAsync(trace, "trace.json");
 ```
 
 ## Replay Pattern
 
 ```csharp
 // Load saved trace
-var trace = TraceSerializer.Load("trace.json");
+var trace = await TraceSerializer.LoadFromFileAsync("trace.json");
 
 // Create replayer
 var replayer = new TraceReplayingAgent(trace);
@@ -71,7 +78,7 @@ var replayer = new TraceReplayingAgent(trace);
 // Replay entries in order
 while (!replayer.IsComplete)
 {
-    var response = await replayer.ReplayNextAsync();
+    var response = await replayer.InvokeAsync("prompt");
     // Response is identical to original
 }
 ```
@@ -79,7 +86,7 @@ while (!replayer.IsComplete)
 ## Multi-Turn Chat Recording
 
 ```csharp
-var chatRecorder = new ChatTraceRecorder(chatAgent);
+var chatRecorder = new ChatTraceRecorder(chatAgent, "support_conv");
 
 // Record conversation turns
 await chatRecorder.AddUserTurnAsync("Hello");
@@ -93,21 +100,9 @@ var trace = chatRecorder.ToAgentTrace();
 ## Workflow Recording
 
 ```csharp
-var recorder = new WorkflowTraceRecorder("workflow-name");
-recorder.StartWorkflow();
-
-// Record each step
-recorder.RecordStep(new WorkflowTraceStep
-{
-    StepName = "Planner",
-    AgentName = "TravelPlanner",
-    Input = "Plan trip",
-    Output = "Trip planned",
-    Duration = TimeSpan.FromSeconds(2)
-});
-
-recorder.CompleteWorkflow();
-var trace = recorder.GetTrace();
+await using var recorder = new WorkflowTraceRecorder(workflowAgent, "workflow-name");
+var result = await recorder.ExecuteWorkflowAsync("Plan trip");
+var trace = recorder.Trace;
 ```
 
 ## Best Practices
@@ -166,9 +161,9 @@ Use replay in CI without API credentials:
 [Fact]
 public async Task Agent_ShouldReplayCorrectly()
 {
-    var trace = TraceSerializer.Load("traces/weather-agent.json");
+    var trace = await TraceSerializer.LoadFromFileAsync("traces/weather-agent.json");
     var replayer = new TraceReplayingAgent(trace);
-    var response = await replayer.ReplayNextAsync();
-    Assert.Equal("expected response", response);
+    var response = await replayer.InvokeAsync("What's the weather?");
+    Assert.Equal("expected response", response.Text);
 }
 ```

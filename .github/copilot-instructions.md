@@ -79,19 +79,19 @@ public async Task MethodName_StateUnderTest_ExpectedBehavior()
 Capture agent executions for deterministic replay (no LLM calls needed):
 ```csharp
 // RECORD: Capture execution
-var recorder = new TraceRecordingAgent(realAgent);
-var response = await recorder.ExecuteAsync("query");
-var trace = recorder.GetTrace();
-TraceSerializer.Save(trace, "trace.json");
+await using var recorder = new TraceRecordingAgent(realAgent, "weather_test");
+var response = await recorder.InvokeAsync("query");
+var trace = recorder.Trace;
+await TraceSerializer.SaveToFileAsync(trace, "trace.json");
 
 // REPLAY: Deterministic playback
 var replayer = new TraceReplayingAgent(trace);
-var replayed = await replayer.ReplayNextAsync(); // Identical response
+var replayed = await replayer.InvokeAsync("query"); // Identical response
 ```
 
 Multi-turn conversations:
 ```csharp
-var chatRecorder = new ChatTraceRecorder(chatAgent);
+await using var chatRecorder = new ChatTraceRecorder(chatAgent, "support_conv");
 await chatRecorder.AddUserTurnAsync("Hello");
 await chatRecorder.AddUserTurnAsync("Book a flight");
 var trace = chatRecorder.ToAgentTrace();
@@ -99,9 +99,9 @@ var trace = chatRecorder.ToAgentTrace();
 
 Workflows:
 ```csharp
-var workflowRecorder = new WorkflowTraceRecorder("workflow-name");
-workflowRecorder.RecordStep(new WorkflowTraceStep { ... });
-WorkflowTraceSerializer.Save(workflowRecorder.GetTrace(), "workflow.json");
+await using var workflowRecorder = new WorkflowTraceRecorder(workflowAgent, "workflow-name");
+var result = await workflowRecorder.ExecuteWorkflowAsync("Plan trip");
+await WorkflowTraceSerializer.SaveToFileAsync(workflowRecorder.Trace, "workflow.json");
 ```
 
 ## stochastic evaluation & Model Comparison

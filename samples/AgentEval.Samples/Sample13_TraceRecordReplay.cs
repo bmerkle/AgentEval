@@ -1,9 +1,9 @@
 // Copyright (c) 2025 AgentEval. All rights reserved.
 // Licensed under the MIT License.
 
-using System.Text.Json;
 using Azure.AI.OpenAI;
 using Microsoft.Agents.AI;
+using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 using AgentEval.Core;
 using AgentEval.MAF;
@@ -70,7 +70,7 @@ public static class Sample13_TraceRecordReplay
         {
             var response = await recorder.InvokeAsync("What is the capital of Japan and what is it known for?");
 
-            Console.WriteLine($"   Prompt: What is the capital of Japan?");
+            Console.WriteLine($"   Prompt: What is the capital of Japan and what is it known for?");
             Console.WriteLine($"   Response: {response.Text[..Math.Min(100, response.Text.Length)]}...");
             Console.WriteLine($"   Entries recorded: {recorder.Trace.Entries.Count}");
 
@@ -145,125 +145,158 @@ public static class Sample13_TraceRecordReplay
     }
 
     /// <summary>
-    /// Demo 3: Construct and replay a workflow trace (replay API demonstration).
+    /// Demo 3: Record a real MAF workflow execution, save the trace, then replay it.
     /// </summary>
     private static async Task DemoWorkflowTraceReplay()
     {
         Console.WriteLine("┌─────────────────────────────────────────────────────────────┐");
-        Console.WriteLine("│ Demo 3: Workflow Trace Replay                               │");
+        Console.WriteLine("│ Demo 3: Workflow Trace Record & Replay (REAL)               │");
         Console.WriteLine("└─────────────────────────────────────────────────────────────┘\n");
 
-        Console.WriteLine("   Demonstrating workflow trace construction and replay...\n");
+        // Step 1: BUILD a real 2-step MAF workflow (Planner → Writer)
+        Console.WriteLine("🏗️  Building real MAF Workflow (Planner → Writer)...\n");
 
-        var workflowTrace = new WorkflowTrace
+        var azureClient = new AzureOpenAIClient(AIConfig.Endpoint, AIConfig.KeyCredential);
+        var chatClient = azureClient.GetChatClient(AIConfig.ModelDeployment).AsIChatClient();
+
+        var planner = new ChatClientAgent(chatClient, new ChatClientAgentOptions
         {
-            TraceName = "content_pipeline",
-            OriginalPrompt = "Write a short article about AI testing",
-            FinalOutput = "AI testing involves validating agent behavior through deterministic traces, tool accuracy checks, and response quality metrics.",
-            Steps = new List<WorkflowTraceStep>
+            Name = "Planner",
+            Description = "Plans content structure",
+            ChatOptions = new() { Instructions = "You are a content planner. Given a topic, create a brief outline with 3 key points. Be concise (3-4 lines max)." }
+        });
+
+        var writer = new ChatClientAgent(chatClient, new ChatClientAgentOptions
+        {
+            Name = "Writer",
+            Description = "Writes content from a plan",
+            ChatOptions = new() { Instructions = "You are a concise writer. Given an outline, write a brief paragraph (3-4 sentences) covering the key points." }
+        });
+
+        var plannerBinding = planner.BindAsExecutor(emitEvents: true);
+        var writerBinding = writer.BindAsExecutor(emitEvents: true);
+
+        var workflow = new WorkflowBuilder(plannerBinding)
+            .AddEdge(plannerBinding, writerBinding)
+            .WithOutputFrom(writerBinding)
+            .WithName("ContentPipeline")
+            .WithDescription("Simple plan → write pipeline")
+            .Build();
+
+        var workflowAdapter = MAFWorkflowAdapter.FromMAFWorkflow(
+            workflow, "ContentPipeline", ["Planner", "Writer"], workflowType: "PromptChaining");
+
+        Console.WriteLine($"   Workflow: {workflowAdapter.Name} ({string.Join(" → ", workflowAdapter.ExecutorIds)})");
+
+        // Step 2: RECORD the workflow execution
+        Console.WriteLine("\n📼 RECORDING real workflow execution...\n");
+        Console.WriteLine("   ⏳ Executing real LLM calls — this may take 10–30 seconds...\n");
+
+        var prompt = "Write about the benefits of trace-based testing for AI agents";
+        WorkflowTrace recordedTrace;
+
+        await using (var recorder = new WorkflowTraceRecorder(workflowAdapter, "content_pipeline"))
+        {
+            var result = await recorder.ExecuteWorkflowAsync(prompt);
+
+            Console.WriteLine($"   Prompt: {Truncate(prompt, 60)}");
+            Console.WriteLine($"   Steps executed: {result.Steps.Count}");
+            foreach (var step in result.Steps)
             {
-                new()
-                {
-                    ExecutorId = "planner",
-                    ExecutorName = "Planner Agent",
-                    Input = "Write a short article about AI testing",
-                    Output = "Outline: 1) Intro to AI testing, 2) Trace-based testing, 3) Metrics",
-                    StepIndex = 0,
-                    DurationMs = 500
-                },
-                new()
-                {
-                    ExecutorId = "writer",
-                    ExecutorName = "Writer Agent",
-                    Input = "Expand outline into article",
-                    Output = "AI testing involves validating agent behavior through deterministic traces, tool accuracy checks, and response quality metrics.",
-                    StepIndex = 1,
-                    DurationMs = 800
-                }
-            },
-            Performance = new WorkflowTracePerformance
-            {
-                TotalDurationMs = 1300,
-                StepCount = 2,
-                TotalToolCalls = 0,
-                TotalPromptTokens = 200,
-                TotalCompletionTokens = 150
+                Console.WriteLine($"     • {step.ExecutorId}: {Truncate(step.Output ?? "", 60)}");
             }
-        };
+            Console.WriteLine($"   Final output: {Truncate(result.FinalOutput, 80)}");
+
+            recordedTrace = recorder.Trace;
+        }
 
         // Save workflow trace
         var workflowPath = Path.Combine(Path.GetTempPath(), "agenteval_sample13_workflow_trace.json");
-        var workflowJson = JsonSerializer.Serialize(workflowTrace, new JsonSerializerOptions { WriteIndented = true });
-        await File.WriteAllTextAsync(workflowPath, workflowJson);
-        Console.WriteLine($"   💾 Workflow trace saved to: {workflowPath}");
+        await WorkflowTraceSerializer.SaveToFileAsync(recordedTrace, workflowPath);
+        var workflowJson = await WorkflowTraceSerializer.SerializeToStringAsync(recordedTrace);
+        Console.WriteLine($"\n   💾 Workflow trace saved to: {workflowPath} ({workflowJson.Length} bytes)");
 
-        // Replay
-        var replayer = new WorkflowTraceReplayingAgent(workflowTrace);
-        var result = await replayer.ExecuteWorkflowAsync("Write a short article about AI testing");
+        // Step 3: REPLAY from saved trace (no AI calls!)
+        Console.WriteLine("\n▶️  REPLAYING workflow from saved trace (no AI service calls)...\n");
 
-        Console.WriteLine($"\n   Replayed {result.Steps.Count} steps:");
-        foreach (var step in result.Steps)
+        var loadedTrace = await WorkflowTraceSerializer.LoadFromFileAsync(workflowPath);
+        var replayer = new WorkflowTraceReplayingAgent(loadedTrace, new WorkflowTraceReplayOptions
+        {
+            SimulateExecutionDelay = true,
+            DelayMultiplier = 0.1  // 10% of original timing for fast demo
+        });
+
+        var replayResult = await replayer.ExecuteWorkflowAsync(prompt);
+
+        Console.WriteLine($"   Replayed {replayResult.Steps.Count} steps:");
+        foreach (var step in replayResult.Steps)
         {
             Console.WriteLine($"     • {step.ExecutorId}: {Truncate(step.Output ?? "", 60)}");
         }
-        Console.WriteLine($"   Final: {Truncate(result.FinalOutput, 80)}");
-        Console.WriteLine("\n   ✓ Workflow replayed from trace!\n");
+        Console.WriteLine($"   Final: {Truncate(replayResult.FinalOutput, 80)}");
+        Console.WriteLine($"   Executions replayed: {replayer.ExecutionCount}");
+        Console.WriteLine("\n   ✓ Workflow replayed from saved trace — zero AI calls!\n");
     }
 
     /// <summary>
-    /// Demo 4: Construct and replay a streaming trace with timing.
+    /// Demo 4: Record real streaming output, save the trace, then replay with timing.
     /// </summary>
     private static async Task DemoStreamingTraceReplay()
     {
         Console.WriteLine("┌─────────────────────────────────────────────────────────────┐");
-        Console.WriteLine("│ Demo 4: Streaming Trace Replay                              │");
+        Console.WriteLine("│ Demo 4: Streaming Trace Record & Replay (REAL)              │");
         Console.WriteLine("└─────────────────────────────────────────────────────────────┘\n");
 
-        Console.WriteLine("   Demonstrating streaming trace replay with timing...\n");
+        var agent = CreateAgent();
 
-        var streamingTrace = new AgentTrace
+        // Step 1: RECORD real streaming output
+        Console.WriteLine("📼 RECORDING real streaming response...\n");
+
+        var prompt = "Tell me a short joke about software testing";
+        AgentTrace recordedTrace;
+
+        await using (var recorder = new TraceRecordingAgent(agent, "streaming_demo"))
         {
-            TraceName = "streaming_demo",
-            AgentName = "RealAgent",
-            Entries = new List<TraceEntry>
+            Console.Write("   Live stream: ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            await foreach (var chunk in recorder.InvokeStreamingAsync(prompt))
             {
-                new() { Type = TraceEntryType.Request, Index = 0, Prompt = "Tell me a short joke" },
-                new()
-                {
-                    Type = TraceEntryType.Response,
-                    Index = 0,
-                    Text = "Why did the developer go broke? Because he used up all his cache!",
-                    IsStreaming = true,
-                    StreamingChunks = new List<TraceStreamChunk>
-                    {
-                        new() { Index = 0, Text = "Why did ", DelayMs = 0 },
-                        new() { Index = 1, Text = "the developer ", DelayMs = 50 },
-                        new() { Index = 2, Text = "go broke? ", DelayMs = 50 },
-                        new() { Index = 3, Text = "Because he ", DelayMs = 50 },
-                        new() { Index = 4, Text = "used up all ", DelayMs = 50 },
-                        new() { Index = 5, Text = "his cache!", DelayMs = 50 }
-                    }
-                }
-            },
-            Performance = new TracePerformance
-            {
-                TimeToFirstTokenMs = 100,
-                TotalDurationMs = 350
+                Console.Write(chunk.Text);
             }
-        };
+            Console.ResetColor();
+            Console.WriteLine();
 
-        var replayer = new TraceReplayingAgent(streamingTrace, new TraceReplayOptions
+            recordedTrace = recorder.Trace;
+            var streamingEntry = recordedTrace.Entries.FirstOrDefault(e => e.Type == TraceEntryType.Response);
+            var chunkCount = streamingEntry?.StreamingChunks?.Count ?? 0;
+            Console.WriteLine($"\n   Streaming chunks recorded: {chunkCount}");
+        }
+
+        // Save trace
+        var tracePath = Path.Combine(Path.GetTempPath(), "agenteval_sample13_streaming_trace.json");
+        await TraceSerializer.SaveToFileAsync(recordedTrace, tracePath);
+        var traceJson = await TraceSerializer.SerializeToStringAsync(recordedTrace);
+        Console.WriteLine($"   💾 Streaming trace saved to: {tracePath} ({traceJson.Length} bytes)");
+
+        // Step 2: REPLAY with timing preserved
+        Console.WriteLine("\n▶️  REPLAYING streaming from saved trace (with timing)...\n");
+
+        var loadedTrace = await TraceSerializer.LoadFromFileAsync(tracePath);
+        var replayer = new TraceReplayingAgent(loadedTrace, new TraceReplayOptions
         {
             SimulateStreamingDelay = true
         });
 
-        Console.Write("   Replay: ");
-        await foreach (var chunk in replayer.InvokeStreamingAsync("Tell me a short joke"))
+        Console.Write("   Replay:      ");
+        Console.ForegroundColor = ConsoleColor.Green;
+        await foreach (var chunk in replayer.InvokeStreamingAsync(prompt))
         {
             Console.Write(chunk.Text);
         }
+        Console.ResetColor();
         Console.WriteLine();
-        Console.WriteLine("\n   ✓ Streaming replayed with timing preserved!\n");
+        Console.WriteLine($"\n   IsComplete: {replayer.IsComplete}");
+        Console.WriteLine("\n   ✓ Streaming replayed with timing preserved — zero AI calls!\n");
     }
 
     private static IEvaluableAgent CreateAgent()
@@ -321,7 +354,7 @@ public static class Sample13_TraceRecordReplay
     {
         Console.WriteLine("\n💡 KEY TAKEAWAYS:");
         Console.WriteLine("   • TraceRecordingAgent wraps any IEvaluableAgent to record calls");
-        Console.WriteLine("   • TraceSerializer.Serialize/Deserialize for JSON persistence");
+        Console.WriteLine("   • TraceSerializer.SaveToFileAsync/LoadFromFileAsync for JSON persistence");
         Console.WriteLine("   • TraceReplayingAgent replays saved traces — zero AI costs");
         Console.WriteLine("   • ChatTraceRecorder handles multi-turn conversations");
         Console.WriteLine("   • WorkflowTraceReplayingAgent replays multi-step workflows");

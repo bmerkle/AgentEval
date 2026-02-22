@@ -81,6 +81,12 @@ public sealed class ChatTraceRecorder : IAsyncDisposable
     /// <returns>The agent's response text.</returns>
     public async Task<string> AddUserTurnAsync(string userMessage, CancellationToken cancellationToken = default)
     {
+        if (_turns.Count >= _options.MaxTurns)
+        {
+            throw new InvalidOperationException(
+                $"Maximum turn count ({_options.MaxTurns}) reached. Cannot add more conversation turns.");
+        }
+
         // Record user turn
         var userTimestamp = _sessionStopwatch.Elapsed;
         _turns.Add(new ChatTurn

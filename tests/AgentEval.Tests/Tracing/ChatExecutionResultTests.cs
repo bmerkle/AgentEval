@@ -347,6 +347,37 @@ public class ChatExecutionResultTests
 
     #endregion
 
+    #region MaxTurns Enforcement Tests
+
+    [Fact]
+    public async Task ChatTraceRecorder_MaxTurns_ThrowsWhenExceeded()
+    {
+        var mockAgent = new MockTestableAgent("Response");
+        var options = new ChatTraceRecorderOptions { MaxTurns = 2 };
+        await using var recorder = new ChatTraceRecorder(mockAgent, "maxturns_test", options);
+
+        await recorder.AddUserTurnAsync("Turn 1");
+        // After user turn + agent turn, we have 2 turns — at the limit
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            recorder.AddUserTurnAsync("Turn 2 — should fail"));
+    }
+
+    [Fact]
+    public async Task ChatTraceRecorder_MaxTurns_AllowsUpToLimit()
+    {
+        var mockAgent = new MockTestableAgent("Response");
+        var options = new ChatTraceRecorderOptions { MaxTurns = 4 };
+        await using var recorder = new ChatTraceRecorder(mockAgent, "maxturns_ok_test", options);
+
+        await recorder.AddUserTurnAsync("Turn 1"); // 2 turns (user + agent)
+        await recorder.AddUserTurnAsync("Turn 2"); // 4 turns (user + agent) — at limit
+
+        Assert.Equal(4, recorder.TurnCount);
+    }
+
+    #endregion
+
     #region Mock Agent
 
     private class MockTestableAgent : IEvaluableAgent

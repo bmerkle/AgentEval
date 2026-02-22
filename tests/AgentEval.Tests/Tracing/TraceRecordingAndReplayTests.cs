@@ -672,6 +672,192 @@ public class TraceRecordingAndReplayTests
 
     #endregion
 
+    #region IsComplete Property Tests
+
+    [Fact]
+    public void TraceReplayingAgent_IsComplete_FalseBeforeReplay()
+    {
+        var trace = CreateBasicTrace("Hello", "Response");
+        var replayer = new TraceReplayingAgent(trace);
+
+        Assert.False(replayer.IsComplete);
+    }
+
+    [Fact]
+    public async Task TraceReplayingAgent_IsComplete_TrueAfterAllReplayed()
+    {
+        var trace = CreateBasicTrace("Hello", "Response");
+        var replayer = new TraceReplayingAgent(trace);
+
+        await replayer.InvokeAsync("Hello");
+
+        Assert.True(replayer.IsComplete);
+    }
+
+    [Fact]
+    public async Task TraceReplayingAgent_IsComplete_ResetClearsComplete()
+    {
+        var trace = CreateBasicTrace("Hello", "Response");
+        var replayer = new TraceReplayingAgent(trace);
+        await replayer.InvokeAsync("Hello");
+        Assert.True(replayer.IsComplete);
+
+        replayer.Reset();
+        Assert.False(replayer.IsComplete);
+    }
+
+    #endregion
+
+    #region Contains Matching Mode Tests
+
+    [Fact]
+    public async Task TraceReplayingAgent_ContainsMatchingMode_MatchesSubstring()
+    {
+        var trace = CreateBasicTrace("Expected prompt text", "Response");
+        var replayer = new TraceReplayingAgent(trace, new TraceReplayOptions
+        {
+            ValidateRequests = true,
+            RequestMatchingMode = RequestMatchingMode.Contains
+        });
+
+        // Actual prompt contains recorded prompt
+        var response = await replayer.InvokeAsync("Expected prompt text here");
+        Assert.Equal("Response", response.Text);
+    }
+
+    [Fact]
+    public async Task TraceReplayingAgent_ContainsMatchingMode_ThrowsOnNoOverlap()
+    {
+        var trace = CreateBasicTrace("Expected prompt", "Response");
+        var replayer = new TraceReplayingAgent(trace, new TraceReplayOptions
+        {
+            ValidateRequests = true,
+            RequestMatchingMode = RequestMatchingMode.Contains
+        });
+
+        await Assert.ThrowsAsync<TraceReplayMismatchException>(() =>
+            replayer.InvokeAsync("Completely different"));
+    }
+
+    #endregion
+
+    #region MismatchBehavior Tests
+
+    [Fact]
+    public async Task TraceReplayingAgent_WarnMismatchBehavior_DoesNotThrow()
+    {
+        var trace = CreateBasicTrace("Original", "Response");
+        var replayer = new TraceReplayingAgent(trace, new TraceReplayOptions
+        {
+            ValidateRequests = true,
+            RequestMatchingMode = RequestMatchingMode.Exact,
+            MismatchBehavior = MismatchBehavior.Warn
+        });
+
+        var response = await replayer.InvokeAsync("Different");
+        Assert.Equal("Response", response.Text);
+    }
+
+    [Fact]
+    public async Task TraceReplayingAgent_IgnoreMismatchBehavior_DoesNotThrow()
+    {
+        var trace = CreateBasicTrace("Original", "Response");
+        var replayer = new TraceReplayingAgent(trace, new TraceReplayOptions
+        {
+            ValidateRequests = true,
+            RequestMatchingMode = RequestMatchingMode.Exact,
+            MismatchBehavior = MismatchBehavior.Ignore
+        });
+
+        var response = await replayer.InvokeAsync("Different");
+        Assert.Equal("Response", response.Text);
+    }
+
+    #endregion
+
+    #region Sanitization Tests
+
+    [Fact]
+    public async Task TraceRecordingAgent_SanitizesPromptWhenEnabled()
+    {
+        var mockAgent = new MockTestableAgent("Response");
+        var options = new TraceRecordingOptions
+        {
+            SanitizeSecrets = true,
+            Sanitizers = new() { text => text.Replace("SECRET", "***") }
+        };
+        await using var recorder = new TraceRecordingAgent(mockAgent, "sanitize_test", options);
+
+        await recorder.InvokeAsync("My SECRET is here");
+
+        var requestEntry = recorder.Trace.Entries.First(e => e.Type == TraceEntryType.Request);
+        Assert.Equal("My *** is here", requestEntry.Prompt);
+    }
+
+    [Fact]
+    public async Task TraceRecordingAgent_SanitizesResponseWhenEnabled()
+    {
+        var mockAgent = new MockTestableAgent("Contains SECRET data");
+        var options = new TraceRecordingOptions
+        {
+            SanitizeSecrets = true,
+            Sanitizers = new() { text => text.Replace("SECRET", "***") }
+        };
+        await using var recorder = new TraceRecordingAgent(mockAgent, "sanitize_resp_test", options);
+
+        await recorder.InvokeAsync("Hello");
+
+        var responseEntry = recorder.Trace.Entries.First(e => e.Type == TraceEntryType.Response);
+        Assert.Equal("Contains *** data", responseEntry.Text);
+    }
+
+    [Fact]
+    public async Task TraceRecordingAgent_DoesNotSanitizeWhenDisabled()
+    {
+        var mockAgent = new MockTestableAgent("Response");
+        var options = new TraceRecordingOptions
+        {
+            SanitizeSecrets = false,
+            Sanitizers = new() { text => text.Replace("SECRET", "***") }
+        };
+        await using var recorder = new TraceRecordingAgent(mockAgent, "no_sanitize_test", options);
+
+        await recorder.InvokeAsync("My SECRET is here");
+
+        var requestEntry = recorder.Trace.Entries.First(e => e.Type == TraceEntryType.Request);
+        Assert.Equal("My SECRET is here", requestEntry.Prompt);
+    }
+
+    #endregion
+
+    #region RecordStreamingChunks Option Tests
+
+    [Fact]
+    public async Task TraceRecordingAgent_RecordStreamingChunksDisabled_NoChunksRecorded()
+    {
+        var mockAgent = new MockStreamingAgent(new[] { "Hello", " ", "World" });
+        var options = new TraceRecordingOptions { RecordStreamingChunks = false };
+        await using var recorder = new TraceRecordingAgent(mockAgent, "no_chunks_test", options);
+
+        var chunks = new List<AgentResponseChunk>();
+        await foreach (var chunk in recorder.InvokeStreamingAsync("Test"))
+        {
+            chunks.Add(chunk);
+        }
+
+        // Streaming should still work (chunks yielded to consumer)
+        Assert.Equal(3, chunks.Count);
+
+        // But chunks should NOT be recorded in the trace
+        var responseEntry = recorder.Trace.Entries.First(e => e.Type == TraceEntryType.Response);
+        Assert.Null(responseEntry.StreamingChunks);
+
+        // Full text should still be captured
+        Assert.Equal("Hello World", responseEntry.Text);
+    }
+
+    #endregion
+
     #region Mock Agent
 
     private class MockTestableAgent : IEvaluableAgent

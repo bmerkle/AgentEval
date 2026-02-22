@@ -167,7 +167,7 @@ public sealed class TraceRecordingAgent : IEvaluableAgent, IStreamableAgent, IAs
             Type = TraceEntryType.Response,
             Index = index,
             IsStreaming = true,
-            StreamingChunks = new List<TraceStreamChunk>()
+            StreamingChunks = _options.RecordStreamingChunks ? new List<TraceStreamChunk>() : null
         };
 
         var stopwatch = Stopwatch.StartNew();
@@ -199,7 +199,10 @@ public sealed class TraceRecordingAgent : IEvaluableAgent, IStreamableAgent, IAs
                     IsToolCall = chunk.ToolCallStarted != null,
                     ToolName = chunk.ToolCallStarted?.Name
                 };
-                responseEntry.StreamingChunks!.Add(traceChunk);
+                if (_options.RecordStreamingChunks)
+                {
+                    responseEntry.StreamingChunks!.Add(traceChunk);
+                }
 
                 // Accumulate text
                 if (!string.IsNullOrEmpty(chunk.Text))
@@ -225,7 +228,7 @@ public sealed class TraceRecordingAgent : IEvaluableAgent, IStreamableAgent, IAs
                         tc.Name != null && chunk.ToolCallCompleted.CallId.Contains(tc.Name));
                     if (matchingCall != null)
                     {
-                        matchingCall.Result = chunk.ToolCallCompleted.Result?.ToString();
+                        matchingCall.Result = SanitizeToolResult(chunk.ToolCallCompleted.Result?.ToString());
                         matchingCall.Succeeded = chunk.ToolCallCompleted.Exception == null;
                         matchingCall.Error = chunk.ToolCallCompleted.Exception?.Message;
                     }

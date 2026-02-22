@@ -72,6 +72,11 @@ public sealed class TraceReplayingAgent : IEvaluableAgent, IStreamableAgent
     public int TotalPairs => _pairs.Count;
 
     /// <summary>
+    /// Gets whether all recorded entries have been replayed.
+    /// </summary>
+    public bool IsComplete => _currentIndex >= _pairs.Count;
+
+    /// <summary>
     /// Replays the next recorded response.
     /// </summary>
     public Task<AgentResponse> InvokeAsync(string prompt, CancellationToken cancellationToken = default)

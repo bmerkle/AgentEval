@@ -34,20 +34,20 @@ using AgentEval.Tracing;
 
 // RECORD: Capture the agent execution
 var realAgent = new MyToolAgent(chatClient);
-var recorder = new TraceRecordingAgent(realAgent);
+await using var recorder = new TraceRecordingAgent(realAgent, "weather_query");
 
-var response = await recorder.ExecuteAsync("What's the weather in Seattle?");
-var trace = recorder.GetTrace();
+var response = await recorder.InvokeAsync("What's the weather in Seattle?");
+var trace = recorder.Trace;
 
 // Save for later use
-TraceSerializer.Save(trace, "weather-trace.json");
+await TraceSerializer.SaveToFileAsync(trace, "weather-trace.json");
 
 // REPLAY: Deterministic playback
 var replayer = new TraceReplayingAgent(trace);
-var replayed = await replayer.ReplayNextAsync();
+var replayed = await replayer.InvokeAsync("What's the weather in Seattle?");
 
 // Response is IDENTICAL every time
-Assert.Equal(response, replayed);
+Assert.Equal(response.Text, replayed.Text);
 ```
 
 ### Multi-Turn Chat Recording
@@ -56,7 +56,7 @@ Assert.Equal(response, replayed);
 using AgentEval.Tracing;
 
 // RECORD: Multi-turn conversation
-var chatRecorder = new ChatTraceRecorder(chatAgent);
+await using var chatRecorder = new ChatTraceRecorder(chatAgent, "travel_conv");
 
 var r1 = await chatRecorder.AddUserTurnAsync("Hello, what can you help me with?");
 var r2 = await chatRecorder.AddUserTurnAsync("Book a flight to Paris");
@@ -72,7 +72,7 @@ var trace = chatRecorder.ToAgentTrace();
 var replayer = new TraceReplayingAgent(trace);
 while (!replayer.IsComplete)
 {
-    var replayed = await replayer.ReplayNextAsync();
+    var replayed = await replayer.InvokeAsync("next turn");
     // Each response matches the original
 }
 ```
@@ -83,42 +83,26 @@ while (!replayer.IsComplete)
 using AgentEval.Tracing;
 
 // RECORD: Multi-agent workflow
-var workflowRecorder = new WorkflowTraceRecorder("travel-booking-workflow");
+await using var workflowRecorder = new WorkflowTraceRecorder(workflowAdapter, "travel-booking-workflow");
+var result = await workflowRecorder.ExecuteWorkflowAsync("Plan trip to Paris");
 
-workflowRecorder.StartWorkflow();
-
-var plannerResult = await plannerAgent.ExecuteAsync("Plan trip to Paris");
-workflowRecorder.RecordStep(new WorkflowTraceStep
+// Examine recorded steps
+foreach (var step in result.Steps)
 {
-    StepName = "Planner",
-    AgentName = "TravelPlanner",
-    Input = "Plan trip to Paris",
-    Output = plannerResult,
-    Duration = TimeSpan.FromSeconds(2)
-});
-
-var bookerResult = await bookerAgent.ExecuteAsync(plannerResult);
-workflowRecorder.RecordStep(new WorkflowTraceStep
-{
-    StepName = "Booker",
-    AgentName = "FlightBooker",
-    Input = plannerResult,
-    Output = bookerResult,
-    Duration = TimeSpan.FromSeconds(1.5)
-});
-
-workflowRecorder.CompleteWorkflow();
+    Console.WriteLine($"Step: {step.ExecutorId} ({step.Duration.TotalSeconds:F1}s)");
+}
 
 // Save workflow trace
-var workflowTrace = workflowRecorder.GetTrace();
-WorkflowTraceSerializer.Save(workflowTrace, "workflow-trace.json");
+var workflowTrace = workflowRecorder.Trace;
+await WorkflowTraceSerializer.SaveToFileAsync(workflowTrace, "workflow-trace.json");
 
 // REPLAY: Deterministic workflow replay
-var workflowReplayer = new WorkflowTraceReplayingAgent(workflowTrace);
-while (!workflowReplayer.IsComplete)
+var loaded = await WorkflowTraceSerializer.LoadFromFileAsync("workflow-trace.json");
+var workflowReplayer = new WorkflowTraceReplayingAgent(loaded);
+var replayResult = await workflowReplayer.ExecuteWorkflowAsync("Plan trip to Paris");
+foreach (var step in replayResult.Steps)
 {
-    var step = workflowReplayer.ReplayNextStep();
-    Console.WriteLine($"Step: {step.StepName} -> {step.Output}");
+    Console.WriteLine($"Step: {step.ExecutorId} -> {step.Output}");
 }
 ```
 
@@ -128,21 +112,21 @@ Recording and replaying streaming responses:
 
 ```csharp
 // RECORD: Streaming execution
-var streamRecorder = new TraceRecordingAgent(streamingAgent);
+await using var streamRecorder = new TraceRecordingAgent(streamingAgent, "story_stream");
 
 var chunks = new List<string>();
-await foreach (var chunk in streamRecorder.ExecuteStreamingAsync("Tell me a story"))
+await foreach (var chunk in streamRecorder.InvokeStreamingAsync("Tell me a story"))
 {
-    chunks.Add(chunk);
+    chunks.Add(chunk.Text);
 }
-var trace = streamRecorder.GetTrace();
+var trace = streamRecorder.Trace;
 
 // REPLAY: Chunks are replayed in order
 var replayer = new TraceReplayingAgent(trace);
 var replayedChunks = new List<string>();
-await foreach (var chunk in replayer.ReplayStreamingAsync())
+await foreach (var chunk in replayer.InvokeStreamingAsync("Tell me a story"))
 {
-    replayedChunks.Add(chunk);
+    replayedChunks.Add(chunk.Text);
 }
 
 // Same chunks in same order
@@ -158,27 +142,34 @@ The `AgentTrace` class captures a single agent's execution:
 ```csharp
 public class AgentTrace
 {
-    public string TraceId { get; set; }
-    public string AgentName { get; set; }
-    public DateTimeOffset RecordedAt { get; set; }
-    public IReadOnlyList<TraceEntry> Entries { get; set; }
-    public TraceMetadata Metadata { get; set; }
+    public string Version { get; set; }
+    public string TraceName { get; set; }
+    public DateTimeOffset CapturedAt { get; set; }
+    public string? AgentName { get; set; }
+    public string? ModelId { get; set; }
+    public List<TraceEntry> Entries { get; set; }
+    public TracePerformance? Performance { get; set; }
+    public Dictionary<string, object>? Metadata { get; set; }
 }
 ```
 
 ### TraceEntry
 
-Each entry represents a prompt/response pair:
+Each entry represents a request or response:
 
 ```csharp
 public class TraceEntry
 {
-    public string Prompt { get; set; }
-    public string Response { get; set; }
-    public TimeSpan Duration { get; set; }
-    public TraceTokenUsage TokenUsage { get; set; }
-    public IReadOnlyList<TraceToolCall> ToolCalls { get; set; }
-    public TraceError Error { get; set; }
+    public TraceEntryType Type { get; set; }    // Request or Response
+    public int Index { get; set; }               // Matches request to response
+    public string? Prompt { get; set; }          // For requests
+    public string? Text { get; set; }            // For responses
+    public long? DurationMs { get; set; }
+    public TraceTokenUsage? TokenUsage { get; set; }
+    public List<TraceToolCall>? ToolCalls { get; set; }
+    public TraceError? Error { get; set; }
+    public bool IsStreaming { get; set; }
+    public List<TraceStreamChunk>? StreamingChunks { get; set; }
 }
 ```
 
@@ -189,12 +180,15 @@ For multi-agent workflows:
 ```csharp
 public class WorkflowTrace
 {
-    public string WorkflowId { get; set; }
-    public string WorkflowName { get; set; }
-    public DateTimeOffset StartedAt { get; set; }
-    public DateTimeOffset? CompletedAt { get; set; }
-    public IReadOnlyList<WorkflowTraceStep> Steps { get; set; }
-    public WorkflowTracePerformance Performance { get; set; }
+    public string Version { get; set; }
+    public string TraceName { get; set; }
+    public DateTimeOffset CapturedAt { get; set; }
+    public string? WorkflowType { get; set; }
+    public string? OriginalPrompt { get; set; }
+    public string? FinalOutput { get; set; }
+    public List<string> ExecutorIds { get; set; }
+    public List<WorkflowTraceStep> Steps { get; set; }
+    public WorkflowTracePerformance? Performance { get; set; }
 }
 ```
 
@@ -204,12 +198,12 @@ public class WorkflowTrace
 
 ```csharp
 // Save trace to JSON
-TraceSerializer.Save(trace, "trace.json");
-WorkflowTraceSerializer.Save(workflowTrace, "workflow.json");
+await TraceSerializer.SaveToFileAsync(trace, "trace.json");
+await WorkflowTraceSerializer.SaveToFileAsync(workflowTrace, "workflow.json");
 
 // Load trace from JSON
-var loadedTrace = TraceSerializer.Load("trace.json");
-var loadedWorkflow = WorkflowTraceSerializer.Load("workflow.json");
+var loadedTrace = await TraceSerializer.LoadFromFileAsync("trace.json");
+var loadedWorkflow = await WorkflowTraceSerializer.LoadFromFileAsync("workflow.json");
 ```
 
 ### JSON Format
@@ -218,29 +212,40 @@ Traces are stored in human-readable JSON:
 
 ```json
 {
-  "traceId": "abc-123",
+  "version": "1.0",
+  "traceName": "weather_query",
+  "capturedAt": "2026-01-08T12:00:00Z",
   "agentName": "WeatherAgent",
-  "recordedAt": "2026-01-08T12:00:00Z",
   "entries": [
     {
-      "prompt": "What's the weather in Seattle?",
-      "response": "The weather in Seattle is currently 52°F with light rain.",
-      "duration": "00:00:01.234",
+      "type": "Request",
+      "index": 0,
+      "prompt": "What's the weather in Seattle?"
+    },
+    {
+      "type": "Response",
+      "index": 0,
+      "text": "The weather in Seattle is currently 52°F with light rain.",
+      "durationMs": 1234,
       "tokenUsage": {
         "promptTokens": 15,
-        "completionTokens": 20,
-        "totalTokens": 35
+        "completionTokens": 20
       },
       "toolCalls": [
         {
-          "toolName": "GetWeather",
-          "arguments": {"city": "Seattle"},
-          "result": {"temp": 52, "condition": "rain"},
-          "duration": "00:00:00.500"
+          "name": "GetWeather",
+          "result": "{\"temp\": 52, \"condition\": \"rain\"}",
+          "succeeded": true
         }
       ]
     }
-  ]
+  ],
+  "performance": {
+    "totalDurationMs": 1234,
+    "totalPromptTokens": 15,
+    "totalCompletionTokens": 20,
+    "callCount": 1
+  }
 }
 ```
 
@@ -276,12 +281,12 @@ Use replay in CI pipelines without API credentials:
 ### 4. Golden Master Evaluation
 Compare new responses against recorded "golden" responses:
 ```csharp
-var goldenTrace = TraceSerializer.Load("golden-weather.json");
+var goldenTrace = await TraceSerializer.LoadFromFileAsync("golden-weather.json");
 var currentAgent = new WeatherAgent(client);
-var currentRecorder = new TraceRecordingAgent(currentAgent);
+await using var currentRecorder = new TraceRecordingAgent(currentAgent, "golden_test");
 
-var currentResponse = await currentRecorder.ExecuteAsync("Weather in Seattle?");
-var goldenResponse = goldenTrace.Entries[0].Response;
+var currentResponse = await currentRecorder.InvokeAsync("Weather in Seattle?");
+var goldenResponse = goldenTrace.Entries.First(e => e.Type == TraceEntryType.Response).Text;
 
 Assert.Equal(goldenResponse, currentResponse);
 ```
@@ -289,14 +294,14 @@ Assert.Equal(goldenResponse, currentResponse);
 ### 5. Performance Baseline
 Compare performance metrics over time:
 ```csharp
-var oldTrace = TraceSerializer.Load("baseline.json");
-var newTrace = recorder.GetTrace();
+var oldTrace = await TraceSerializer.LoadFromFileAsync("baseline.json");
+var newTrace = recorder.Trace;
 
-var oldDuration = oldTrace.Entries[0].Duration;
-var newDuration = newTrace.Entries[0].Duration;
+var oldDuration = oldTrace.Entries.First(e => e.Type == TraceEntryType.Response).DurationMs;
+var newDuration = newTrace.Entries.First(e => e.Type == TraceEntryType.Response).DurationMs;
 
 Assert.True(newDuration <= oldDuration * 1.1, 
-    $"Performance regression: {newDuration} > 110% of {oldDuration}");
+    $"Performance regression: {newDuration}ms > 110% of {oldDuration}ms");
 ```
 
 ## Related Guides

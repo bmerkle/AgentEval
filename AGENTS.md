@@ -106,9 +106,9 @@ var metric = new FaithfulnessMetric(fakeClient);
 
 Use Trace Replay for integration tests:
 ```csharp
-var trace = TraceSerializer.Load("saved-trace.json");
+var trace = await TraceSerializer.LoadFromFileAsync("saved-trace.json");
 var replayer = new TraceReplayingAgent(trace);
-var response = await replayer.ReplayNextAsync();
+var response = await replayer.InvokeAsync("prompt");
 ```
 
 ## Git Commit Conventions

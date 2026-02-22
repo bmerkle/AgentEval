@@ -226,17 +226,21 @@ agenteval trace show ./traces/weather_test.trace.json
 - `TraceRecordingAgent` — Wrapper that records ([TraceRecordingAgent.cs](https://github.com/joslat/AgentEval/blob/main/src/AgentEval/Tracing/TraceRecordingAgent.cs))
 - `TraceReplayingAgent` — Mock that replays ([TraceReplayingAgent.cs](https://github.com/joslat/AgentEval/blob/main/src/AgentEval/Tracing/TraceReplayingAgent.cs))
 - `TraceSerializer` — JSON serialization ([TraceSerializer.cs](https://github.com/joslat/AgentEval/blob/main/src/AgentEval/Tracing/TraceSerializer.cs))
-- Tests: 17 tests in [TraceRecordingAndReplayTests.cs](https://github.com/joslat/AgentEval/blob/main/tests/AgentEval.Tests/Tracing/TraceRecordingAndReplayTests.cs)
+- `ChatTraceRecorder` — Multi-turn conversation recording ([ChatTraceRecorder.cs](https://github.com/joslat/AgentEval/blob/main/src/AgentEval/Tracing/ChatTraceRecorder.cs))
+- `WorkflowTraceRecorder` — Multi-agent workflow recording ([WorkflowTraceRecorder.cs](https://github.com/joslat/AgentEval/blob/main/src/AgentEval/Tracing/WorkflowTraceRecorder.cs))
+- `WorkflowTraceReplayingAgent` — Workflow replay ([WorkflowTraceReplayingAgent.cs](https://github.com/joslat/AgentEval/blob/main/src/AgentEval/Tracing/WorkflowTraceReplayingAgent.cs))
+- Tests: 56+ tests across 3 test files
 
 ### Phase 2: Integration (Pending)
-- evaluation harness integration (`EvaluationOptions.TraceRecorder`)
-- CLI commands (`agenteval test --record/--replay`)
+- ❌ Evaluation harness integration (`EvaluationOptions.TraceRecorder`)
+- ❌ CLI commands (`agenteval test --record/--replay`)
 
-### Phase 3: Advanced Features (Pending)
-- Streaming chunk recording/replay
-- Content-based matching
-- Trace diff for debugging
-- VS Code extension integration
+### Phase 3: Advanced Features (Partially Implemented)
+- ✅ Streaming chunk recording/replay (implemented in `TraceRecordingAgent.InvokeStreamingAsync`)
+- ✅ Request matching modes (Any/Exact/Contains in `TraceReplayOptions`)
+- ❌ Content-based matching (semantic similarity)
+- ❌ Trace diff for debugging
+- ❌ VS Code extension integration
 
 ---
 

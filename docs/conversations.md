@@ -280,8 +280,34 @@ if (!result.Success && result.TotalDuration >= testCase.MaxDuration)
 5. **Verify tool arguments** - Check not just tool names but parameters too
 6. **Use the completeness metric** - Get a holistic view of conversation quality
 
+## Recording Conversations for CI/CD
+
+Use `ChatTraceRecorder` to capture entire conversation flows for deterministic replay — no LLM API calls needed during CI:
+
+```csharp
+// Record a multi-turn conversation
+await using var recorder = new ChatTraceRecorder(agent, "support_conv");
+await recorder.AddUserTurnAsync("Hello, I need help with my order");
+await recorder.AddUserTurnAsync("Order #12345");
+await recorder.AddUserTurnAsync("I want to return it");
+
+// Save for CI replay
+await recorder.SaveAsync("support-conversation.trace.json");
+
+// In CI — replay without API calls
+var trace = await TraceSerializer.LoadFromFileAsync("support-conversation.trace.json");
+var replayer = new TraceReplayingAgent(trace);
+while (!replayer.IsComplete)
+{
+    var response = await replayer.InvokeAsync("next turn");
+}
+```
+
+See [Tracing](tracing.md) for complete Record & Replay documentation.
+
 ## See Also
 
 - [Benchmarks](benchmarks.md) - Performance benchmarks for conversations
 - [Extensibility](extensibility.md) - Custom conversation metrics
+- [Tracing](tracing.md) - Record & Replay for deterministic conversation testing
 - [Sample 08](https://github.com/joslat/AgentEval/blob/main/samples/AgentEval.Samples/Sample08_ConversationEvaluation.cs) - Runnable conversation evaluation example
