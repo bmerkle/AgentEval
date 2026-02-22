@@ -69,12 +69,6 @@ Major feature release: Red Team security scanning, Responsible AI metrics, Calib
 - Replaced `Assert.True` with `Assert.Contains` for improved test readability
 - Removed hardcoded version strings from documentation
 
-### Planned
-- CodeQL integration for advanced code analysis
-- NuGet package signing
-- SBOM (Software Bill of Materials) generation
-- Plugin sandboxing for enterprise deployments
-
 ---
 
 ## [0.3.0-beta] - 2026-01-25
