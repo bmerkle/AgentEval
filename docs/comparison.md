@@ -135,24 +135,22 @@ AgentEval supports the same dataset formats you're used to:
 
 ```csharp
 // Load from YAML
-var testCases = await DatasetLoader.LoadAsync("tests.yaml");
+var loader = DatasetLoaderFactory.CreateFromExtension(".yaml");
+var testCases = await loader.LoadAsync("tests.yaml");
 
 // Load from JSONL
-var testCases = await DatasetLoader.LoadAsync("tests.jsonl");
+var loader = DatasetLoaderFactory.CreateFromExtension(".jsonl");
+var testCases = await loader.LoadAsync("tests.jsonl");
 
-// Load from CSV with field mapping
-var testCases = await DatasetLoader.LoadAsync("tests.csv", new LoaderOptions
-{
-    FieldAliases = new Dictionary<string, string>
-    {
-        ["question"] = "Input",
-        ["expected"] = "GroundTruth"
-    }
-});
+// Load from CSV — field aliases are recognized automatically
+// (e.g., "question" maps to Input, "answer" maps to ExpectedOutput)
+var loader = DatasetLoaderFactory.CreateFromExtension(".csv");
+var testCases = await loader.LoadAsync("tests.csv");
 
-// Run batch evaluation
-foreach (var testCase in testCases)
+// Run evaluation for each test case
+foreach (var tc in testCases)
 {
+    var testCase = tc.ToTestCase(); // Convert DatasetTestCase → TestCase
     var result = await harness.RunEvaluationAsync(agent, testCase);
     // Collect results...
 }
@@ -239,7 +237,7 @@ result.ToolUsage!.Should()
 | Pattern | CLI Tools | AgentEval |
 |---------|-----------|-----------|
 | Single test | CLI command | `harness.RunEvaluationAsync()` |
-| Batch testing | YAML dataset | `DatasetLoader` + loop |
+| Batch testing | YAML dataset | `DatasetLoaderFactory` + loop |
 | Parallel | Varies | `Parallel.ForEachAsync()` |
 | CI/CD output | Various formats | JUnit XML, Markdown, JSON |
 

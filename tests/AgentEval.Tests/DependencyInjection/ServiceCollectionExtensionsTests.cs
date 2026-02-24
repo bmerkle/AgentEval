@@ -5,6 +5,7 @@
 using AgentEval.Calibration;
 using AgentEval.Comparison;
 using AgentEval.Core;
+using AgentEval.DataLoaders;
 using AgentEval.DependencyInjection;
 using AgentEval.Models;
 using AgentEval.Testing;
@@ -236,6 +237,30 @@ public class ServiceCollectionExtensionsTests
         var evaluator = factory(judges, null);
         Assert.NotNull(evaluator);
         Assert.IsType<CalibratedEvaluator>(evaluator);
+    }
+
+    [Fact]
+    public void AddAgentEval_RegistersDatasetLoaderFactory()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var factory = provider.GetRequiredService<IDatasetLoaderFactory>();
+
+        // Assert - registered as singleton DefaultDatasetLoaderFactory
+        Assert.NotNull(factory);
+        Assert.IsType<DefaultDatasetLoaderFactory>(factory);
+
+        // Verify same instance (singleton)
+        var factory2 = provider.GetRequiredService<IDatasetLoaderFactory>();
+        Assert.Same(factory, factory2);
+
+        // Verify it works
+        var loader = factory.CreateFromExtension(".jsonl");
+        Assert.Equal("jsonl", loader.Format);
     }
 
     // Fake test harness for testing

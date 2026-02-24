@@ -2,6 +2,7 @@
 // Copyright (c) 2026 AgentEval Contributors
 // Licensed under the MIT License.
 
+using AgentEval.DataLoaders;
 using AgentEval.Models;
 
 namespace AgentEval.Core;
@@ -38,6 +39,30 @@ public interface IStreamingEvaluationHarness : IEvaluationHarness
         IStreamableAgent agent,
         TestCase testCase,
         StreamingOptions? streamingOptions = null,
+        EvaluationOptions? options = null,
+        CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Extended harness that supports running a batch of dataset test cases.
+/// </summary>
+/// <remarks>
+/// Converts <see cref="DatasetTestCase"/> to <see cref="TestCase"/> using
+/// <see cref="DatasetTestCaseExtensions.ToTestCase"/> and aggregates results into a <see cref="TestSummary"/>.
+/// </remarks>
+public interface IBatchEvaluationHarness : IEvaluationHarness
+{
+    /// <summary>
+    /// Run evaluation for all test cases in a dataset and aggregate results.
+    /// </summary>
+    /// <param name="agent">The agent to evaluate.</param>
+    /// <param name="testCases">Dataset test cases to run.</param>
+    /// <param name="options">Optional evaluation options.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="TestSummary"/> with <see cref="TestSummary.TotalCount"/> and <see cref="TestSummary.PassedCount"/>.</returns>
+    Task<TestSummary> RunBatchAsync(
+        IEvaluableAgent agent,
+        IEnumerable<DatasetTestCase> testCases,
         EvaluationOptions? options = null,
         CancellationToken cancellationToken = default);
 }

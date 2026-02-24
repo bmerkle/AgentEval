@@ -132,6 +132,9 @@ public static class Program
                 case 24:
                     await Sample24_CalibratedEvaluator.RunAsync();
                     break;
+                case 25:
+                    await Sample25_DatasetLoaders.RunAsync();
+                    break;
                 default:
                     Console.WriteLine($"❌ Sample {sampleNumber} not found.\n");
                     break;
@@ -201,6 +204,7 @@ public static class Program
         Console.WriteLine("│ 22. 🛡️ ResponsibleAI     - Content safety, bias, misinfo   │");
         Console.WriteLine("│ 23. 📊 Benchmark System  - Performance, agentic & standard  │");
         Console.WriteLine("│ 24. ⚖️ Calibrated Eval   - Multi-model harness evaluation    │");
+        Console.WriteLine("│ 25. 📂 Dataset Loaders   - Multi-format pipeline (offline)  │");
         
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("├─────────────────────────────────────────────────────────────┤");

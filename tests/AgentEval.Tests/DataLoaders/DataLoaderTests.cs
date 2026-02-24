@@ -5,7 +5,7 @@
 using AgentEval.DataLoaders;
 using Xunit;
 
-namespace AgentEval.Tests;
+namespace AgentEval.Tests.DataLoaders;
 
 public class DataLoaderTests : IDisposable
 {

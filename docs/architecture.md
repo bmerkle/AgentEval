@@ -627,10 +627,14 @@ AgentEval/
 │
 ├── DataLoaders/             # Dataset loaders
 │   ├── IDatasetLoader.cs
+│   ├── IDatasetLoaderFactory.cs
+│   ├── DefaultDatasetLoaderFactory.cs
+│   ├── DatasetTestCaseExtensions.cs
 │   ├── JsonlDatasetLoader.cs
 │   ├── JsonDatasetLoader.cs
 │   ├── YamlDatasetLoader.cs
-│   └── CsvDatasetLoader.cs
+│   ├── CsvDatasetLoader.cs
+│   └── JsonParsingHelper.cs
 │
 ├── Snapshots/               # Snapshot comparison
 │   ├── ISnapshotComparer.cs # Interface for DI

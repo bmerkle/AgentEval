@@ -25,12 +25,8 @@ public class JsonlDatasetLoader : IDatasetLoader
     /// <inheritdoc />
     public IReadOnlyList<string> SupportedExtensions => new[] { ".jsonl", ".ndjson" };
 
-    private static readonly JsonSerializerOptions s_options = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
+    /// <inheritdoc />
+    public bool IsTrulyStreaming => true;
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<DatasetTestCase>> LoadAsync(string path, CancellationToken ct = default)
@@ -114,11 +110,19 @@ public class JsonlDatasetLoader : IDatasetLoader
         {
             testCase.Context = JsonParsingHelper.ParseStringArray(contextsProp);
         }
+        else if (root.TryGetProperty("documents", out var docsProp))
+        {
+            testCase.Context = JsonParsingHelper.ParseStringArray(docsProp);
+        }
         
         // Parse expected tools
         if (root.TryGetProperty("expected_tools", out var toolsProp))
         {
             testCase.ExpectedTools = JsonParsingHelper.ParseStringArray(toolsProp);
+        }
+        else if (root.TryGetProperty("tools", out var toolsProp2))
+        {
+            testCase.ExpectedTools = JsonParsingHelper.ParseStringArray(toolsProp2);
         }
         
         // Parse ground truth (for BFCL-style benchmarks)
@@ -135,6 +139,24 @@ public class JsonlDatasetLoader : IDatasetLoader
                 Name = funcProp.GetString() ?? "",
                 Arguments = JsonParsingHelper.ParseArguments(argsProp)
             };
+        }
+        
+        // Parse evaluation criteria
+        if (root.TryGetProperty("evaluation_criteria", out var criteriaProp))
+        {
+            testCase.EvaluationCriteria = JsonParsingHelper.ParseStringArray(criteriaProp);
+        }
+        
+        // Parse tags
+        if (root.TryGetProperty("tags", out var tagsProp))
+        {
+            testCase.Tags = JsonParsingHelper.ParseStringArray(tagsProp);
+        }
+        
+        // Parse passing score
+        if (root.TryGetProperty("passing_score", out var scoreProp) && scoreProp.ValueKind == JsonValueKind.Number)
+        {
+            testCase.PassingScore = scoreProp.GetInt32();
         }
         
         // Collect any extra properties as metadata

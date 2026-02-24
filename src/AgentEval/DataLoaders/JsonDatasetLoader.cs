@@ -35,12 +35,8 @@ public class JsonDatasetLoader : IDatasetLoader
     /// <inheritdoc />
     public IReadOnlyList<string> SupportedExtensions => new[] { ".json" };
 
-    private static readonly JsonSerializerOptions s_options = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true
-    };
+    /// <inheritdoc />
+    public bool IsTrulyStreaming => false;
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<DatasetTestCase>> LoadAsync(string path, CancellationToken ct = default)
@@ -197,6 +193,24 @@ public class JsonDatasetLoader : IDatasetLoader
             };
         }
 
+        // Parse evaluation criteria
+        if (element.TryGetProperty("evaluation_criteria", out var criteriaProp))
+        {
+            testCase.EvaluationCriteria = JsonParsingHelper.ParseStringArray(criteriaProp);
+        }
+        
+        // Parse tags
+        if (element.TryGetProperty("tags", out var tagsProp))
+        {
+            testCase.Tags = JsonParsingHelper.ParseStringArray(tagsProp);
+        }
+        
+        // Parse passing score
+        if (element.TryGetProperty("passing_score", out var scoreProp) && scoreProp.ValueKind == JsonValueKind.Number)
+        {
+            testCase.PassingScore = scoreProp.GetInt32();
+        }
+        
         // Collect metadata
         foreach (var prop in element.EnumerateObject())
         {

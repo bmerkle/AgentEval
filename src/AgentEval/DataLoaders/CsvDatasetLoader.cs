@@ -5,6 +5,7 @@
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 
 namespace AgentEval.DataLoaders;
 
@@ -27,6 +28,9 @@ public class CsvDatasetLoader : IDatasetLoader
     
     /// <inheritdoc />
     public IReadOnlyList<string> SupportedExtensions => new[] { ".csv", ".tsv" };
+
+    /// <inheritdoc />
+    public bool IsTrulyStreaming => true;
 
     private readonly char _separator;
 
@@ -126,6 +130,8 @@ public class CsvDatasetLoader : IDatasetLoader
             {
                 "question" or "prompt" or "query" => "input",
                 "answer" or "expected_output" or "response" => "expected",
+                "contexts" or "documents" => "context",
+                "ground_truth" => "ground_truth",
                 _ => header
             };
             
@@ -196,6 +202,73 @@ public class CsvDatasetLoader : IDatasetLoader
                 .ToList();
         }
 
+        // Parse evaluation criteria (pipe-separated)
+        var criteriaValue = GetValue("evaluation_criteria");
+        if (!string.IsNullOrEmpty(criteriaValue))
+        {
+            testCase.EvaluationCriteria = criteriaValue.Split('|', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrEmpty(s))
+                .ToList();
+        }
+
+        // Parse tags (pipe-separated)
+        var tagsValue = GetValue("tags");
+        if (!string.IsNullOrEmpty(tagsValue))
+        {
+            testCase.Tags = tagsValue.Split('|', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrEmpty(s))
+                .ToList();
+        }
+
+        // Parse passing score
+        var passingScoreValue = GetValue("passing_score");
+        if (!string.IsNullOrEmpty(passingScoreValue) && int.TryParse(passingScoreValue, out var parsedScore))
+        {
+            testCase.PassingScore = parsedScore;
+        }
+
+        // Parse ground_truth JSON blob (e.g., {"name":"tool","arguments":{"key":"value"}})
+        var groundTruthValue = GetValue("ground_truth");
+        if (!string.IsNullOrEmpty(groundTruthValue))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(groundTruthValue);
+                var root = doc.RootElement;
+
+                var gt = new GroundTruthToolCall();
+                if (root.TryGetProperty("name", out var nameEl))
+                {
+                    gt.Name = nameEl.GetString() ?? "";
+                }
+
+                if (root.TryGetProperty("arguments", out var argsEl) && argsEl.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var prop in argsEl.EnumerateObject())
+                    {
+                        gt.Arguments[prop.Name] = prop.Value.ValueKind switch
+                        {
+                            JsonValueKind.String => prop.Value.GetString(),
+                            JsonValueKind.Number => prop.Value.GetDouble(),
+                            JsonValueKind.True => true,
+                            JsonValueKind.False => false,
+                            JsonValueKind.Null => null,
+                            _ => prop.Value.GetRawText()
+                        };
+                    }
+                }
+
+                testCase.GroundTruth = gt;
+            }
+            catch (JsonException)
+            {
+                // Not valid JSON — store as metadata instead
+                testCase.Metadata["ground_truth"] = groundTruthValue;
+            }
+        }
+
         // Add any extra columns as metadata
         foreach (var kvp in columnMap)
         {
@@ -216,6 +289,8 @@ public class CsvDatasetLoader : IDatasetLoader
     {
         "id" or "category" or "input" or "expected" => true,
         "context" or "expected_tools" or "tools" => true,
+        "evaluation_criteria" or "tags" or "passing_score" => true,
+        "ground_truth" => true,
         _ => false
     };
 

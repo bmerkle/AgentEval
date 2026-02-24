@@ -249,10 +249,17 @@ result.ToolUsage!.Should()
 Batch evaluation with YAML datasets and multi-format export.
 
 ```csharp
-var dataset = await DatasetLoaderFactory.LoadAsync("tests.yaml");
-var results = await harness.RunBatchAsync(adapter, dataset);
-await new JUnitXmlExporter().ExportAsync(results, "results.xml");
-await new MarkdownExporter().ExportAsync(results, "results.md");
+var loader = DatasetLoaderFactory.CreateFromExtension(".yaml");
+var dataset = await loader.LoadAsync("tests.yaml");
+var results = new List<TestResult>();
+foreach (var dc in dataset)
+{
+    var result = await harness.RunEvaluationAsync(adapter, dc.ToTestCase());
+    results.Add(result);
+}
+var summary = new TestSummary("Dataset Evaluation", results);
+await new JUnitXmlExporter().ExportAsync(summary, "results.xml");
+await new MarkdownExporter().ExportAsync(summary, "results.md");
 ```
 
 ### Sample 12: Policy & Safety Evaluation

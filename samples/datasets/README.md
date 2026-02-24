@@ -27,6 +27,19 @@ RAG (Retrieval-Augmented Generation) evaluation dataset. Demonstrates:
 - Category-based organization
 - Metadata for filtering
 
+### dataloader-showcase.jsonl
+JSONL dataset showcasing all DatasetTestCase properties. Demonstrates:
+- `evaluation_criteria`, `tags`, `passing_score`
+- Ground truth tool calls
+- Field aliases (`question`/`answer`, `documents`/`tools`)
+- Custom metadata (`difficulty`, `source`)
+
+### dataloader-showcase.csv
+CSV dataset showcasing pipe-separated multi-value fields. Demonstrates:
+- Pipe-separated `evaluation_criteria`, `tags`, `expected_tools`
+- Numeric `passing_score` column
+- Context documents in CSV format
+
 ## Field Aliases
 
 AgentEval supports flexible field naming:
@@ -37,6 +50,17 @@ AgentEval supports flexible field naming:
 | `expected` | `expected_output`, `answer`, `response` |
 | `context` | `contexts`, `documents` |
 | `expected_tools` | `tools` |
+
+## Additional Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `evaluation_criteria` | `string[]` | Criteria for AI-powered evaluation |
+| `tags` | `string[]` | Tags for categorizing/filtering test cases |
+| `passing_score` | `int` | Minimum score (0-100) to pass; defaults to 70 |
+| `metadata` | `object` | Custom key-value pairs; unknown columns/properties auto-collected |
+
+> In CSV format, multi-value fields use pipe (`|`) as separator (e.g., `tag1|tag2`).
 
 ## Root Element Aliases
 
@@ -87,6 +111,13 @@ Full-featured test case:
   context:
     - User prefers morning flights
     - Budget is $500
+  evaluation_criteria:
+    - Must confirm booking details
+    - Should mention flight options
+  tags:
+    - travel
+    - booking
+  passing_score: 85
   metadata:
     priority: high
     author: test-team

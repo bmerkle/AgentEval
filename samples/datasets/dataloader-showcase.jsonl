@@ -1,0 +1,3 @@
+{"id": "jsonl_rag_01", "input": "What is the capital of France?", "expected": "Paris", "context": ["Paris is the capital of France."], "evaluation_criteria": ["Must mention Paris"], "tags": ["geography", "rag"], "passing_score": 80}
+{"id": "jsonl_tool_01", "input": "Search for pizza restaurants", "expected_tools": ["web_search"], "ground_truth": {"name": "web_search", "arguments": {"query": "pizza restaurants"}}, "tags": ["agentic", "tool-call"]}
+{"id": "jsonl_meta_01", "question": "Who invented the telephone?", "answer": "Alexander Graham Bell", "documents": ["Alexander Graham Bell invented the telephone in 1876."], "difficulty": "easy", "source": "trivia"}

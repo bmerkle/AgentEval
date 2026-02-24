@@ -19,7 +19,8 @@ internal static class JsonParsingHelper
         "expected", "expected_output", "answer", "response",
         "context", "contexts", "documents",
         "expected_tools", "tools",
-        "ground_truth", "function", "arguments"
+        "ground_truth", "function", "arguments",
+        "evaluation_criteria", "tags", "passing_score"
     };
 
     /// <summary>

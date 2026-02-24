@@ -1,0 +1,4 @@
+id,input,expected,context,expected_tools,evaluation_criteria,tags,passing_score
+csv_01,What is 2+2?,4,,,"Must be correct|Must be concise",math|basic,90
+csv_02,Search for hotels,,,"hotel_search|price_compare",Should use search tools,agentic|travel,75
+csv_03,Explain gravity,Gravity is a force that attracts objects,Newton discovered gravity in 1687.|Gravity gives weight to physical objects.,,Must mention force|Must be accurate,science|physics,80

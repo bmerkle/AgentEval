@@ -5,6 +5,7 @@
 using AgentEval.Calibration;
 using AgentEval.Comparison;
 using AgentEval.Core;
+using AgentEval.DataLoaders;
 using AgentEval.Snapshots;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +37,9 @@ public static class AgentEvalServiceCollectionExtensions
         // Register core utilities as singletons (stateless)
         services.TryAddSingleton<IStatisticsCalculator, DefaultStatisticsCalculator>();
         services.TryAddSingleton<IToolUsageExtractor, DefaultToolUsageExtractor>();
+
+        // Register dataset loader factory as singleton (stateless, thread-safe)
+        services.TryAddSingleton<IDatasetLoaderFactory, DefaultDatasetLoaderFactory>();
 
         // Register snapshot services as singletons (stateless comparers)
         services.TryAddSingleton<ISnapshotComparer, SnapshotComparer>();

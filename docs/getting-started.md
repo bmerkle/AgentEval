@@ -383,7 +383,7 @@ public async Task Agent_ShouldPassAllDatasetEvaluations()
 {
     // Load evaluation cases from YAML
     var loader = new YamlDatasetLoader();
-    var testCases = await loader.LoadAsync("testcases.yaml");
+    var datasetCases = await loader.LoadAsync("testcases.yaml");
 
     // Create agent and harness
     var agent = CreateMyAgent();
@@ -391,10 +391,18 @@ public async Task Agent_ShouldPassAllDatasetEvaluations()
     var adapter = new MAFAgentAdapter(agent);
 
     // Run all evaluation cases
-    var summary = await harness.RunBatchAsync(adapter, testCases);
+    var results = new List<TestResult>();
+    foreach (var dc in datasetCases)
+    {
+        var testCase = dc.ToTestCase(); // Convert DatasetTestCase → TestCase
+        var result = await harness.RunEvaluationAsync(adapter, testCase);
+        results.Add(result);
+    }
 
-    // Assert all passed
-    Assert.Equal(summary.TotalTests, summary.PassedTests);
+    var summary = new TestSummary("Dataset Evaluation", results);
+
+    // Assert all passed — note: TotalCount / PassedCount (not TotalTests / PassedTests)
+    Assert.Equal(summary.TotalCount, summary.PassedCount);
 }
 
 private static AIAgent CreateMyAgent()
@@ -420,18 +428,23 @@ private static AIAgent CreateMyAgent()
 
 Example `testcases.yaml`:
 
+> **Note:** Dataset files use `DatasetTestCase` field names (e.g., `id`, `input`, `expected`),
+> which differ from `TestCase` field names (e.g., `Name`, `ExpectedOutputContains`).
+> The `ToTestCase()` extension handles the conversion automatically.
+
 ```yaml
-- name: Greeting Test
+- id: Greeting Test
   input: Hello, how are you?
-  expected_output_contains: Hello
+  expected: Hello
 
-- name: Weather Query
+- id: Weather Query
   input: What's the weather in Paris?
-  evaluation_criteria: Should mention weather conditions
+  evaluation_criteria:
+    - Should mention weather conditions
 
-- name: Math Problem
+- id: Math Problem
   input: What is 25 * 4?
-  expected_output_contains: "100"
+  expected: "100"
 ```
 
 ## Next Steps

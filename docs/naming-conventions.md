@@ -80,16 +80,17 @@ When the `DirectoryExporter` is implemented, it will produce:
 
 ## Test Data Files (Existing)
 
-AgentEval's `DatasetLoader` supports these formats:
+AgentEval loads test datasets through the `IDatasetLoader` interface via `DatasetLoaderFactory`:
 
-| Extension | Format | Loader Method |
-|-----------|--------|---------------|
-| `.jsonl` | JSON Lines | `LoadJsonlAsync()` |
-| `.json` | JSON Array | `LoadJsonAsync()` |
-| `.csv` | CSV | `LoadCsvAsync()` |
-| `.yaml` | YAML | `LoadYamlAsync()` |
+| Extension(s) | Format | Loader Class | Usage |
+|---|---|---|---|
+| `.jsonl`, `.ndjson` | JSON Lines | `JsonlDatasetLoader` | `LoadAsync(path)` / `LoadStreamingAsync(path)` |
+| `.json` | JSON Array | `JsonDatasetLoader` | `LoadAsync(path)` / `LoadStreamingAsync(path)` |
+| `.csv` | CSV | `CsvDatasetLoader` | `LoadAsync(path)` / `LoadStreamingAsync(path)` |
+| `.tsv` | TSV | `CsvDatasetLoader('\t')` | `LoadAsync(path)` / `LoadStreamingAsync(path)` |
+| `.yaml`, `.yml` | YAML | `YamlDatasetLoader` | `LoadAsync(path)` / `LoadStreamingAsync(path)` |
 
-These are **existing conventions**, not new proposals.
+Entry point: `DatasetLoaderFactory.CreateFromExtension(".jsonl")` returns an `IDatasetLoader`.
 
 ---
 

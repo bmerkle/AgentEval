@@ -4,6 +4,7 @@
 
 using Microsoft.Extensions.AI;
 using AgentEval.Core;
+using AgentEval.DataLoaders;
 using AgentEval.Models;
 
 namespace AgentEval.MAF;
@@ -12,7 +13,7 @@ namespace AgentEval.MAF;
 /// evaluation harness for Microsoft Agent Framework (MAF) agents.
 /// Provides comprehensive testing, evaluation, and metrics collection.
 /// </summary>
-public class MAFEvaluationHarness : IStreamingEvaluationHarness
+public class MAFEvaluationHarness : IStreamingEvaluationHarness, IBatchEvaluationHarness
 {
     private readonly IEvaluator? _evaluator;
     private readonly IAgentEvalLogger _logger;
@@ -444,6 +445,36 @@ public class MAFEvaluationHarness : IStreamingEvaluationHarness
         return summary;
     }
     
+    /// <inheritdoc/>
+    public async Task<TestSummary> RunBatchAsync(
+        IEvaluableAgent agent,
+        IEnumerable<DatasetTestCase> testCases,
+        EvaluationOptions? options = null,
+        CancellationToken cancellationToken = default)
+    {
+        options ??= new EvaluationOptions();
+        var results = new List<TestResult>();
+
+        foreach (var datasetCase in testCases)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var testCase = datasetCase.ToTestCase();
+            _logger.LogInformation($"\n🧪 Test: {testCase.Name}");
+            _logger.LogDebug(new string('-', 60));
+
+            var result = await RunEvaluationAsync(agent, testCase, options, cancellationToken);
+            results.Add(result);
+
+            LogTestResult(result);
+        }
+
+        var summary = new TestSummary("BatchEvaluation", results);
+        LogSummary(summary);
+
+        return summary;
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     // PRIVATE HELPERS - LOGGING
     // ═══════════════════════════════════════════════════════════════════════════

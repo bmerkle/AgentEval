@@ -39,6 +39,9 @@ public class YamlDatasetLoader : IDatasetLoader
     /// <inheritdoc />
     public IReadOnlyList<string> SupportedExtensions => new[] { ".yaml", ".yml" };
 
+    /// <inheritdoc />
+    public bool IsTrulyStreaming => false;
+
     private static readonly IDeserializer s_deserializer = new DeserializerBuilder()
         .WithNamingConvention(UnderscoredNamingConvention.Instance)
         .IgnoreUnmatchedProperties()
@@ -118,6 +121,9 @@ public class YamlDatasetLoader : IDatasetLoader
             ExpectedOutput = yaml.Expected ?? yaml.ExpectedOutput ?? yaml.Answer ?? yaml.Response,
             Context = yaml.Context ?? yaml.Contexts ?? yaml.Documents,
             ExpectedTools = yaml.ExpectedTools ?? yaml.Tools,
+            EvaluationCriteria = yaml.EvaluationCriteria,
+            Tags = yaml.Tags,
+            PassingScore = yaml.PassingScore,
         };
 
         if (yaml.GroundTruth != null)
@@ -189,6 +195,11 @@ public class YamlDatasetLoader : IDatasetLoader
         public YamlGroundTruth? GroundTruth { get; set; }
         public string? Function { get; set; }
         public Dictionary<string, object?>? Arguments { get; set; }
+        
+        // Evaluation criteria, tags, passing score
+        public List<string>? EvaluationCriteria { get; set; }
+        public List<string>? Tags { get; set; }
+        public int? PassingScore { get; set; }
         
         // Metadata
         public Dictionary<string, object?>? Metadata { get; set; }
