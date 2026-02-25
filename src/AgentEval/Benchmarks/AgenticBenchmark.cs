@@ -14,12 +14,28 @@ public class AgenticBenchmark
 {
     private readonly IEvaluableAgent _agent;
     private readonly IEvaluator? _evaluator;
+    private readonly IToolUsageExtractor _toolUsageExtractor;
     private readonly AgenticBenchmarkOptions _options;
     
-    public AgenticBenchmark(IEvaluableAgent agent, IEvaluator? evaluator = null, AgenticBenchmarkOptions? options = null)
+    /// <summary>
+    /// Creates a new agentic benchmark instance.
+    /// </summary>
+    /// <param name="agent">The agent to benchmark.</param>
+    /// <param name="evaluator">Optional AI evaluator for task completion scoring.</param>
+    /// <param name="options">Optional benchmark configuration.</param>
+    /// <param name="toolUsageExtractor">
+    /// Optional tool usage extractor for DI compatibility. 
+    /// Defaults to <see cref="DefaultToolUsageExtractor.Instance"/> when not provided.
+    /// </param>
+    public AgenticBenchmark(
+        IEvaluableAgent agent,
+        IEvaluator? evaluator = null,
+        AgenticBenchmarkOptions? options = null,
+        IToolUsageExtractor? toolUsageExtractor = null)
     {
         _agent = agent ?? throw new ArgumentNullException(nameof(agent));
         _evaluator = evaluator;
+        _toolUsageExtractor = toolUsageExtractor ?? DefaultToolUsageExtractor.Instance;
         _options = options ?? new AgenticBenchmarkOptions();
     }
     
@@ -42,7 +58,7 @@ public class AgenticBenchmark
             try
             {
                 var response = await _agent.InvokeAsync(testCase.Prompt, cancellationToken);
-                var toolUsage = ToolUsageExtractor.Extract(response);
+                var toolUsage = _toolUsageExtractor.Extract(response);
                 
                 // Check if expected tools were called
                 var toolsCalledCorrectly = new List<string>();
@@ -153,11 +169,13 @@ public class AgenticBenchmark
                 var response = await _agent.InvokeAsync(testCase.Prompt, cancellationToken);
                 
                 // Use AI to evaluate task completion
-                var evaluationCriteria = new List<string>(testCase.CompletionCriteria)
+                var evaluationCriteria = new List<string>(testCase.CompletionCriteria);
+                
+                if (_options.AddDefaultCompletionCriteria)
                 {
-                    "The response fully addresses the user's request",
-                    "The output is complete and actionable"
-                };
+                    evaluationCriteria.Add("The response fully addresses the user's request");
+                    evaluationCriteria.Add("The output is complete and actionable");
+                }
                 
                 var evaluation = await _evaluator.EvaluateAsync(
                     testCase.Prompt,
@@ -220,7 +238,7 @@ public class AgenticBenchmark
             try
             {
                 var response = await _agent.InvokeAsync(testCase.Prompt, cancellationToken);
-                var toolUsage = ToolUsageExtractor.Extract(response);
+                var toolUsage = _toolUsageExtractor.Extract(response);
                 
                 // Check step sequence
                 var stepResults = new List<StepResult>();
@@ -285,7 +303,7 @@ public class AgenticBenchmark
             TotalTests = results.Count,
             PassedTests = results.Count(r => r.Passed),
             Results = results,
-            AverageStepCompletion = results.Count > 0
+            AverageStepCompletion = results.Any(r => r.TotalSteps > 0)
                 ? results.Where(r => r.TotalSteps > 0).Average(r => (double)r.CompletedSteps / r.TotalSteps)
                 : 0
         };
@@ -301,7 +319,18 @@ public class AgenticBenchmark
 /// </summary>
 public class AgenticBenchmarkOptions
 {
+    /// <summary>
+    /// Whether to print progress to console during benchmark execution.
+    /// </summary>
     public bool Verbose { get; set; } = true;
+
+    /// <summary>
+    /// Whether to automatically add standard completion criteria 
+    /// ("fully addresses request", "complete and actionable") to task completion evaluations.
+    /// Default: <see langword="true"/> for backward compatibility.
+    /// Set to <see langword="false"/> for strict criteria-only evaluation.
+    /// </summary>
+    public bool AddDefaultCompletionCriteria { get; set; } = true;
 }
 
 /// <summary>

@@ -2,7 +2,7 @@
 
 > **📚 Comprehensive Learning Library - Get started with AgentEval in 5 minutes!**
 
-This project contains **23 focused, educational samples** demonstrating all major AgentEval features. Each sample covers a distinct capability, ensuring features are exhaustively demonstrated.
+This project contains **25 focused, educational samples** demonstrating all major AgentEval features. Each sample covers a distinct capability, ensuring features are exhaustively demonstrated.
 
 ## ⚡ Core Principle
 
@@ -34,7 +34,7 @@ You'll see an interactive menu to run each sample.
 | 03 | **Agent + Multi Tools** | **Tool ordering, timeline visualization** ⭐ | No | 7 min |
 | 04 | **Performance Metrics** | **Latency, cost, TTFT, token tracking** ⭐ | No | 5 min |
 | 05 | **Comprehensive RAG** | **Complete RAG: Build, Retrieve, Evaluate (8 metrics + IR)** ⭐⭐ | Yes + Embed | 15 min |
-| 06 | **Benchmarks** | PerformanceBenchmark, AgenticBenchmark | Yes | 5 min |
+| 06 | **Performance Profiling** | Latency percentiles, token tracking, tool accuracy via MAFEvaluationHarness | Yes | 5 min |
 | 07 | **Snapshot Testing** | Regression testing, JSON diff, scrubbing | Yes | 5 min |
 | 08 | **Conversation Evaluation** | Multi-turn testing, ConversationRunner, fluent builder API | Yes | 5 min |
 | 09 | **Workflow Evaluation** | **Real MAF workflow: WorkflowBuilder + InProcessExecution** ⭐ | Yes | 15 min |
@@ -50,8 +50,10 @@ You'll see an interactive menu to run each sample.
 | 19 | **Streaming vs Async** | Compare streaming and non-streaming performance, TTFT | Yes | 8 min |
 | 20 | **Red Team Basic** | **Security scan, OWASP LLM probes, attack resistance** 🛡️ | Yes | 5 min |
 | 21 | **Red Team Advanced** | **Custom pipeline, OWASP compliance, export, baseline comparison** 🛡️ | Yes | 10 min |
-| 23 | **Responsible AI** | **Toxicity, bias, misinformation metrics with counterfactual testing** 🛡️ | Yes | 5 min |
-| 24 | **Benchmark System** | **Performance, agentic, standard, cost benchmarks with comparison** | Yes | 5 min |
+| 22 | **Responsible AI** | **Toxicity, bias, misinformation metrics with counterfactual testing** 🛡️ | Yes | 5 min |
+| 23 | **Benchmark System** | **JSONL-loaded tool accuracy benchmarks via PerformanceBenchmark + AgenticBenchmark** ⭐ | Yes | 5 min |
+| 24 | **Calibrated Evaluator** | **Multi-model consensus evaluation with calibrated scoring** | Yes | 5 min |
+| 25 | **Dataset Loaders** | Multi-format dataset pipeline: JSONL, JSON, YAML, CSV (offline) | No | 5 min |
 
 > **⭐ Samples 03 & 04** provide the foundational knowledge for tool chain and performance assertions.
 > **🛡️ Samples 20 & 21** demonstrate AgentEval's red team security scanning capabilities.

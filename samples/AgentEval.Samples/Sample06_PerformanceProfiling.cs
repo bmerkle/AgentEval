@@ -14,18 +14,18 @@ using ChatOptions = Microsoft.Extensions.AI.ChatOptions;
 namespace AgentEval.Samples;
 
 /// <summary>
-/// Sample 06: Benchmarks - Real performance and agentic benchmarks
+/// Sample 06: Performance Profiling — Latency, tokens, and tool accuracy via MAFEvaluationHarness
 /// 
 /// This demonstrates:
 /// - Running real prompts through an agent and collecting latency data
-/// - Computing statistical percentiles (p50, p90, p99) from actual measurements
-/// - Evaluating tool selection accuracy against expected tool calls
-/// - Performance tracking with token usage and cost estimation
+/// - Computing statistical percentiles (p50, p90, p99) from Stopwatch measurements
+/// - Token usage tracking and cost estimation via MAFEvaluationHarness
+/// - Direct profiling without the PerformanceBenchmark/AgenticBenchmark classes
 /// 
 /// Requires: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT
 /// ⏱️ Time to understand: 5 minutes
 /// </summary>
-public static class Sample06_Benchmarks
+public static class Sample06_PerformanceProfiling
 {
     public static async Task RunAsync()
     {
@@ -200,7 +200,7 @@ public static class Sample06_Benchmarks
         Console.WriteLine(@"
 ╔═══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                               ║
-║   📊 SAMPLE 06: PERFORMANCE & AGENTIC BENCHMARKS                             ║
+║   📊 SAMPLE 06: PERFORMANCE PROFILING                                        ║
 ║   Real latency measurement, percentiles, and tool accuracy                    ║
 ║                                                                               ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝

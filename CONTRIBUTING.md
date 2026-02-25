@@ -174,7 +174,7 @@ AgentEval/
 │       ├── Models/          # Data models
 │       └── Snapshots/       # Snapshot testing
 ├── samples/
-│   └── AgentEval.Samples/   # Sample code (23 samples)
+│   └── AgentEval.Samples/   # Sample code
 ├── tests/
 │   └── AgentEval.Tests/     # Unit tests
 └── docs/                    # DocFX documentation

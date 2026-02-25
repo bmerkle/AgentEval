@@ -1,0 +1,4 @@
+{"id": "weather_simple", "input": "What is the weather in Seattle?", "expected_tools": ["GetWeather"], "tags": ["single-tool", "weather"], "metadata": {"required_params": {"GetWeather": ["city"]}}}
+{"id": "calc_simple", "input": "Calculate 15 * 7 + 3", "expected_tools": ["Calculate"], "tags": ["single-tool", "math"], "metadata": {"required_params": {"Calculate": ["expression"]}}}
+{"id": "multi_tool", "input": "What is the weather in Paris? Also, calculate 100 / 4.", "expected_tools": ["GetWeather", "Calculate"], "tags": ["multi-tool"]}
+{"id": "no_tool", "input": "Say hello.", "expected_tools": [], "tags": ["no-tool"]}

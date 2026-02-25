@@ -1,0 +1,4 @@
+{"id": "lat_simple_math", "input": "What is 2 + 2?", "tags": ["simple", "latency"]}
+{"id": "lat_colors", "input": "Name three primary colors.", "tags": ["simple", "latency"]}
+{"id": "lat_capital", "input": "What is the capital of France?", "tags": ["simple", "latency"]}
+{"id": "lat_recursion", "input": "Explain recursion in one sentence.", "tags": ["moderate", "latency"]}

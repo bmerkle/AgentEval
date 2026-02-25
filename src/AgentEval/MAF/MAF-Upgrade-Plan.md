@@ -427,7 +427,7 @@ Zero MAF SDK references.
 | `Sample02_AgentWithOneTool.cs` |
 | `Sample03_AgentWithMultipleTools.cs` |
 | `Sample04_PerformanceMetrics.cs` |
-| `Sample06_Benchmarks.cs` |
+| `Sample06_PerformanceProfiling.cs` |
 | `Sample07_SnapshotTesting.cs` |
 | `Sample12_PolicySafetyEvaluation.cs` |
 | `Sample13_TraceRecordReplay.cs` |

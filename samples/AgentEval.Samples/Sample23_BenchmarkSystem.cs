@@ -1,23 +1,40 @@
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2026 AgentEval Contributors
 
+using Azure.AI.OpenAI;
+using Microsoft.Agents.AI;
+using Microsoft.Extensions.AI;
+using AgentEval.Benchmarks;
+using AgentEval.DataLoaders;
+using AgentEval.MAF;
+using System.ComponentModel;
+using ChatOptions = Microsoft.Extensions.AI.ChatOptions;
+
 namespace AgentEval.Samples;
 
 /// <summary>
-/// Sample 23: Benchmark System — Performance &amp; Agentic Benchmarking
+/// Sample 23: Benchmark System — Real Performance &amp; Agentic Benchmarking
 /// 
-/// This demonstrates AgentEval's comprehensive benchmark system:
-/// - Performance benchmarks: Latency, throughput, scalability testing
-/// - Agentic benchmarks: Tool use, reasoning, workflow execution
-/// - Standard benchmark suites: MMLU, GSM8K, HumanEval equivalents
-/// - Custom benchmark creation and execution
-/// - Cost optimization analysis during benchmarking
-/// - Comparative analysis across models and configurations
+/// This sample shows how to use AgentEval's benchmark classes against a
+/// real Azure OpenAI-backed agent, loading test data from JSONL files
+/// via <see cref="DatasetLoaderFactory"/> (the industry-standard format
+/// for AI benchmark datasets — used by BFCL, GAIA, MMLU, GSM8K, etc.).
 /// 
-/// Azure OpenAI credentials are required for LLM-based benchmarks.
+/// It demonstrates:
+///   1. Loading all 3 JSONL dataset types (latency, cost, tool-accuracy)
+///   2. Converting <see cref="AgentEval.DataLoaders.DatasetTestCase"/> to benchmark types via bridge extensions
+///   3. Running a tool accuracy benchmark as the showcase (full JSONL → bridge → benchmark pipeline)
 /// 
-/// ⏱️ Time to understand: 10 minutes
-/// ⏱️ Time to run: ~2–5 minutes (depends on benchmark selection)
+/// Only one benchmark type is executed to keep API costs low while still
+/// proving the complete data loading and conversion pipeline.
+/// 
+/// Everything here is REAL: actual LLM calls, actual measurements, actual results.
+/// Test data is loaded from <c>samples/datasets/benchmark-*.jsonl</c> files.
+/// No hardcoded fallbacks — JSONL datasets must be present.
+/// 
+/// Requires: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT
+/// ⏱️ Time to understand: 5 minutes
+/// ⏱️ Time to run: ~15–30 seconds (depends on model latency)
 /// </summary>
 public static class Sample23_BenchmarkSystem
 {
@@ -31,345 +48,188 @@ public static class Sample23_BenchmarkSystem
             return;
         }
 
-        Console.WriteLine($"   🔗 Endpoint: {AIConfig.Endpoint}");
-        Console.WriteLine($"   🤖 Model: {AIConfig.ModelDeployment}\n");
+        Console.WriteLine($"   Endpoint: {AIConfig.Endpoint}");
+        Console.WriteLine($"   Model:    {AIConfig.ModelDeployment}\n");
 
-        Console.WriteLine("📊 Step 1: Performance Benchmarks\n");
-        await RunPerformanceBenchmarks();
+        // ── Create a real agent with tools ──────────────────────────────────
+        var agent = CreateAgentWithTools();
+        var adapter = new MAFAgentAdapter(agent);
 
-        Console.WriteLine("\n🤖 Step 2: Agentic Capability Benchmarks\n");
-        await RunAgenticBenchmarks();
+        // ── Load benchmark datasets from JSONL ─────────────────────────────
+        // Demonstrates loading from all 3 JSONL dataset types via DatasetLoaderFactory.
+        // This proves the JSONL → DatasetTestCase pipeline works for all benchmark types.
+        Console.WriteLine("Loading benchmark datasets from JSONL...\n");
 
-        Console.WriteLine("\n📈 Step 3: Standard Benchmark Suites\n");
-        await RunStandardBenchmarks();
+        var latencyPrompts = await LoadPromptsFromJsonl("benchmark-latency.jsonl");
+        var costPrompts = await LoadPromptsFromJsonl("benchmark-cost.jsonl");
+        var toolCases = await LoadToolAccuracyCases("benchmark-tool-accuracy.jsonl");
 
-        Console.WriteLine("\n💰 Step 4: Cost Optimization Analysis\n");
-        await RunCostOptimizationAnalysis();
+        Console.WriteLine($"   Loaded {latencyPrompts.Count} latency prompts");
+        Console.WriteLine($"   Loaded {costPrompts.Count} cost prompts");
+        Console.WriteLine($"   Loaded {toolCases.Count} tool accuracy test cases\n");
 
-        Console.WriteLine("\n⚖️ Step 5: Comparative Analysis\n");
-        PrintComparativeAnalysis();
+        // ── Run Tool Accuracy Benchmark (showcase) ──────────────────────────
+        // We run only the tool accuracy benchmark here to keep API costs low.
+        // It demonstrates the full pipeline: JSONL → DatasetTestCase → bridge → benchmark.
+        // See PerformanceBenchmark for latency/throughput/cost benchmarks.
+        Console.WriteLine("Running Tool Accuracy Benchmark (JSONL → bridge → benchmark)\n");
 
-        PrintBenchmarkGallery();
+        var agenticBenchmark = new AgenticBenchmark(adapter, evaluator: null,
+            new AgenticBenchmarkOptions { Verbose = true });
+
+        var toolResult = await agenticBenchmark.RunToolAccuracyBenchmarkAsync(toolCases);
+
+        PrintToolAccuracyResults(toolResult);
+
+        // ── Summary ─────────────────────────────────────────────────────────
+        Console.WriteLine($"\n   SUMMARY: {toolResult.PassedTests}/{toolResult.TotalTests} tool accuracy tests passed ({toolResult.OverallAccuracy:P0})");
+        Console.WriteLine($"   Loaded {latencyPrompts.Count + costPrompts.Count + toolCases.Count} total items from 3 JSONL files");
         PrintKeyTakeaways();
     }
 
-    private static async Task RunPerformanceBenchmarks()
+    // ═══════════════════════════════════════════════════════════════════════════
+    // JSONL Dataset Loading
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Loads prompts from a JSONL file via <see cref="DatasetLoaderFactory"/>.
+    /// Each line's <c>input</c> field becomes a prompt string.
+    /// </summary>
+    private static async Task<List<string>> LoadPromptsFromJsonl(string fileName)
     {
-        Console.WriteLine("   ⚡ Performance Benchmark Suite:");
-        Console.WriteLine("   ┌─────────────────────────────────────────────────────────────┐");
-        Console.WriteLine("   │               Metric              │    Result    │   Status   │");
-        Console.WriteLine("   ├───────────────────────────────────┼──────────────┼────────────┤");
-        
-        // Simulate Latency Benchmark
-        await Task.Delay(100); // Simulate actual benchmark run
-        var avgLatency = 1250 + Random.Shared.Next(-200, 300);
-        Console.WriteLine($"   │ Average Response Latency          │ {avgLatency:F0}ms       │ {GetPerformanceStatus(avgLatency, 2000)} │");
+        var path = ResolveDatasetPath(fileName)
+            ?? throw new FileNotFoundException(
+                $"Benchmark dataset not found: {fileName}. " +
+                $"Ensure the file exists in samples/datasets/. " +
+                $"See docs/benchmarks.md for JSONL format details.");
 
-        // Simulate Throughput Benchmark  
-        await Task.Delay(100);
-        var throughput = 45.5 + Random.Shared.NextDouble() * 10 - 5;
-        Console.WriteLine($"   │ Requests Per Minute               │ {throughput:F1}        │ {GetPerformanceStatus(throughput, 30)} │");
-
-        // Simulate Token Efficiency Benchmark
-        await Task.Delay(100);
-        var tokenEfficiency = 0.78 + Random.Shared.NextDouble() * 0.15;
-        Console.WriteLine($"   │ Token Efficiency Ratio            │ {tokenEfficiency:F2}         │ {GetEfficiencyStatus(tokenEfficiency)} │");
-
-        // Simulate Time To First Token (TTFT)
-        await Task.Delay(100);
-        var ttft = 450 + Random.Shared.Next(-150, 200);
-        Console.WriteLine($"   │ Time To First Token (TTFT)        │ {ttft:F0}ms       │ {GetPerformanceStatus(ttft, 500)} │");
-        
-        Console.WriteLine("   └─────────────────────────────────────────────────────────────┘\n");
-        
-        Console.WriteLine("   📊 Performance Analysis:");
-        Console.WriteLine($"      • Latency: {avgLatency:F0}ms average (target: <2000ms)");
-        Console.WriteLine($"      • Throughput: {throughput:F1} req/min (target: >30)");
-        Console.WriteLine($"      • Token Efficiency: {tokenEfficiency:F2} ratio (higher is better)");
-        Console.WriteLine($"      • TTFT: {ttft:F0}ms (target: <500ms for real-time)");
+        var dataset = await DatasetLoaderFactory.LoadAsync(path);
+        return dataset.Select(dc => dc.Input).ToList();
     }
 
-    private static async Task RunAgenticBenchmarks()
+    /// <summary>
+    /// Loads tool accuracy test cases from a JSONL file via <see cref="DatasetLoaderFactory"/>,
+    /// converting each <see cref="DatasetTestCase"/> to a <see cref="ToolAccuracyTestCase"/>
+    /// using the <see cref="DatasetTestCaseBenchmarkExtensions.ToToolAccuracyTestCase"/> bridge.
+    /// </summary>
+    private static async Task<List<ToolAccuracyTestCase>> LoadToolAccuracyCases(string fileName)
     {
-        Console.WriteLine("   🛠️ Agentic Capability Assessment:");
-        
-        // Simulate Tool Selection Benchmark
-        Console.WriteLine("\n   🔧 Tool Selection & Usage:");
-        await Task.Delay(150);
-        
-        var toolSelectionAccuracy = 0.85 + Random.Shared.NextDouble() * 0.1;
-        var toolUsageSuccess = 0.78 + Random.Shared.NextDouble() * 0.15;
-        var coordinationScore = 0.72 + Random.Shared.NextDouble() * 0.18;
-        
-        Console.WriteLine($"      ✅ Tool Selection Accuracy: {toolSelectionAccuracy:P1}");
-        Console.WriteLine($"      ✅ Tool Usage Success Rate: {toolUsageSuccess:P1}");
-        Console.WriteLine($"      ✅ Multi-tool Coordination: {coordinationScore:P1}");
-        
-        // Simulate Reasoning Chain Benchmark
-        Console.WriteLine("\n   🧠 Reasoning & Planning:");
-        await Task.Delay(150);
-        
-        var logicalConsistency = 0.81 + Random.Shared.NextDouble() * 0.12;
-        var chainQuality = 0.77 + Random.Shared.NextDouble() * 0.16;
-        var decompositionScore = 0.74 + Random.Shared.NextDouble() * 0.18;
-        
-        Console.WriteLine($"      ✅ Logical Consistency: {logicalConsistency:P1}");
-        Console.WriteLine($"      ✅ Chain-of-Thought Quality: {chainQuality:P1}");
-        Console.WriteLine($"      ✅ Problem Decomposition: {decompositionScore:P1}");
-        
-        // Simulate Workflow Execution Benchmark  
-        Console.WriteLine("\n   🔄 Workflow Execution:");
-        await Task.Delay(150);
-        
-        var orderingAccuracy = 0.88 + Random.Shared.NextDouble() * 0.08;
-        var errorRecovery = 0.69 + Random.Shared.NextDouble() * 0.20;
-        var parallelizationScore = 0.83 + Random.Shared.NextDouble() * 0.12;
-        
-        Console.WriteLine($"      ✅ Step Ordering Accuracy: {orderingAccuracy:P1}");
-        Console.WriteLine($"      ✅ Error Recovery Rate: {errorRecovery:P1}");
-        Console.WriteLine($"      ✅ Parallelization Efficiency: {parallelizationScore:P1}");
-        
-        // Calculate composite agentic score
-        var toolScore = (toolSelectionAccuracy + toolUsageSuccess + coordinationScore) / 3;
-        var reasoningScore = (logicalConsistency + chainQuality + decompositionScore) / 3; 
-        var workflowScore = (orderingAccuracy + errorRecovery + parallelizationScore) / 3;
-        var compositeScore = (toolScore + reasoningScore + workflowScore) / 3;
-        
-        Console.WriteLine($"\n      🎯 Composite Agentic Score: {compositeScore:P1} ({GetAgenticGrade(compositeScore)})");
+        var path = ResolveDatasetPath(fileName)
+            ?? throw new FileNotFoundException(
+                $"Benchmark dataset not found: {fileName}. " +
+                $"Ensure the file exists in samples/datasets/. " +
+                $"See docs/benchmarks.md for JSONL format details.");
+
+        var dataset = await DatasetLoaderFactory.LoadAsync(path);
+        return dataset.Select(dc => dc.ToToolAccuracyTestCase()).ToList();
     }
 
-    private static async Task RunStandardBenchmarks()
+    /// <summary>
+    /// Resolves a dataset file path relative to the samples/datasets directory.
+    /// </summary>
+    private static string? ResolveDatasetPath(string fileName)
     {
-        Console.WriteLine("   📚 Standard Benchmark Suites:");
-        
-        // Simulate MMLU-style Knowledge Benchmark
-        Console.WriteLine("\n   📖 Knowledge & Reasoning (MMLU-style):");
-        await Task.Delay(200);
-        
-        var scienceScore = 0.82 + Random.Shared.NextDouble() * 0.10;
-        var humanitiesScore = 0.79 + Random.Shared.NextDouble() * 0.12;
-        var professionalScore = 0.75 + Random.Shared.NextDouble() * 0.14;
-        var overallKnowledge = (scienceScore + humanitiesScore + professionalScore) / 3;
-        
-        Console.WriteLine($"      • Science & Mathematics: {scienceScore:P1}");
-        Console.WriteLine($"      • History & Social Science: {humanitiesScore:P1}");  
-        Console.WriteLine($"      • Professional Knowledge: {professionalScore:P1}");
-        Console.WriteLine($"      • Overall Knowledge Score: {overallKnowledge:P1}");
-        
-        // Simulate GSM8K-style Math Benchmark
-        Console.WriteLine("\n   🧮 Mathematical Reasoning (GSM8K-style):");
-        await Task.Delay(200);
-        
-        var arithmeticScore = 0.89 + Random.Shared.NextDouble() * 0.08;
-        var wordProblemScore = 0.76 + Random.Shared.NextDouble() * 0.15;
-        var multiStepScore = 0.71 + Random.Shared.NextDouble() * 0.18;
-        var overallMath = (arithmeticScore + wordProblemScore + multiStepScore) / 3;
-        
-        Console.WriteLine($"      • Arithmetic Operations: {arithmeticScore:P1}");
-        Console.WriteLine($"      • Word Problems: {wordProblemScore:P1}");
-        Console.WriteLine($"      • Multi-step Reasoning: {multiStepScore:P1}");
-        Console.WriteLine($"      • Overall Math Score: {overallMath:P1}");
-        
-        // Simulate HumanEval-style Code Benchmark
-        Console.WriteLine("\n   💻 Code Generation (HumanEval-style):");
-        await Task.Delay(200);
-        
-        var syntaxScore = 0.94 + Random.Shared.NextDouble() * 0.05;
-        var functionalScore = 0.73 + Random.Shared.NextDouble() * 0.17;
-        var qualityScore = 0.68 + Random.Shared.NextDouble() * 0.20;
-        var overallCode = (syntaxScore + functionalScore + qualityScore) / 3;
-        
-        Console.WriteLine($"      • Syntax Correctness: {syntaxScore:P1}");
-        Console.WriteLine($"      • Functional Correctness: {functionalScore:P1}");
-        Console.WriteLine($"      • Code Quality & Style: {qualityScore:P1}");
-        Console.WriteLine($"      • Overall Code Score: {overallCode:P1}");
-        
-        // Composite benchmark score
-        var standardScore = (overallKnowledge + overallMath + overallCode) / 3;
-        Console.WriteLine($"\n      🏆 Standard Benchmark Composite: {standardScore:P1} ({GetStandardGrade(standardScore)})");
+        // Try relative to the project output directory
+        var path = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "datasets", fileName);
+        if (File.Exists(path)) return Path.GetFullPath(path);
+
+        // Try relative to working directory (repo root)
+        path = Path.Combine("samples", "datasets", fileName);
+        if (File.Exists(path)) return Path.GetFullPath(path);
+
+        return null;
     }
 
-    private static async Task RunCostOptimizationAnalysis()
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Agent Setup
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    private static AIAgent CreateAgentWithTools()
     {
-        Console.WriteLine("   💰 Cost Optimization Benchmark:");
-        
-        // Simulate cost analysis benchmarks
-        await Task.Delay(200);
-        
-        var costPer1K = 0.005m + (decimal)(Random.Shared.NextDouble() * 0.008);
-        var costPerQuery = 0.02m + (decimal)(Random.Shared.NextDouble() * 0.04);
-        var qualityAdjustedCost = costPerQuery * 0.7m;
-        var efficiencyRating = 70.0 + Random.Shared.NextDouble() * 25;
-        var tokenOptimization = 0.7 + Random.Shared.NextDouble() * 0.25;
-        var qualityToCostRatio = 3.5 + Random.Shared.NextDouble() * 4;
-        
-        Console.WriteLine("   ┌─────────────────────────────────────────────────────────────┐");
-        Console.WriteLine("   │            Cost Metric           │    Value     │  Target   │");
-        Console.WriteLine("   ├──────────────────────────────────┼──────────────┼───────────┤");
-        Console.WriteLine($"   │ Cost Per 1K Tokens               │ ${costPer1K:F4}       │ <$0.01    │");
-        Console.WriteLine($"   │ Cost Per Query Response          │ ${costPerQuery:F4}       │ <$0.05    │");
-        Console.WriteLine($"   │ Quality-Adjusted Cost            │ ${qualityAdjustedCost:F4}       │ <$0.03    │");
-        Console.WriteLine($"   │ Cost Efficiency Rating           │ {GetCostRating(efficiencyRating)}       │ A or B    │");
-        Console.WriteLine("   └─────────────────────────────────────────────────────────────┘\n");
-        
-        Console.WriteLine("   📊 Cost Analysis Insights:");
-        Console.WriteLine($"      • Token Usage Optimization: {GetOptimizationLevel(tokenOptimization)}");
-        Console.WriteLine($"      • Response Quality vs Cost: {qualityToCostRatio:F2}x value");
-        Console.WriteLine($"      • Recommended Configuration: GPT-4o-mini for cost-sensitive workloads");
-        
-        if (costPerQuery > 0.05m)
+        var azureClient = new AzureOpenAIClient(AIConfig.Endpoint, AIConfig.KeyCredential);
+        var chatClient = azureClient.GetChatClient(AIConfig.ModelDeployment).AsIChatClient();
+
+        return new ChatClientAgent(chatClient, new ChatClientAgentOptions
         {
-            Console.WriteLine("\n   ⚠️  Cost Optimization Recommendations:");
-            Console.WriteLine("      • Consider using a smaller model for simple queries");
-            Console.WriteLine("      • Implement response caching for repeated questions");
-            Console.WriteLine("      • Use system prompts to encourage concise responses");
-            Console.WriteLine("      • Set max_tokens limits to prevent unnecessarily long responses");
+            Name = "BenchmarkAgent",
+            ChatOptions = new ChatOptions
+            {
+                Instructions = "You are a helpful assistant. Use the available tools when appropriate.",
+                Tools =
+                [
+                    AIFunctionFactory.Create(GetWeather),
+                    AIFunctionFactory.Create(Calculate)
+                ]
+            }
+        });
+    }
+
+    [Description("Get the current weather for a city")]
+    private static string GetWeather([Description("City name")] string city) =>
+        $"The weather in {city} is 18°C and partly cloudy.";
+
+    [Description("Calculate a math expression and return the result")]
+    private static string Calculate([Description("Math expression to evaluate")] string expression) =>
+        $"Result of {expression} = (calculated)";
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // Result Printers
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    private static void PrintToolAccuracyResults(ToolAccuracyResult r)
+    {
+        Console.WriteLine();
+        foreach (var t in r.Results)
+        {
+            var icon = t.Passed ? "PASS" : "FAIL";
+            Console.Write($"      [{icon}] {t.TestCaseName}");
+            if (t.ToolsMissed.Count > 0)
+                Console.Write($"  (missed: {string.Join(", ", t.ToolsMissed)})");
+            if (t.ParameterErrors.Count > 0)
+                Console.Write($"  (params: {string.Join("; ", t.ParameterErrors)})");
+            if (!string.IsNullOrEmpty(t.Error))
+                Console.Write($"  (error: {t.Error})");
+            Console.WriteLine();
         }
-    }
-    
-    private static void PrintComparativeAnalysis()
-    {
-        Console.WriteLine("   📊 Model Comparison Matrix:");
-        Console.WriteLine("   ┌─────────────────┬───────────┬──────────┬──────────┬─────────────┐");
-        Console.WriteLine("   │     Model       │ Latency   │ Quality  │   Cost   │ Agentic     │");
-        Console.WriteLine("   ├─────────────────┼───────────┼──────────┼──────────┼─────────────┤");
-        Console.WriteLine("   │ GPT-4o          │ 1200ms    │ 92%      │ $0.015   │ Excellent   │");
-        Console.WriteLine("   │ GPT-4o-mini     │ 800ms     │ 87%      │ $0.003   │ Very Good   │");
-        Console.WriteLine("   │ GPT-3.5-turbo   │ 600ms     │ 81%      │ $0.002   │ Good        │");
-        Console.WriteLine("   │ Claude-3-sonnet │ 1400ms    │ 94%      │ $0.018   │ Excellent   │");
-        Console.WriteLine("   │ Llama-3-70B     │ 2000ms    │ 85%      │ $0.008   │ Good        │");
-        Console.WriteLine("   └─────────────────┴───────────┴──────────┴──────────┴─────────────┘\n");
-        
-        Console.WriteLine("   🎯 Benchmark-Driven Model Selection:");
-        Console.WriteLine("      • Real-time Apps: GPT-4o-mini (best latency/quality balance)");
-        Console.WriteLine("      • Complex Reasoning: Claude-3-sonnet (highest quality)");
-        Console.WriteLine("      • Cost-Sensitive: GPT-3.5-turbo (best cost/performance)");
-        Console.WriteLine("      • Agentic Workflows: GPT-4o (best tool coordination)");
+
+        Console.WriteLine();
+        Console.WriteLine("   +----------------------------------------------------------+");
+        Console.WriteLine("   |             TOOL ACCURACY BENCHMARK RESULTS              |");
+        Console.WriteLine("   +----------------------------------------------------------+");
+        Console.WriteLine($"   |  Passed / Total:         {r.PassedTests,4} / {r.TotalTests,-24}|");
+        Console.WriteLine($"   |  Overall Accuracy:       {r.OverallAccuracy,27:P1}   |");
+        Console.WriteLine("   +----------------------------------------------------------+");
     }
 
-    private static void PrintBenchmarkGallery()
-    {
-        Console.WriteLine("\n\n📚 AgentEval Benchmark Gallery:");
-        Console.WriteLine("   ┌─────────────────────────────────────────────────────────────────┐");
-        Console.WriteLine("   │                    Available Benchmarks                        │");
-        Console.WriteLine("   ├─────────────────────────────────────────────────────────────────┤");
-        Console.WriteLine("   │ Performance Benchmarks:                                        │");
-        Console.WriteLine("   │  • LatencyBenchmark        - Response time measurement         │");
-        Console.WriteLine("   │  • ThroughputBenchmark     - Requests per minute capacity      │");
-        Console.WriteLine("   │  • TokenEfficiencyBenchmark - Output quality per token        │");
-        Console.WriteLine("   │  • TimeToFirstTokenBenchmark - Streaming response latency     │");
-        Console.WriteLine("   │                                                                 │");
-        Console.WriteLine("   │ Agentic Benchmarks:                                            │");
-        Console.WriteLine("   │  • ToolSelectionBenchmark  - API/function calling accuracy     │");
-        Console.WriteLine("   │  • ReasoningChainBenchmark - Chain-of-thought evaluation      │");
-        Console.WriteLine("   │  • WorkflowExecutionBenchmark - Multi-step task coordination  │");
-        Console.WriteLine("   │  • PlanningBenchmark       - Goal decomposition & planning    │");
-        Console.WriteLine("   │                                                                 │");
-        Console.WriteLine("   │ Standard Academic Benchmarks:                                  │");
-        Console.WriteLine("   │  • KnowledgeBenchmark      - MMLU-style knowledge testing     │");
-        Console.WriteLine("   │  • MathematicalReasoningBenchmark - GSM8K-style math problems │");
-        Console.WriteLine("   │  • CodeGenerationBenchmark - HumanEval-style programming      │");
-        Console.WriteLine("   │  • ReadingComprehensionBenchmark - Text understanding        │");
-        Console.WriteLine("   │                                                                 │");
-        Console.WriteLine("   │ Cost & Efficiency Benchmarks:                                  │");
-        Console.WriteLine("   │  • CostEfficiencyBenchmark - Quality per dollar analysis      │");
-        Console.WriteLine("   │  • ResourceUtilizationBenchmark - Memory & CPU efficiency     │");
-        Console.WriteLine("   └─────────────────────────────────────────────────────────────────┘");
-    }
-
-    private static string GetPerformanceStatus(double value, double threshold)
-    {
-        return value < threshold ? "✅ PASS" : "⚠️ SLOW";
-    }
-    
-    private static string GetEfficiencyStatus(double ratio)
-    {
-        return ratio > 0.8 ? "✅ HIGH" : ratio > 0.6 ? "⚠️ MED" : "❌ LOW";
-    }
-    
-    private static string GetAgenticGrade(double score)
-    {
-        return score switch
-        {
-            >= 0.9 => "A+ (Expert)",
-            >= 0.8 => "A (Advanced)",
-            >= 0.7 => "B+ (Proficient)",
-            >= 0.6 => "B (Competent)",
-            >= 0.5 => "C+ (Developing)",
-            _ => "C (Needs Work)"
-        };
-    }
-    
-    private static string GetStandardGrade(double score)
-    {
-        return score switch
-        {
-            >= 0.95 => "A+ (Exceptional)",
-            >= 0.90 => "A (Excellent)",
-            >= 0.85 => "B+ (Very Good)",
-            >= 0.80 => "B (Good)",
-            >= 0.75 => "C+ (Satisfactory)",
-            _ => "C (Below Average)"
-        };
-    }
-    
-    private static string GetCostRating(double rating)
-    {
-        return rating switch
-        {
-            >= 90 => "A+",
-            >= 80 => "A",
-            >= 70 => "B+",
-            >= 60 => "B",
-            >= 50 => "C+",
-            _ => "C"
-        };
-    }
-    
-    private static string GetOptimizationLevel(double level)
-    {
-        return level switch
-        {
-            >= 0.9 => "Excellent",
-            >= 0.8 => "Very Good",
-            >= 0.7 => "Good",
-            >= 0.6 => "Fair",
-            _ => "Needs Improvement"
-        };
-    }
 
     private static void PrintHeader()
     {
         Console.WriteLine();
-        Console.WriteLine("╔══════════════════════════════════════════════════════════════════════════════╗");
-        Console.WriteLine("║                    📊 Sample 23: Benchmark System                          ║");  
-        Console.WriteLine("║              Performance, Agentic & Standard Benchmarks                     ║");
-        Console.WriteLine("╚══════════════════════════════════════════════════════════════════════════════╝");
+        Console.WriteLine("+============================================================================+");
+        Console.WriteLine("|                    Sample 23: Benchmark System                              |");
+        Console.WriteLine("|          Real Performance & Agentic Benchmarks with AgentEval               |");
+        Console.WriteLine("+============================================================================+");
         Console.WriteLine();
     }
 
     private static void PrintMissingCredentialsBox()
     {
-        Console.WriteLine("┌─────────────────────────────────────────────────────────────────────────────┐");
-        Console.WriteLine("│  ⚠️  SKIPPING SAMPLE 23 - Azure OpenAI Credentials Required                │");
-        Console.WriteLine("│                                                                             │");
-        Console.WriteLine("│  Benchmarking requires AI model access for performance and quality tests.  │");
-        Console.WriteLine("│  Set AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT  │");
-        Console.WriteLine("│                                                                             │");
-        Console.WriteLine("│  Alternative: See benchmarks documentation for offline analysis.         │");
-        Console.WriteLine("└─────────────────────────────────────────────────────────────────────────────┘");
+        Console.WriteLine("+-----------------------------------------------------------------------------+");
+        Console.WriteLine("|  SKIPPING SAMPLE 23 - Azure OpenAI Credentials Required                     |");
+        Console.WriteLine("|                                                                             |");
+        Console.WriteLine("|  This sample runs REAL benchmarks against a live agent.                     |");
+        Console.WriteLine("|  Set AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_KEY, AZURE_OPENAI_DEPLOYMENT  |");
+        Console.WriteLine("+-----------------------------------------------------------------------------+");
     }
 
     private static void PrintKeyTakeaways()
     {
-        Console.WriteLine("\n\n💡 KEY TAKEAWAYS:");
-        Console.WriteLine("   • Performance Benchmarks: Measure latency, throughput, TTFT for real-world deployment");
-        Console.WriteLine("   • Agentic Benchmarks: Evaluate tool use, reasoning chains, workflow coordination");
-        Console.WriteLine("   • Standard Benchmarks: MMLU, GSM8K, HumanEval for academic comparisons");
-        Console.WriteLine("   • Cost Optimization: Quality-adjusted cost analysis for budget-conscious deployment");
-        Console.WriteLine("   • Comparative Analysis: Data-driven model selection across performance dimensions");
-        Console.WriteLine("   • Custom Benchmarks: Build domain-specific benchmarks for specialized use cases");
-        Console.WriteLine("\n🔗 NEXT: Explore embedding-based similarity evaluation techniques!");
-        Console.WriteLine("📊 TIP: Use benchmark results to justify model selection and configuration choices!\n");
+        Console.WriteLine("\n   KEY TAKEAWAYS:");
+        Console.WriteLine("   - Test data loaded from JSONL files via DatasetLoaderFactory (industry standard!)");
+        Console.WriteLine("   - DatasetTestCase → ToolAccuracyTestCase bridge enables JSONL → Benchmark pipeline");
+        Console.WriteLine("   - PerformanceBenchmark provides latency percentiles and cost estimation");
+        Console.WriteLine("   - AgenticBenchmark verifies tool selection against declared expectations");
+        Console.WriteLine("   - All data shown above comes from REAL LLM calls — no faked numbers");
+        Console.WriteLine("\n   NEXT: Explore Sample 24 for calibrated evaluation!\n");
     }
 }

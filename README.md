@@ -422,7 +422,7 @@ See the **[Getting Started Guide](docs/getting-started.md)** for a complete walk
 
 ## Samples
 
-Run all 23 included samples:
+Run all 25 included samples:
 
 ```bash
 dotnet run --project samples/AgentEval.Samples
@@ -435,7 +435,7 @@ dotnet run --project samples/AgentEval.Samples
 | **03: Agent with Multiple Tools** | Tool ordering, timing, and timeline | 7 min |
 | **04: Performance Metrics** | Latency, cost, TTFT, and token tracking | 5 min |
 | **05: RAG Evaluation** | Faithfulness, relevance, precision, recall, correctness | 8 min |
-| **06: Benchmarks** | Performance and agentic benchmark patterns | 5 min |
+| **06: Performance Profiling** | Latency percentiles, token tracking, tool accuracy | 5 min |
 | **07: Snapshot Evaluation** | Regression detection with baselines | 5 min |
 | **08: Conversation Evaluation** | Multi-turn agent interactions | 5 min |
 | **09: Workflow Evaluation** | Multi-agent orchestration and routing | 10 min |
@@ -452,7 +452,9 @@ dotnet run --project samples/AgentEval.Samples
 | **20: Red Team Basic** | Security evaluation with prompt injection and jailbreak | 8 min |
 | **21: Red Team Advanced** | Comprehensive security testing across all attack types | 10 min |
 | **22: Responsible AI** | Toxicity, bias, misinformation metrics with counterfactual testing | 8 min |
-| **23: Benchmark System** | Performance, agentic, standard, and cost benchmarks | 10 min |
+| **23: Benchmark System** | JSONL-loaded benchmarks: tool accuracy, latency, cost | 10 min |
+| **24: Calibrated Evaluator** | Multi-model consensus evaluation with calibrated scoring | 8 min |
+| **25: Dataset Loaders** | Multi-format dataset pipeline: JSONL, JSON, YAML, CSV | 5 min |
 
 ---
 

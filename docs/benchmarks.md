@@ -10,25 +10,25 @@ AgentEval provides comprehensive benchmarking capabilities for AI agents:
 
 | Feature | Description |
 |---------|-------------|
-| **Custom benchmark suites** | Create your own domain-specific benchmarks |
 | **Performance benchmarks** | Measure latency, throughput, and cost |
-| **Workflow performance benchmarks** | Multi-agent pipeline performance and scaling analysis |
 | **BFCL-style evaluations** | Tool calling accuracy with industry-standard patterns |
 | **GAIA-style evaluations** | Task completion with multi-step reasoning |
-| **Regression detection** | Track scores over time, fail CI on regressions |
+| **Multi-step reasoning** | Ordered tool chain validation with dependency tracking |
+| **Custom benchmark suites** | Create your own domain-specific benchmarks |
+| **JSONL datasets** | Load benchmark data from industry-standard JSONL files |
 
 ---
 
 ## Quick Start
 
-### ✅ Create Custom Benchmarks
-Write your own benchmark suites for your domain.
-
 ### ✅ Run Performance Benchmarks
 Measure latency, throughput, and cost across your agents.
 
-### ✅ Workflow Performance Analysis
-Evaluate multi-agent pipeline performance, bottlenecks, and scaling characteristics.
+### ✅ Run Agentic Benchmarks
+Evaluate tool accuracy, task completion, and multi-step reasoning.
+
+### ✅ Load from JSONL
+Use `DatasetLoaderFactory` to load benchmark data from JSONL files — the industry-standard format used by BFCL, GAIA, MMLU, GSM8K, and ToolBench.
 
 ### ✅ Industry-Standard Patterns
 Create evaluations following BFCL/GAIA patterns and compare against published leaderboards.
@@ -64,8 +64,11 @@ var agent = new ChatClientAgent(
         }
     });
 
-// For AI-powered evaluation, create an evaluator client
-var evaluator = azureClient.GetChatClient("gpt-4o").AsIChatClient();
+var adapter = new MAFAgentAdapter(agent);
+
+// For AI-powered evaluation (task completion), create an evaluator
+var evaluator = new ChatClientEvaluator(
+    azureClient.GetChatClient("gpt-4o").AsIChatClient());
 ```
 
 ---
@@ -114,12 +117,32 @@ var bfclTests = new List<ToolAccuracyTestCase>
 };
 
 // Run and measure
-var benchmark = new AgenticBenchmark(agent);
+var benchmark = new AgenticBenchmark(adapter);
 var results = await benchmark.RunToolAccuracyBenchmarkAsync(bfclTests);
 
 Console.WriteLine($"BFCL-Style Results");
 Console.WriteLine($"  Accuracy: {results.OverallAccuracy:P1}");
 Console.WriteLine($"  Passed: {results.PassedTests}/{results.TotalTests}");
+```
+
+### Loading from JSONL
+
+Instead of hardcoding test cases, load them from JSONL files using `DatasetLoaderFactory`:
+
+```csharp
+using AgentEval.DataLoaders;
+
+// Load tool accuracy test cases from JSONL (industry standard!)
+var dataset = await DatasetLoaderFactory.LoadAsync("benchmark-tool-accuracy.jsonl");
+var toolCases = dataset.Select(dc => dc.ToToolAccuracyTestCase()).ToList();
+
+var results = await benchmark.RunToolAccuracyBenchmarkAsync(toolCases);
+```
+
+Example JSONL file (`benchmark-tool-accuracy.jsonl`):
+```json
+{"id": "weather_simple", "input": "What is the weather in Seattle?", "expected_tools": ["GetWeather"], "metadata": {"required_params": {"GetWeather": ["city"]}}}
+{"id": "calc_simple", "input": "Calculate 15 * 7 + 3", "expected_tools": ["Calculate"], "metadata": {"required_params": {"Calculate": ["expression"]}}}
 ```
 
 ### Compare Against Published Leaderboard
@@ -186,7 +209,7 @@ var gaiaCases = new List<TaskCompletionTestCase>
     }
 };
 
-var benchmark = new AgenticBenchmark(agent, evaluator);
+var benchmark = new AgenticBenchmark(adapter, evaluator);
 var results = await benchmark.RunTaskCompletionBenchmarkAsync(gaiaCases);
 
 Console.WriteLine($"GAIA-Style Results");
@@ -194,200 +217,95 @@ Console.WriteLine($"  Average Score: {results.AverageScore:F1}/100");
 Console.WriteLine($"  Pass Rate: {(double)results.PassedTests / results.TotalTests:P1}");
 ```
 
+> **Note:** By default, `AgenticBenchmark` adds two standard criteria ("fully addresses the user's request", "complete and actionable") to every task completion evaluation. Set `AddDefaultCompletionCriteria = false` in `AgenticBenchmarkOptions` for strict criteria-only evaluation.
+
 ---
 
 ## Performance Benchmarks
 
-Measure latency, throughput, and cost across your agents.
+Measure latency, throughput, and cost across your agents using `PerformanceBenchmark`.
 
 ### Latency Benchmark
 
 ```csharp
-var benchmark = new PerformanceBenchmark(agent);
+var benchmark = new PerformanceBenchmark(adapter);
 
-var latencyResults = await benchmark.RunLatencyBenchmarkAsync(
-    testCases,
+// Single prompt — run multiple iterations
+var result = await benchmark.RunLatencyBenchmarkAsync(
+    "What is the capital of France?",
     iterations: 10,
     warmupIterations: 2);
 
 Console.WriteLine($"Latency Benchmark");
-Console.WriteLine($"  P50: {latencyResults.P50Latency.TotalMilliseconds:F0}ms");
-Console.WriteLine($"  P90: {latencyResults.P90Latency.TotalMilliseconds:F0}ms");
-Console.WriteLine($"  P99: {latencyResults.P99Latency.TotalMilliseconds:F0}ms");
-Console.WriteLine($"  Avg: {latencyResults.AverageLatency.TotalMilliseconds:F0}ms");
+Console.WriteLine($"  P50: {result.P50Latency.TotalMilliseconds:F0}ms");
+Console.WriteLine($"  P90: {result.P90Latency.TotalMilliseconds:F0}ms");
+Console.WriteLine($"  P99: {result.P99Latency.TotalMilliseconds:F0}ms");
+Console.WriteLine($"  Mean: {result.MeanLatency.TotalMilliseconds:F0}ms");
+Console.WriteLine($"  Min: {result.MinLatency.TotalMilliseconds:F0}ms");
+Console.WriteLine($"  Max: {result.MaxLatency.TotalMilliseconds:F0}ms");
+```
+
+### Multi-Prompt Latency Benchmark
+
+Use varied prompts to avoid server-side caching effects:
+
+```csharp
+// Multiple prompts — avoids LLM server-side caching
+var result = await benchmark.RunLatencyBenchmarkAsync(
+    new[] { "What is 2+2?", "Name three colors.", "Capital of France?" },
+    iterationsPerPrompt: 3,
+    warmupIterations: 1);
+
+Console.WriteLine($"  Iterations: {result.Iterations}");   // 9 (3 prompts × 3)
+Console.WriteLine($"  Mean: {result.MeanLatency.TotalMilliseconds:F0}ms");
 ```
 
 ### Throughput Benchmark
 
 ```csharp
-var throughputResults = await benchmark.RunThroughputBenchmarkAsync(
-    testCases,
-    durationSeconds: 60,
-    maxConcurrency: 10);
+var result = await benchmark.RunThroughputBenchmarkAsync(
+    "What is 2+2?",
+    concurrentRequests: 10,
+    duration: TimeSpan.FromSeconds(60));
 
 Console.WriteLine($"Throughput Benchmark");
-Console.WriteLine($"  Requests/sec: {throughputResults.RequestsPerSecond:F1}");
-Console.WriteLine($"  Success Rate: {throughputResults.SuccessRate:P1}");
+Console.WriteLine($"  Requests/sec: {result.RequestsPerSecond:F1}");
+Console.WriteLine($"  Completed: {result.CompletedRequests}");
+Console.WriteLine($"  Errors: {result.ErrorCount}");
+Console.WriteLine($"  Mean Latency: {result.MeanLatency.TotalMilliseconds:F0}ms");
 ```
 
 ### Cost Benchmark
 
 ```csharp
-var costResults = await benchmark.RunCostBenchmarkAsync(testCases);
+var result = await benchmark.RunCostBenchmarkAsync(
+    new[] { "prompt1", "prompt2", "prompt3" },
+    "gpt-4o");
 
 Console.WriteLine($"Cost Benchmark");
-Console.WriteLine($"  Total Cost: ${costResults.TotalCost:F4}");
-Console.WriteLine($"  Avg per Request: ${costResults.AverageCostPerRequest:F6}");
-Console.WriteLine($"  Total Tokens: {costResults.TotalTokens}");
+Console.WriteLine($"  Total Tokens: {result.TotalTokens}");
+Console.WriteLine($"  Avg Input/Prompt: {result.AverageInputTokensPerPrompt:F0}");
+Console.WriteLine($"  Avg Output/Prompt: {result.AverageOutputTokensPerPrompt:F0}");
+Console.WriteLine($"  Estimated Cost: ${result.EstimatedCostUSD:F6}");
 ```
 
 ---
 
 ## Workflow Performance Benchmarks
 
-Multi-agent workflows introduce additional performance considerations beyond single-agent benchmarks: orchestration overhead, inter-agent communication, and pipeline bottlenecks.
-
-### Workflow Latency Benchmark
-
-Measure end-to-end workflow execution time and per-executor breakdown:
-
-```csharp
-using AgentEval.MAF;
-using AgentEval.Benchmarks;
-
-// Create workflow (using MAF WorkflowBuilder)
-var workflow = new WorkflowBuilder()
-    .BindAsExecutor("Planner", plannerAgent, emitEvents: true)
-    .BindAsExecutor("Researcher", researcherAgent, emitEvents: true)
-    .BindAsExecutor("Writer", writerAgent, emitEvents: true)
-    .BindAsExecutor("Editor", editorAgent, emitEvents: true)
-    .Build();
-
-var workflowAdapter = MAFWorkflowAdapter.FromMAFWorkflow(workflow, "ContentPipeline");
-
-// Run workflow latency benchmark
-var workflowBenchmark = new WorkflowPerformanceBenchmark(workflowAdapter);
-var latencyResults = await workflowBenchmark.RunLatencyBenchmarkAsync(
-    workflowTestCases,
-    iterations: 10,
-    warmupIterations: 2);
-
-Console.WriteLine($"Workflow Latency Benchmark");
-Console.WriteLine($"  End-to-End P50: {latencyResults.OverallP50.TotalSeconds:F1}s");
-Console.WriteLine($"  End-to-End P90: {latencyResults.OverallP90.TotalSeconds:F1}s");
-Console.WriteLine($"  Pipeline Overhead: {latencyResults.OrchestrationOverhead.TotalMilliseconds:F0}ms");
-
-// Per-executor breakdown
-foreach (var (executorId, timing) in latencyResults.PerExecutorTimings)
-{
-    Console.WriteLine($"  {executorId}: {timing.AverageLatency.TotalMilliseconds:F0}ms avg");
-}
-```
-
-### Workflow Throughput Benchmark
-
-Measure workflow pipeline throughput with concurrent execution:
-
-```csharp
-var throughputResults = await workflowBenchmark.RunThroughputBenchmarkAsync(
-    workflowTestCases,
-    durationMinutes: 5,
-    maxConcurrentWorkflows: 3);  // Limited by workflow complexity
-
-Console.WriteLine($"Workflow Throughput Benchmark");
-Console.WriteLine($"  Workflows/hour: {throughputResults.WorkflowsPerHour:F1}");
-Console.WriteLine($"  Avg Workflow Duration: {throughputResults.AverageWorkflowDuration.TotalMinutes:F1}min");
-Console.WriteLine($"  Success Rate: {throughputResults.SuccessRate:P1}");
-Console.WriteLine($"  Bottleneck Executor: {throughputResults.BottleneckExecutor}");
-```
-
-### Workflow Cost Benchmark
-
-Analyze cost distribution across multiple agents and identify expensive executors:
-
-```csharp
-var costResults = await workflowBenchmark.RunCostBenchmarkAsync(workflowTestCases);
-
-Console.WriteLine($"Workflow Cost Benchmark");
-Console.WriteLine($"  Total Cost per Workflow: ${costResults.AverageCostPerWorkflow:F4}");
-Console.WriteLine($"  Most Expensive: {costResults.MostExpensiveExecutor} (${costResults.HighestExecutorCost:F4})");
-Console.WriteLine($"  Cost Efficiency: {costResults.TokensPerDollar:F0} tokens/$");
-
-// Per-executor cost breakdown
-foreach (var (executorId, cost) in costResults.PerExecutorCosts)
-{
-    var percentage = (cost / costResults.AverageCostPerWorkflow) * 100;
-    Console.WriteLine($"  {executorId}: ${cost:F4} ({percentage:F1}% of total)");
-}
-```
-
-### Workflow Scaling Benchmark
-
-Test how workflow performance scales with different configurations:
-
-```csharp
-// Test different workflow configurations
-var configurations = new[]
-{
-    new WorkflowConfiguration { MaxConcurrency = 1, TimeoutMinutes = 10 },
-    new WorkflowConfiguration { MaxConcurrency = 2, TimeoutMinutes = 8 },
-    new WorkflowConfiguration { MaxConcurrency = 3, TimeoutMinutes = 6 }
-};
-
-foreach (var config in configurations)
-{
-    var results = await workflowBenchmark.RunScalingBenchmarkAsync(
-        workflowTestCases, 
-        config);
-    
-    Console.WriteLine($"Concurrency {config.MaxConcurrency}:");
-    Console.WriteLine($"  Success Rate: {results.SuccessRate:P1}");
-    Console.WriteLine($"  Avg Duration: {results.AverageDuration.TotalMinutes:F1}min");
-    Console.WriteLine($"  Timeout Rate: {results.TimeoutRate:P1}");
-}
-```
-
-### Workflow Quality vs Performance Trade-offs
-
-Measure the relationship between workflow speed and output quality:
-
-```csharp
-var tradeoffResults = await workflowBenchmark.RunQualityPerformanceTradeoffAsync(
-    workflowTestCases,
-    timeoutConfigurations: new[] { 
-        TimeSpan.FromMinutes(2),    // Fast but potentially lower quality
-        TimeSpan.FromMinutes(5),    // Balanced
-        TimeSpan.FromMinutes(10)    // Thorough but slower
-    });
-
-Console.WriteLine($"Quality vs Performance Trade-offs:");
-foreach (var result in tradeoffResults)
-{
-    Console.WriteLine($"  {result.Timeout.TotalMinutes}min timeout:");
-    Console.WriteLine($"    Quality Score: {result.AverageQualityScore:F1}%");
-    Console.WriteLine($"    Success Rate: {result.SuccessRate:P1}");
-    Console.WriteLine($"    Cost: ${result.AverageCost:F4}");
-}
-```
-
-**Key Workflow Performance Metrics:**
-
-| Metric | Description | Optimal Range |
-|--------|-------------|---------------|
-| **End-to-End Latency** | Total workflow completion time | < 5 minutes for most use cases |
-| **Orchestration Overhead** | Time spent on workflow coordination | < 5% of total time |
-| **Executor Load Balance** | Variance in executor durations | Low variance indicates good balance |
-| **Pipeline Efficiency** | Useful work time / total time | > 85% |
-| **Cost per Workflow** | Total cost across all executors | Domain-specific target |
-| **Bottleneck Detection** | Which executor limits throughput | Minimize via optimization |
-
-> **💡 Workflow Performance Tip:** [Sample 09](https://github.com/joslat/AgentEval/tree/main/samples/AgentEval.Samples) (Sequential Workflows) and [Sample 10](https://github.com/joslat/AgentEval/tree/main/samples/AgentEval.Samples) (Tool-Enabled Workflows) demonstrate performance monitoring techniques for multi-agent systems.
+> **🚧 Planned Feature** — `WorkflowPerformanceBenchmark` is planned for a future release.
+> Currently, use `PerformanceBenchmark` with individual agent adapters within your workflow,
+> or use `MAFEvaluationHarness` with `TrackPerformance = true` for end-to-end workflow timing.
+> See [Sample 09](../samples/AgentEval.Samples) (Sequential Workflows) and
+> [Sample 10](../samples/AgentEval.Samples) (Tool-Enabled Workflows) for workflow
+> performance monitoring patterns.
 
 ---
 
 ## Creating Custom Benchmark Suites
 
-Create domain-specific benchmarks tailored to your use case:
+Create domain-specific benchmarks tailored to your use case by composing
+`AgenticBenchmark` and `PerformanceBenchmark`:
 
 ```csharp
 public class CustomerSupportBenchmark
@@ -401,36 +319,30 @@ public class CustomerSupportBenchmark
         _evaluator = evaluator;
     }
     
-    public async Task<BenchmarkReport> RunFullSuiteAsync()
+    public async Task<Dictionary<string, double>> RunFullSuiteAsync()
     {
-        var report = new BenchmarkReport
-        {
-            BenchmarkName = "CustomerSupport-v1",
-            AgentName = _agent.Name,
-            RunDate = DateTimeOffset.UtcNow
-        };
+        var scores = new Dictionary<string, double>();
         
         var benchmark = new AgenticBenchmark(_agent, _evaluator);
         var perfBenchmark = new PerformanceBenchmark(_agent);
         
         // Category 1: Tool accuracy
         var toolResults = await benchmark.RunToolAccuracyBenchmarkAsync(GetToolTestCases());
-        report.CategoryScores["ToolAccuracy"] = toolResults.OverallAccuracy * 100;
+        scores["ToolAccuracy"] = toolResults.OverallAccuracy * 100;
         
         // Category 2: Task completion
         var taskResults = await benchmark.RunTaskCompletionBenchmarkAsync(GetTaskTestCases());
-        report.CategoryScores["TaskCompletion"] = taskResults.AverageScore;
+        scores["TaskCompletion"] = taskResults.AverageScore;
         
         // Category 3: Latency
-        var latencyResults = await perfBenchmark.RunLatencyBenchmarkAsync(GetToolTestCases());
-        report.CategoryScores["P90LatencyMs"] = latencyResults.P90Latency.TotalMilliseconds;
+        var latencyResult = await perfBenchmark.RunLatencyBenchmarkAsync(
+            "What is my order status?", iterations: 5);
+        scores["P90LatencyMs"] = latencyResult.P90Latency.TotalMilliseconds;
         
         // Overall score (weighted)
-        report.OverallScore = 
-            report.CategoryScores["ToolAccuracy"] * 0.4 +
-            report.CategoryScores["TaskCompletion"] * 0.6;
+        scores["Overall"] = scores["ToolAccuracy"] * 0.4 + scores["TaskCompletion"] * 0.6;
         
-        return report;
+        return scores;
     }
     
     private List<ToolAccuracyTestCase> GetToolTestCases() => new()
@@ -470,75 +382,41 @@ public class CustomerSupportBenchmark
 
 ```csharp
 var benchmark = new CustomerSupportBenchmark(agent, evaluator);
-var report = await benchmark.RunFullSuiteAsync();
+var scores = await benchmark.RunFullSuiteAsync();
 
-Console.WriteLine($"\n{'=',-60}");
-Console.WriteLine($"BENCHMARK REPORT: {report.BenchmarkName}");
-Console.WriteLine($"{'=',-60}");
-Console.WriteLine($"Agent: {report.AgentName}");
-Console.WriteLine($"Date: {report.RunDate:yyyy-MM-dd HH:mm}");
-Console.WriteLine();
-Console.WriteLine("Category Scores:");
-foreach (var (category, score) in report.CategoryScores)
+Console.WriteLine("BENCHMARK RESULTS");
+foreach (var (category, score) in scores)
 {
-    var bar = new string('█', (int)(score / 5));
-    Console.WriteLine($"  {category,-20} {score,6:F1}  {bar}");
+    Console.WriteLine($"  {category,-20} {score,8:F1}");
 }
-Console.WriteLine();
-Console.WriteLine($"OVERALL SCORE: {report.OverallScore:F1}/100");
-```
-
-Output:
-```
-============================================================
-BENCHMARK REPORT: CustomerSupport-v1
-============================================================
-Agent: CustomerSupportAgent
-Date: 2026-01-13 14:30
-
-Category Scores:
-  ToolAccuracy         92.5  ██████████████████
-  TaskCompletion       88.2  █████████████████
-  P90LatencyMs        1250  (ms)
-
-OVERALL SCORE: 90.0/100
 ```
 
 ---
 
-## Regression Detection
+## Regression Detection Pattern
 
-Track benchmark scores over time:
+> **Note:** This is a recommended pattern — AgentEval does not yet provide built-in
+> baseline storage or comparison infrastructure. You implement the baseline I/O yourself.
 
 ```csharp
-// Load previous baseline
-var baseline = await LoadBaselineAsync("baseline-v1.0.json");
-
-// Run current benchmark
-var current = await benchmark.RunFullSuiteAsync();
-
-// Compare
-var regressions = new List<(string Category, double Delta)>();
-
-foreach (var (category, score) in current.CategoryScores)
+// Save results as your baseline
+var results = await benchmark.RunToolAccuracyBenchmarkAsync(testCases);
+File.WriteAllText("baseline.json", JsonSerializer.Serialize(new
 {
-    if (baseline.CategoryScores.TryGetValue(category, out var baselineScore))
-    {
-        var delta = score - baselineScore;
-        if (delta < -5.0)  // More than 5% regression
-        {
-            regressions.Add((category, delta));
-        }
-    }
-}
+    Date = DateTimeOffset.UtcNow,
+    ToolAccuracy = results.OverallAccuracy,
+    PassRate = (double)results.PassedTests / results.TotalTests
+}));
 
-if (regressions.Any())
+// Later, compare against baseline
+var baseline = JsonDocument.Parse(File.ReadAllText("baseline.json"));
+var baselineAccuracy = baseline.RootElement.GetProperty("ToolAccuracy").GetDouble();
+
+var current = await benchmark.RunToolAccuracyBenchmarkAsync(testCases);
+
+if (current.OverallAccuracy < baselineAccuracy - 0.05)
 {
-    Console.WriteLine("⚠️ REGRESSIONS DETECTED:");
-    foreach (var (category, delta) in regressions)
-    {
-        Console.WriteLine($"  {category}: {delta:+0.0;-0.0}%");
-    }
+    Console.WriteLine("⚠️ REGRESSION: Tool accuracy dropped!");
     Environment.ExitCode = 1;  // Fail CI/CD
 }
 ```
@@ -573,22 +451,49 @@ jobs:
           AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
           AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
         run: |
-          dotnet run --project benchmarks/AgentBenchmarks.csproj \
-            --output results.json \
-            --baseline baselines/main.json \
-            --fail-on-regression
-      
-      - name: Upload Results
-        uses: actions/upload-artifact@v4
-        with:
-          name: benchmark-results
-          path: results.json
+          dotnet run --project benchmarks/AgentBenchmarks.csproj
 ```
+
+> **Tip:** Combine with the regression detection pattern above to fail CI on score drops.
+
+---
+
+## API Reference Summary
+
+### PerformanceBenchmark
+
+| Method | Parameters | Returns |
+|--------|-----------|---------|
+| `RunLatencyBenchmarkAsync` | `string prompt, int iterations, int warmupIterations` | `LatencyBenchmarkResult` |
+| `RunLatencyBenchmarkAsync` | `IEnumerable<string> prompts, int iterationsPerPrompt, int warmupIterations` | `LatencyBenchmarkResult` |
+| `RunThroughputBenchmarkAsync` | `string prompt, int concurrentRequests, TimeSpan duration` | `ThroughputBenchmarkResult` |
+| `RunCostBenchmarkAsync` | `IEnumerable<string> prompts, string modelName` | `CostBenchmarkResult` |
+
+### AgenticBenchmark
+
+| Method | Parameters | Returns |
+|--------|-----------|---------|
+| `RunToolAccuracyBenchmarkAsync` | `IEnumerable<ToolAccuracyTestCase>` | `ToolAccuracyResult` |
+| `RunTaskCompletionBenchmarkAsync` | `IEnumerable<TaskCompletionTestCase>` | `TaskCompletionResult` |
+| `RunMultiStepReasoningBenchmarkAsync` | `IEnumerable<MultiStepTestCase>` | `MultiStepReasoningResult` |
+
+### Key Result Properties
+
+| Result Type | Key Properties |
+|-------------|---------------|
+| `LatencyBenchmarkResult` | `MeanLatency`, `MinLatency`, `MaxLatency`, `P50Latency`, `P90Latency`, `P99Latency`, `MeanTimeToFirstToken`, `AllLatencies` |
+| `ThroughputBenchmarkResult` | `RequestsPerSecond`, `CompletedRequests`, `ErrorCount`, `MeanLatency`, `Duration` |
+| `CostBenchmarkResult` | `EstimatedCostUSD`, `TotalTokens`, `TotalInputTokens`, `TotalOutputTokens`, `AverageInputTokensPerPrompt` |
+| `ToolAccuracyResult` | `OverallAccuracy`, `PassedTests`, `TotalTests`, `Results` |
+| `TaskCompletionResult` | `AverageScore`, `PassedTests`, `TotalTests`, `Results` |
+| `MultiStepReasoningResult` | `AverageStepCompletion`, `PassedTests`, `TotalTests`, `Results` |
 
 ---
 
 ## See Also
 
+- [Sample 06](../samples/AgentEval.Samples) - Performance profiling with MAFEvaluationHarness
+- [Sample 23](../samples/AgentEval.Samples) - Benchmark system with JSONL data loading
 - [Stochastic Evaluation](stochastic-evaluation.md) - Statistical evaluation for benchmarks
 - [Model Comparison](model-comparison.md) - Compare models on benchmarks
 - [Extensibility Guide](extensibility.md) - Creating custom metrics

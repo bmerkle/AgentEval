@@ -130,6 +130,69 @@ public class PerformanceBenchmark
     }
     
     /// <summary>
+    /// Run a latency benchmark across multiple prompts, aggregating all timing results.
+    /// Uses varied prompts to avoid server-side caching effects.
+    /// </summary>
+    /// <param name="prompts">Collection of prompts to benchmark. At least one required.</param>
+    /// <param name="iterationsPerPrompt">Number of iterations per prompt. Default: 3.</param>
+    /// <param name="warmupIterations">Number of warmup iterations (using the first prompt). Default: 1.</param>
+    /// <param name="cancellationToken">Optional cancellation token.</param>
+    /// <returns>Aggregated latency results across all prompts.</returns>
+    public async Task<LatencyBenchmarkResult> RunLatencyBenchmarkAsync(
+        IEnumerable<string> prompts,
+        int iterationsPerPrompt = 3,
+        int warmupIterations = 1,
+        CancellationToken cancellationToken = default)
+    {
+        var promptList = prompts.ToList();
+        if (promptList.Count == 0)
+            throw new ArgumentException("At least one prompt is required.", nameof(prompts));
+
+        var allLatencies = new List<TimeSpan>();
+        var allTtft = new List<TimeSpan>();
+        var allErrors = new List<Exception>();
+
+        // Warmup with first prompt only
+        for (int i = 0; i < warmupIterations; i++)
+        {
+            try { await _agent.InvokeAsync(promptList[0], cancellationToken); }
+            catch { /* warmup errors ignored */ }
+        }
+
+        // Run each prompt (without additional warmup since we already warmed up)
+        foreach (var prompt in promptList)
+        {
+            var result = await RunLatencyBenchmarkAsync(
+                prompt, iterationsPerPrompt, warmupIterations: 0, cancellationToken);
+            allLatencies.AddRange(result.AllLatencies);
+            allErrors.AddRange(result.Errors);
+            if (result.MeanTimeToFirstToken.HasValue)
+                allTtft.Add(result.MeanTimeToFirstToken.Value);
+        }
+
+        return new LatencyBenchmarkResult
+        {
+            AgentName = _agent.Name,
+            Prompt = $"[{promptList.Count} prompts × {iterationsPerPrompt} iterations]",
+            Iterations = promptList.Count * iterationsPerPrompt,
+            SuccessfulIterations = allLatencies.Count,
+            Errors = allErrors,
+            MeanLatency = allLatencies.Count > 0
+                ? TimeSpan.FromMilliseconds(allLatencies.Average(t => t.TotalMilliseconds))
+                : TimeSpan.Zero,
+            MinLatency = allLatencies.Count > 0 ? allLatencies.Min() : TimeSpan.Zero,
+            MaxLatency = allLatencies.Count > 0 ? allLatencies.Max() : TimeSpan.Zero,
+            P50Latency = CalculatePercentile(allLatencies, 50),
+            P90Latency = CalculatePercentile(allLatencies, 90),
+            P99Latency = CalculatePercentile(allLatencies, 99),
+            MeanTimeToFirstToken = allTtft.Count > 0
+                ? TimeSpan.FromMilliseconds(allTtft.Average(t => t.TotalMilliseconds))
+                : null,
+            AllLatencies = allLatencies
+        };
+    }
+    
+    /// <summary>
     /// Run a throughput benchmark measuring requests per second.
     /// </summary>
     public async Task<ThroughputBenchmarkResult> RunThroughputBenchmarkAsync(
@@ -146,7 +209,7 @@ public class PerformanceBenchmark
         var completedRequests = 0;
         var errors = new List<Exception>();
         var latencies = new List<TimeSpan>();
-        var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         
         if (_options.Verbose)
         {
@@ -171,6 +234,12 @@ public class PerformanceBenchmark
                     {
                         latencies.Add(requestEnd - requestStart);
                     }
+                    
+                    // Yield to allow cancellation to propagate. Without this,
+                    // agents that complete synchronously (e.g. Task.FromResult)
+                    // would spin the loop indefinitely without ever yielding
+                    // control, preventing Task.Delay from signalling cancellation.
+                    await Task.Yield();
                 }
                 catch (OperationCanceledException)
                 {
@@ -182,6 +251,12 @@ public class PerformanceBenchmark
                     {
                         errors.Add(ex);
                     }
+
+                    // Yield on error path too — without this, agents that throw
+                    // synchronously (e.g. Task.FromException or direct throw)
+                    // spin the loop without ever yielding control, preventing
+                    // Task.Delay from signalling cancellation → deadlock.
+                    await Task.Yield();
                 }
             }
         }).ToList();

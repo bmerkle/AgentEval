@@ -76,7 +76,7 @@ public static class Program
                     await Sample05_ComprehensiveRAG.RunAsync();
                     break;
                 case 6:
-                    await Sample06_Benchmarks.RunAsync();
+                    await Sample06_PerformanceProfiling.RunAsync();
                     break;
                 case 7:
                     await Sample07_SnapshotTesting.RunAsync();
@@ -185,7 +185,7 @@ public static class Program
         Console.WriteLine("│  3. 🔧 Agent + Multi Tool - Tool ordering & timeline        │");
         Console.WriteLine("│  4. ⚡ Performance        - Latency, cost, TTFT metrics     │");
         Console.WriteLine("│  5. 📊 Comprehensive RAG  - Build & evaluate RAG system    │");
-        Console.WriteLine("│  6. 📈 Benchmarks         - Performance & agentic benchmarks│");
+        Console.WriteLine("│  6. 📈 Profiling          - Latency, tokens, tool accuracy  │");
         Console.WriteLine("│  7. 📸 Snapshot Testing   - Regression detection            │");
         Console.WriteLine("│  8. 💬 Conversations      - Multi-turn evaluation            │");
         Console.WriteLine("│  9. 🔀 Workflow Evaluation - Real MAF workflow pipeline       │");

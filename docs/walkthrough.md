@@ -515,7 +515,7 @@ AgentEval includes comprehensive examples covering every evaluation scenario. He
 ### Core Evaluation Samples (5-12): Essential Patterns
 
 - **Sample05**: RAG Quality Metrics - Faithfulness, relevance, context precision
-- **Sample06**: Behavioral Policies - Safety guards (`NeverCallTool`, `MustConfirmBefore`)  
+- **Sample06**: Performance Profiling - Latency percentiles, tokens, tool accuracy via MAFEvaluationHarness  
 - **Sample07**: Snapshot Testing - Detect regressions against golden responses
 - **Sample08**: Multi-Turn Conversations - Conversation flow evaluation
 - **Sample09**: **Sequential Workflows** - Multi-agent pipeline evaluation

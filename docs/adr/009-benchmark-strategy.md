@@ -181,6 +181,41 @@ src/AgentEval/
 ### 3. External Benchmark Tool
 **Rejected**: Fragmented experience. Users want one tool, not two.
 
+## Implementation Progress (as of 2026-02-25)
+
+The ADR's tiered plan remains the roadmap. Below is a snapshot of what has been built so far toward Phase 1, and what remains.
+
+### Phase 1 — What Has Been Implemented
+
+| Component | Current State |
+|-----------|--------------|
+| **PerformanceBenchmark** | Latency (single + multi-prompt), throughput (concurrent), cost estimation |
+| **AgenticBenchmark** | Tool accuracy (BFCL-style), task completion (GAIA-style), multi-step reasoning |
+| **Dataset loading** | `DatasetLoaderFactory` supports JSONL/JSON/YAML/CSV; bridge extensions convert to benchmark types |
+| **DI-compatible extraction** | `AgenticBenchmark` accepts optional `IToolUsageExtractor` |
+| **Configurable evaluation** | `AddDefaultCompletionCriteria` option for task completion |
+
+### Phase 1 — What Is Still Pending
+
+| ADR Proposal | Status | Notes |
+|-------------|--------|-------|
+| `IBenchmark` / `IBenchmarkDataset` / `IBenchmarkResult` interfaces | Not yet implemented | Current classes are concrete; interfaces can be extracted when Tier 2 dataset loaders arrive and a polymorphic contract becomes valuable |
+| `BenchmarkRunner` orchestrator | Not yet implemented | Direct method calls (`benchmark.RunXxxAsync()`) are used today; a runner abstraction may be added for CLI integration |
+| `WorkflowPerformanceBenchmark` | Planned | Documented as future feature in benchmarks.md |
+| Regression detection infrastructure | Pattern documented | No baseline storage yet |
+
+### Phase 2 — Not Yet Started
+
+Auto-download dataset loaders for BFCL, GAIA, ToolBench (HuggingFace integration with caching) are planned but not yet started.
+
+### Phase 3 (Out of Scope)
+
+Execution sandboxes (HumanEval, WebArena, SWE-bench) remain deferred per the original decision.
+
+### Note on DI Registration
+
+Benchmarks are currently instantiated directly (not registered in DI), consistent with the AGENTS.md "test-time tools" policy (see ADR-006). This may be revisited when CLI or runner infrastructure arrives.
+
 ## References
 
 - [BFCL Leaderboard](https://gorilla.cs.berkeley.edu/leaderboard.html)
@@ -188,3 +223,4 @@ src/AgentEval/
 - [ToolBench](https://github.com/OpenBMB/ToolBench)
 - [HumanEval](https://github.com/openai/human-eval)
 - ADR-005: Model Comparison & stochastic evaluation
+- ADR-006: Service-Based Architecture & DI (for "test-time tools" policy)

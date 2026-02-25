@@ -16,7 +16,7 @@ AgentEval/
 │   ├── Tracing/            # TraceRecordingAgent, ChatTraceRecorder, WorkflowTraceRecorder
 │   └── Testing/            # FakeChatClient for mocking IChatClient
 ├── tests/AgentEval.Tests/  # xUnit tests, mirrors src/ structure
-└── samples/AgentEval.Samples/  # 23 runnable samples (Sample01_HelloWorld, etc.)
+└── samples/AgentEval.Samples/  # 25 runnable samples (Sample01_HelloWorld, etc.)
 ```
 
 ## Environment Setup

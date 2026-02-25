@@ -1,0 +1,4 @@
+{"id": "cost_math", "input": "What is 10 * 5?", "tags": ["simple", "cost"]}
+{"id": "cost_exercise", "input": "List three benefits of exercise.", "tags": ["moderate", "cost"]}
+{"id": "cost_weather", "input": "What is the weather in London?", "tags": ["tool-call", "cost"]}
+{"id": "cost_reasoning", "input": "Calculate 256 / 8 and explain your reasoning.", "tags": ["complex", "cost"]}
