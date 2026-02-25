@@ -7,7 +7,9 @@ using AgentEval.Comparison;
 using AgentEval.Core;
 using AgentEval.DataLoaders;
 using AgentEval.DependencyInjection;
+using AgentEval.Exporters;
 using AgentEval.Models;
+using AgentEval.RedTeam;
 using AgentEval.Testing;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
@@ -263,6 +265,296 @@ public class ServiceCollectionExtensionsTests
         Assert.Equal("jsonl", loader.Format);
     }
 
+    [Fact]
+    public void AddAgentEval_RegistersMetricRegistry()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var registry = provider.GetRequiredService<IMetricRegistry>();
+
+        // Assert
+        Assert.NotNull(registry);
+        Assert.IsType<MetricRegistry>(registry);
+    }
+
+    [Fact]
+    public void AddAgentEval_MetricRegistry_PopulatesFromDIRegisteredMetrics()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton<IMetric>(new FakeMetric("test_metric_1"));
+        services.AddSingleton<IMetric>(new FakeMetric("test_metric_2"));
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var registry = provider.GetRequiredService<IMetricRegistry>();
+
+        // Assert — both DI-registered metrics should be in the registry
+        Assert.True(registry.Contains("test_metric_1"));
+        Assert.True(registry.Contains("test_metric_2"));
+    }
+
+    [Fact]
+    public void AddAgentEval_ExistingMetricRegistry_NotOverridden()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var customRegistry = new MetricRegistry();
+        customRegistry.Register(new FakeMetric("custom_only"));
+        services.AddSingleton<IMetricRegistry>(customRegistry);
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var registry = provider.GetRequiredService<IMetricRegistry>();
+
+        // Assert — TryAdd should not override existing registration
+        Assert.Same(customRegistry, registry);
+        Assert.True(registry.Contains("custom_only"));
+    }
+
+    [Fact]
+    public void AddAgentEval_RegistersExporterRegistry()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var registry = provider.GetRequiredService<IExporterRegistry>();
+
+        // Assert
+        Assert.NotNull(registry);
+    }
+
+    [Fact]
+    public void AddAgentEval_ExporterRegistry_ContainsBuiltInExporters()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var registry = provider.GetRequiredService<IExporterRegistry>();
+
+        // Assert — 5 built-in exporters
+        Assert.True(registry.Contains("Json"));
+        Assert.True(registry.Contains("Junit"));
+        Assert.True(registry.Contains("Markdown"));
+        Assert.True(registry.Contains("Csv"));
+        Assert.True(registry.Contains("Trx"));
+    }
+
+    [Fact]
+    public void AddAgentEval_ExporterRegistry_PopulatesFromDIRegisteredExporters()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton<IResultExporter>(new FakeExporter("powerbi", ".pbix"));
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var registry = provider.GetRequiredService<IExporterRegistry>();
+
+        // Assert — includes both built-in and custom
+        Assert.True(registry.Contains("powerbi"));
+        Assert.True(registry.Contains("Json")); // still has built-ins
+    }
+
+    [Fact]
+    public void AddAgentEval_RegistersAttackTypeRegistry()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var registry = provider.GetRequiredService<IAttackTypeRegistry>();
+
+        // Assert — all 9 built-in attacks
+        Assert.NotNull(registry);
+        Assert.True(registry.Contains("PromptInjection"));
+        Assert.True(registry.Contains("Jailbreak"));
+        Assert.True(registry.Contains("PIILeakage"));
+    }
+
+    [Fact]
+    public void AddAgentEval_AttackTypeRegistry_PopulatesFromDIRegisteredAttacks()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        services.AddSingleton<IAttackType>(new FakeAttackType("CustomSqlInjection", "LLM99"));
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var registry = provider.GetRequiredService<IAttackTypeRegistry>();
+
+        // Assert — includes both built-in and custom
+        Assert.True(registry.Contains("CustomSqlInjection"));
+        Assert.True(registry.Contains("PromptInjection")); // still has built-ins
+    }
+
+    [Fact]
+    public void AddAgentEval_ExistingExporterRegistry_NotOverridden()
+    {
+        // Arrange — register custom IExporterRegistry before AddAgentEval
+        var services = new ServiceCollection();
+        var customRegistry = new ExporterRegistry();
+        customRegistry.Register("custom", new FakeExporter("custom", ".custom"));
+        services.AddSingleton<IExporterRegistry>(customRegistry);
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var registry = provider.GetRequiredService<IExporterRegistry>();
+
+        // Assert — TryAdd should not override existing registration
+        Assert.Same(customRegistry, registry);
+        Assert.True(registry.Contains("custom"));
+    }
+
+    [Fact]
+    public void AddAgentEval_ExistingAttackTypeRegistry_NotOverridden()
+    {
+        // Arrange — register custom IAttackTypeRegistry before AddAgentEval
+        var services = new ServiceCollection();
+        var customRegistry = new AttackTypeRegistry();
+        customRegistry.Register(new FakeAttackType("CustomOnly", "LLM99"));
+        services.AddSingleton<IAttackTypeRegistry>(customRegistry);
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var registry = provider.GetRequiredService<IAttackTypeRegistry>();
+
+        // Assert — TryAdd should not override existing registration
+        Assert.Same(customRegistry, registry);
+        Assert.True(registry.Contains("CustomOnly"));
+    }
+
+    [Fact]
+    public void AddAgentEval_DatasetLoaderFactory_AutoWiresDILoaders()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var customLoader = new FakeDatasetLoader("parquet", [".parquet"]);
+        services.AddSingleton<IDatasetLoader>(customLoader);
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var factory = provider.GetRequiredService<IDatasetLoaderFactory>();
+        var loader = factory.CreateFromExtension(".parquet");
+
+        // Assert — custom loader was auto-wired
+        Assert.Same(customLoader, loader);
+    }
+
+    [Fact]
+    public void AddAgentEval_DatasetLoaderFactory_BuiltInsNotOverridden()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var customJsonLoader = new FakeDatasetLoader("json", [".json"]);
+        services.AddSingleton<IDatasetLoader>(customJsonLoader);
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var factory = provider.GetRequiredService<IDatasetLoaderFactory>();
+        var loader = factory.CreateFromExtension(".json");
+
+        // Assert — built-in loader should NOT be overridden by DI loader
+        Assert.NotSame(customJsonLoader, loader);
+    }
+
+    [Fact]
+    public void AddAgentEval_RegistersEvaluator_WhenChatClientAvailable()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+        var fakeChatClient = new AgentEval.Testing.FakeChatClient("test response");
+        services.AddSingleton<IChatClient>(fakeChatClient);
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var evaluator = provider.GetRequiredService<IEvaluator>();
+
+        // Assert
+        Assert.NotNull(evaluator);
+        Assert.IsType<ChatClientEvaluator>(evaluator);
+    }
+
+    [Fact]
+    public void AddAgentEval_EvaluatorThrows_WhenNoChatClient()
+    {
+        // Arrange — no IChatClient registered
+        var services = new ServiceCollection();
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act & Assert — resolution should throw because IChatClient is missing
+        Assert.Throws<InvalidOperationException>(() => provider.GetRequiredService<IEvaluator>());
+    }
+
+    [Fact]
+    public void AddAgentEval_ExistingEvaluator_NotOverridden()
+    {
+        // Arrange — register custom IEvaluator before AddAgentEval
+        var services = new ServiceCollection();
+        var customEvaluator = new FakeEvaluator();
+        services.AddSingleton<IEvaluator>(customEvaluator);
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var evaluator = provider.GetRequiredService<IEvaluator>();
+
+        // Assert — TryAdd should not override
+        Assert.Same(customEvaluator, evaluator);
+    }
+
+    [Fact]
+    public void AddAgentEval_EmbeddingsThrows_WhenNoEmbeddingGenerator()
+    {
+        // Arrange — no IEmbeddingGenerator registered
+        var services = new ServiceCollection();
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act & Assert — resolution should throw because IEmbeddingGenerator is missing
+        Assert.Throws<InvalidOperationException>(() =>
+            provider.GetRequiredService<AgentEval.Embeddings.IAgentEvalEmbeddings>());
+    }
+
+    [Fact]
+    public void AddAgentEval_ExistingEmbeddings_NotOverridden()
+    {
+        // Arrange — register custom IAgentEvalEmbeddings before AddAgentEval
+        var services = new ServiceCollection();
+        var customEmbeddings = new FakeEmbeddings();
+        services.AddSingleton<AgentEval.Embeddings.IAgentEvalEmbeddings>(customEmbeddings);
+        services.AddAgentEval();
+        var provider = services.BuildServiceProvider();
+
+        // Act
+        var embeddings = provider.GetRequiredService<AgentEval.Embeddings.IAgentEvalEmbeddings>();
+
+        // Assert — TryAdd should not override
+        Assert.Same(customEmbeddings, embeddings);
+    }
+
     // Fake test harness for testing
     private class FakeTestHarness : IEvaluationHarness
     {
@@ -273,6 +565,88 @@ public class ServiceCollectionExtensionsTests
             CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
+        }
+    }
+
+    private class FakeMetric(string name) : IMetric
+    {
+        public string Name => name;
+        public string Description => $"Fake metric: {name}";
+
+        public Task<MetricResult> EvaluateAsync(
+            EvaluationContext context,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new MetricResult { MetricName = name, Score = 1.0, Passed = true });
+        }
+    }
+
+    private class FakeExporter(string formatName, string extension) : IResultExporter
+    {
+        public ExportFormat Format => ExportFormat.Json; // Doesn't matter for custom
+        public string FormatName => formatName;
+        public string FileExtension => extension;
+        public string ContentType => "application/octet-stream";
+
+        public Task ExportAsync(EvaluationReport report, Stream output, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    private class FakeDatasetLoader(string format, IReadOnlyList<string> extensions) : IDatasetLoader
+    {
+        public string Format => format;
+        public IReadOnlyList<string> SupportedExtensions => extensions;
+        public bool IsTrulyStreaming => false;
+
+        public Task<IReadOnlyList<DatasetTestCase>> LoadAsync(string path, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IAsyncEnumerable<DatasetTestCase> LoadStreamingAsync(string path, CancellationToken ct = default)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    private class FakeAttackType(string name, string owaspId) : IAttackType
+    {
+        public string Name => name;
+        public string DisplayName => name;
+        public string Description => $"Fake attack: {name}";
+        public string OwaspLlmId => owaspId;
+        public string[] MitreAtlasIds => [];
+        public Severity DefaultSeverity => Severity.Medium;
+
+        public IReadOnlyList<AttackProbe> GetProbes(Intensity intensity) => [];
+        public IProbeEvaluator GetEvaluator() => throw new NotImplementedException();
+    }
+
+    private class FakeEvaluator : IEvaluator
+    {
+        public Task<AgentEval.Core.EvaluationResult> EvaluateAsync(
+            string input, string output, IEnumerable<string> criteria,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new AgentEval.Core.EvaluationResult { OverallScore = 100 });
+        }
+    }
+
+    private class FakeEmbeddings : AgentEval.Embeddings.IAgentEvalEmbeddings
+    {
+        public Task<ReadOnlyMemory<float>> GetEmbeddingAsync(
+            string text, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<ReadOnlyMemory<float>>(new float[] { 1.0f, 0.0f });
+        }
+
+        public Task<IReadOnlyList<ReadOnlyMemory<float>>> GetEmbeddingsAsync(
+            IEnumerable<string> texts, CancellationToken cancellationToken = default)
+        {
+            var results = texts.Select(_ => (ReadOnlyMemory<float>)new float[] { 1.0f, 0.0f }).ToList();
+            return Task.FromResult<IReadOnlyList<ReadOnlyMemory<float>>>(results);
         }
     }
 }

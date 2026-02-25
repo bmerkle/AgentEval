@@ -190,6 +190,19 @@ var evaluator = new ChatClientEvaluator(chatClient);
 var harness = new MAFEvaluationHarness(chatClient);
 ```
 
+#### DI Registration
+
+`IEvaluator` is automatically registered in DI when you call `services.AddAgentEval()`. If an `IChatClient` is registered, it wraps it with `ChatClientEvaluator`. You can also register your own `IEvaluator` before `AddAgentEval()` and it will be preserved (TryAdd semantics):
+
+```csharp
+services.AddSingleton<IChatClient>(chatClient);
+services.AddAgentEval(); // IEvaluator now available via DI
+
+// Or override with your own:
+services.AddSingleton<IEvaluator>(new MyCustomEvaluator());
+services.AddAgentEval(); // Your registration wins
+```
+
 The expected JSON response schema:
 
 ```json

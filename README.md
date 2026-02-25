@@ -422,7 +422,7 @@ See the **[Getting Started Guide](docs/getting-started.md)** for a complete walk
 
 ## Samples
 
-Run all 25 included samples:
+Run all 26 included samples:
 
 ```bash
 dotnet run --project samples/AgentEval.Samples
@@ -455,6 +455,7 @@ dotnet run --project samples/AgentEval.Samples
 | **23: Benchmark System** | JSONL-loaded benchmarks: tool accuracy, latency, cost | 10 min |
 | **24: Calibrated Evaluator** | Multi-model consensus evaluation with calibrated scoring | 8 min |
 | **25: Dataset Loaders** | Multi-format dataset pipeline: JSONL, JSON, YAML, CSV | 5 min |
+| **26: Extensibility** | DI registries, custom metrics/exporters/loaders/attacks | 3 min |
 
 ---
 

@@ -25,6 +25,9 @@ AgentEval is designed with a layered architecture that separates concerns and en
 │  │  ┌─────────────┐  ┌───────────────┐  ┌──────────────────┐  ┌──────────┐│ │
 │  │  │   IMetric   │  │IEvaluableAgent│  │IEvaluationHarness│  │IEvaluator│ │ │
 │  │  └─────────────┘  └───────────────┘  └──────────────────┘  └──────────┘│ │
+│  │  ┌─────────────────┐                                                   │ │
+│  │  │IExporterRegistry│                                                   │ │
+│  │  └─────────────────┘                                                   │ │
 │  │                                                                         │ │
 │  │  Utilities:                                                             │ │
 │  │  ┌─────────────┐  ┌──────────────┐  ┌─────────────┐  ┌──────────────┐  │ │
@@ -122,7 +125,9 @@ AgentEval is designed with a layered architecture that separates concerns and en
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐    │ │
 │  │  │  RedTeam/   │  │ResponsibleAI│  │ Calibration │  │ Comparison  │    │ │
 │  │  │ Attack+Eval │  │Safety Metrics│  │Multi-Judge  │  │Stochastic   │    │ │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘    │ │
+│  │  │IAttackType- │  └─────────────┘  └─────────────┘  └─────────────┘    │ │
+│  │  │  Registry   │                                                        │ │
+│  │  └─────────────┘                                                        │ │
 │  │                                                                         │ │
 │  └────────────────────────────────────────────────────────────────────────┘ │
 │                                                                              │
@@ -525,6 +530,20 @@ foreach (var metric in registry.GetAll())
 }
 ```
 
+The registry pattern extends to exporters and attack types:
+
+```csharp
+// Exporter registry (auto-populated via DI)
+var exporters = serviceProvider.GetRequiredService<IExporterRegistry>();
+var jsonExporter = exporters.GetRequired("Json");
+var allFormats = exporters.GetRegisteredFormats(); // Json, Junit, Markdown, Csv, Trx, ...
+
+// Attack type registry (pre-populated with 9 built-in + DI-registered)
+var attacks = serviceProvider.GetRequiredService<IAttackTypeRegistry>();
+var promptInjection = attacks.GetRequired("PromptInjection");
+var llm01 = attacks.GetByOwaspId("LLM01"); // All attacks for OWASP LLM01
+```
+
 ---
 
 ## Package Structure
@@ -540,6 +559,7 @@ AgentEval/
 │   ├── IAgentEvalPlugin.cs
 │   ├── IToolUsageExtractor.cs
 │   ├── IWorkflowEvaluableAgent.cs
+│   ├── IExporterRegistry.cs
 │   ├── AgentEvalBuilder.cs
 │   ├── ChatClientAgentAdapter.cs
 │   ├── MetricRegistry.cs
@@ -620,6 +640,7 @@ AgentEval/
 │
 ├── Exporters/               # Result exporters
 │   ├── IResultExporter.cs
+│   ├── ExporterRegistry.cs
 │   ├── JUnitXmlExporter.cs
 │   ├── MarkdownExporter.cs
 │   ├── JsonExporter.cs
@@ -650,6 +671,8 @@ AgentEval/
 │   ├── RedTeamRunner.cs
 │   ├── AttackPipeline.cs
 │   ├── RedTeamAssertions.cs
+│   ├── IAttackTypeRegistry.cs
+│   ├── AttackTypeRegistry.cs
 │   ├── Attacks/             # Attack strategies
 │   └── Evaluators/          # Attack evaluators
 │

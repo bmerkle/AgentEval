@@ -17,6 +17,10 @@ namespace AgentEval.DataLoaders;
 /// Thread-safe: the internal dictionary uses <see cref="StringComparer.OrdinalIgnoreCase"/>
 /// and writes are only expected during application startup.
 /// </para>
+/// <para>
+/// DI-registered <see cref="IDatasetLoader"/> services are automatically
+/// wired into the factory via the constructor overload.
+/// </para>
 /// </remarks>
 public sealed class DefaultDatasetLoaderFactory : IDatasetLoaderFactory
 {
@@ -30,6 +34,34 @@ public sealed class DefaultDatasetLoaderFactory : IDatasetLoaderFactory
         [".yaml"] = () => new YamlDatasetLoader(),
         [".yml"] = () => new YamlDatasetLoader(),
     };
+
+    /// <summary>
+    /// Creates a new factory with only built-in loaders (backward compatible).
+    /// </summary>
+    public DefaultDatasetLoaderFactory() { }
+
+    /// <summary>
+    /// Creates a factory with built-in loaders plus DI-registered loaders.
+    /// DI will prefer this constructor when <c>IEnumerable&lt;IDatasetLoader&gt;</c> is available.
+    /// </summary>
+    /// <param name="additionalLoaders">
+    /// DI-registered loaders. Each loader's <see cref="IDatasetLoader.SupportedExtensions"/>
+    /// are used as keys. Built-in defaults are not overridden; use <see cref="Register"/>
+    /// to explicitly replace a built-in loader.
+    /// </param>
+    public DefaultDatasetLoaderFactory(IEnumerable<IDatasetLoader> additionalLoaders) : this()
+    {
+        ArgumentNullException.ThrowIfNull(additionalLoaders);
+
+        foreach (var loader in additionalLoaders)
+        {
+            foreach (var ext in loader.SupportedExtensions)
+            {
+                // DI-registered loaders don't override built-in defaults
+                _loaders.TryAdd(ext, () => loader);
+            }
+        }
+    }
 
     /// <inheritdoc/>
     public IDatasetLoader CreateFromExtension(string extension)

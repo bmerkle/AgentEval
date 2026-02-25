@@ -194,6 +194,148 @@ public class ToolLatencyMetric : IAgenticMetric
 
 ---
 
+## DI-Based Extension Registration
+
+AgentEval supports registering extensions via dependency injection. When you call `services.AddAgentEval()`, the framework auto-discovers DI-registered metrics, exporters, dataset loaders, and attack types.
+
+### Registering Custom Metrics via DI
+
+Instead of manually adding metrics to `MetricRegistry`, you can register them as DI services:
+
+```csharp
+// In your extension package or Startup/Program.cs
+services.AddSingleton<IMetric, ResponseLengthMetric>();
+services.AddSingleton<IMetric, KeywordCoverageMetric>();
+services.AddAgentEval(); // Metrics auto-populate IMetricRegistry
+```
+
+When `AddAgentEval()` is called, all `IMetric` services are collected and added to the `IMetricRegistry`. You can then resolve the registry via DI:
+
+```csharp
+public class MyEvaluationService(IMetricRegistry metrics)
+{
+    public async Task EvaluateAsync(EvaluationContext context)
+    {
+        foreach (var metric in metrics.GetAll())
+        {
+            var result = await metric.EvaluateAsync(context);
+            Console.WriteLine($"{metric.Name}: {result.Score}");
+        }
+    }
+}
+```
+
+### Registering Custom Exporters via DI
+
+Custom exporters can be registered as DI services and are automatically added to `IExporterRegistry`:
+
+```csharp
+// In your extension package
+services.AddSingleton<IResultExporter, PowerBIExporter>();
+services.AddAgentEval(); // Exporter auto-registers in IExporterRegistry
+```
+
+> **Note:** DI-registered exporters do not override built-in exporters (Json, Junit, Markdown, Csv, Trx). To replace a built-in, use `registry.Register(name, exporter)` directly after resolving `IExporterRegistry`.
+
+The `IExporterRegistry` provides dynamic lookup by format name:
+
+```csharp
+public class ExportService(IExporterRegistry exporters)
+{
+    public async Task ExportAsync(EvaluationReport report, string formatName, Stream output)
+    {
+        var exporter = exporters.GetRequired(formatName);
+        await exporter.ExportAsync(report, output);
+    }
+    
+    public IEnumerable<string> GetAvailableFormats()
+    {
+        return exporters.GetRegisteredFormats();
+    }
+}
+```
+
+### Registering Custom Dataset Loaders via DI
+
+Custom dataset loaders are auto-wired into `DefaultDatasetLoaderFactory`:
+
+```csharp
+// In your extension package
+services.AddSingleton<IDatasetLoader, ParquetDatasetLoader>();
+services.AddAgentEval(); // Loader auto-wired by extension
+
+// Later, loading works automatically:
+var factory = serviceProvider.GetRequiredService<IDatasetLoaderFactory>();
+var loader = factory.CreateFromExtension(".parquet"); // Finds your custom loader
+```
+
+> **Note:** DI-registered loaders do not override built-in loaders (`.jsonl`, `.json`, `.csv`, `.yaml`). Use `factory.Register()` to explicitly replace a built-in.
+
+### Registering Custom Attack Types via DI
+
+Custom red team attack types are auto-wired into `IAttackTypeRegistry`:
+
+```csharp
+// In your extension package
+services.AddSingleton<IAttackType, CustomSQLInjectionAttack>();
+services.AddAgentEval(); // Attack auto-registers in IAttackTypeRegistry
+
+// Later, resolve and use:
+var registry = serviceProvider.GetRequiredService<IAttackTypeRegistry>();
+var attack = registry.GetRequired("CustomSQLInjection");
+var allAttacks = registry.GetAll(); // Built-in + custom
+```
+
+> **Note:** DI-registered attacks **can** override built-in attacks (by name). This allows replacing a built-in attack with a custom implementation.
+
+### IEvaluator and IAgentEvalEmbeddings
+
+If you register `IChatClient` or `IEmbeddingGenerator<string, Embedding<float>>` before calling `AddAgentEval()`, they are automatically wrapped and available:
+
+```csharp
+// Register your chat client
+services.AddSingleton<IChatClient>(chatClient);
+services.AddAgentEval();
+
+// IEvaluator is now available (wraps IChatClient via ChatClientEvaluator)
+var evaluator = serviceProvider.GetRequiredService<IEvaluator>();
+```
+
+You can also override the defaults by registering your own `IEvaluator` or `IAgentEvalEmbeddings` before `AddAgentEval()`:
+
+```csharp
+services.AddSingleton<IEvaluator>(new MyCustomEvaluator());
+services.AddAgentEval(); // TryAdd — your registration wins
+```
+
+### Extension Package Pattern
+
+Extension packages should provide `IServiceCollection` extension methods following ASP.NET Core conventions:
+
+```csharp
+// In AgentEval.Metrics.Healthcare NuGet:
+public static class HealthcareServiceCollectionExtensions
+{
+    public static IServiceCollection AddAgentEvalHealthcareMetrics(
+        this IServiceCollection services,
+        Action<HealthcareOptions>? configure = null)
+    {
+        var options = new HealthcareOptions();
+        configure?.Invoke(options);
+        
+        services.AddSingleton<IMetric, HIPAAComplianceMetric>();
+        services.AddSingleton<IMetric, PHIDetectionMetric>();
+        return services;
+    }
+}
+
+// Consumer:
+services.AddAgentEval();
+services.AddAgentEvalHealthcareMetrics(o => o.StrictMode = true);
+```
+
+---
+
 ## Using the Metric Registry
 
 The `MetricRegistry` provides centralized metric management:
@@ -614,5 +756,7 @@ public MyMetric(double threshold = 70)
 
 - [Architecture Overview](architecture.md) - Understanding the metric hierarchy
 - [Embedding Metrics](embedding-metrics.md) - Fast similarity evaluation
+- [Extensibility Strategy](../strategy/AgentEval-Extensibility-Implementation-Review-and-Refinement.md) - Full extensibility architecture and roadmap
 - [Benchmarks Guide](benchmarks.md) - Performance benchmarking
 - [Snapshots](snapshots.md) - Snapshot comparison with `ISnapshotComparer` interface
+- [Sample 26: Extensibility](https://github.com/joslat/AgentEval/blob/main/samples/AgentEval.Samples/Sample26_Extensibility.cs) - End-to-end extensibility demo with custom metrics, exporters, loaders, and attack types

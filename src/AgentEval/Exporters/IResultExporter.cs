@@ -33,6 +33,16 @@ public interface IResultExporter
     /// <summary>The format this exporter produces.</summary>
     ExportFormat Format { get; }
     
+    /// <summary>
+    /// String-based format name for registry lookup. Built-in exporters
+    /// return the enum name; custom exporters override with their own.
+    /// </summary>
+    /// <remarks>
+    /// This default interface member allows custom exporters to provide
+    /// a format name without breaking existing implementations.
+    /// </remarks>
+    string FormatName => Format.ToString();
+    
     /// <summary>File extension for this format (including the dot).</summary>
     string FileExtension { get; }
     

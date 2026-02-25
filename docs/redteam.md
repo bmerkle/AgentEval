@@ -763,6 +763,35 @@ public class MyService(IRedTeamRunner runner)
 }
 ```
 
+### Custom Attack Types via DI
+
+`IAttackTypeRegistry` enables dynamic registration of custom attack types via DI. Built-in attacks are pre-populated; custom attacks from extension packages are auto-wired:
+
+```csharp
+// Register a custom attack type
+services.AddSingleton<IAttackType, CustomPhishingAttack>();
+services.AddAgentEval(); // Auto-populates IAttackTypeRegistry with built-ins + DI attacks
+
+// Later, resolve and use the registry
+var registry = serviceProvider.GetRequiredService<IAttackTypeRegistry>();
+
+// List all registered attacks (built-in + custom)
+foreach (var attack in registry.GetAll())
+{
+    Console.WriteLine($"  {attack.Name} ({attack.OwaspLlmId})");
+}
+
+// Lookup by name
+var phishing = registry.GetRequired("CustomPhishing");
+
+// Lookup by OWASP ID
+var llm01Attacks = registry.GetByOwaspId("LLM01");
+```
+
+Custom attacks registered via DI **can override** built-in attacks by using the same name. This allows replacing a built-in attack with a more comprehensive implementation.
+
+The existing static `Attack.ByName()` / `Attack.PromptInjection` API continues to work alongside the registry for non-DI scenarios.
+
 ## Extension Methods
 
 Convenient extension methods on `IEvaluableAgent`:

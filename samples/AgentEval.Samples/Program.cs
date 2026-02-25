@@ -135,6 +135,9 @@ public static class Program
                 case 25:
                     await Sample25_DatasetLoaders.RunAsync();
                     break;
+                case 26:
+                    await Sample26_Extensibility.RunAsync();
+                    break;
                 default:
                     Console.WriteLine($"❌ Sample {sampleNumber} not found.\n");
                     break;
@@ -205,6 +208,7 @@ public static class Program
         Console.WriteLine("│ 23. 📊 Benchmark System  - Performance, agentic & standard  │");
         Console.WriteLine("│ 24. ⚖️ Calibrated Eval   - Multi-model harness evaluation    │");
         Console.WriteLine("│ 25. 📂 Dataset Loaders   - Multi-format pipeline (offline)  │");
+        Console.WriteLine("│ 26. 🔌 Extensibility     - DI registries & custom extensions │");
         
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("├─────────────────────────────────────────────────────────────┤");

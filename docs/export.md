@@ -152,20 +152,24 @@ Dynamic columns are appended for each unique key in `MetricScores` (e.g., `relev
 public interface IResultExporter
 {
     ExportFormat Format { get; }
+    string FormatName => Format.ToString();  // Default interface member
     string FileExtension { get; }
     string ContentType { get; }
     Task ExportAsync(EvaluationReport report, Stream output, CancellationToken ct = default);
 }
 ```
 
+The `FormatName` property is a default interface member that returns the enum name for built-in exporters. Custom exporters can override it to provide a meaningful string name for registry lookup.
+
 ### Creating Custom Exporters
 
-Implement `IResultExporter` to add new formats:
+Implement `IResultExporter` to add new formats. Use the `FormatName` property for registry identification:
 
 ```csharp
 public class SarifExporter : IResultExporter
 {
-    public ExportFormat Format => (ExportFormat)100; // Custom enum value
+    public ExportFormat Format => ExportFormat.Json; // Closest built-in fallback
+    public string FormatName => "sarif";             // Custom name for registry lookup
     public string FileExtension => ".sarif";
     public string ContentType => "application/sarif+json";
 
@@ -175,6 +179,38 @@ public class SarifExporter : IResultExporter
     }
 }
 ```
+
+### Using `IExporterRegistry` (DI-Friendly)
+
+The `IExporterRegistry` provides dynamic exporter lookup and registration, analogous to `IMetricRegistry`. Register custom exporters via DI:
+
+```csharp
+// Register your custom exporter
+services.AddSingleton<IResultExporter, SarifExporter>();
+services.AddAgentEval(); // Auto-populates IExporterRegistry
+
+// Resolve and use
+var registry = serviceProvider.GetRequiredService<IExporterRegistry>();
+var exporter = registry.GetRequired("sarif");
+await exporter.ExportAsync(report, stream);
+
+// List all available formats
+foreach (var format in registry.GetRegisteredFormats())
+{
+    Console.WriteLine($"  {format}");
+}
+```
+
+Built-in exporters (JSON, JUnit, Markdown, CSV, TRX) are pre-registered automatically. DI-registered exporters are added alongside them without overriding built-ins.
+
+You can also register exporters manually at runtime:
+
+```csharp
+var registry = serviceProvider.GetRequiredService<IExporterRegistry>();
+registry.Register("powerbi", new PowerBIExporter());
+```
+
+> **Note:** `ResultExporterFactory.Create()` and `ResultExporterFactory.CreateFromExtension()` continue to work for non-DI scenarios. The `IExporterRegistry` is the recommended DI-friendly alternative.
 
 ## The EvaluationReport Model
 
@@ -246,3 +282,4 @@ Computed properties:
 - [Rich Evaluation Output](rich-evaluation-output-guide.md) — Verbosity levels and trace files
 - [Sample 11](https://github.com/joslat/AgentEval/blob/main/samples/AgentEval.Samples/Sample11_DatasetsAndExport.cs) — Complete export demo with all formats
 - [Extensibility](extensibility.md) — Building custom plugins
+- [Sample 26: Extensibility](https://github.com/joslat/AgentEval/blob/main/samples/AgentEval.Samples/Sample26_Extensibility.cs) — Custom exporter registration via DI

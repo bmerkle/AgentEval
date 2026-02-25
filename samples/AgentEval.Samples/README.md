@@ -2,7 +2,7 @@
 
 > **📚 Comprehensive Learning Library - Get started with AgentEval in 5 minutes!**
 
-This project contains **25 focused, educational samples** demonstrating all major AgentEval features. Each sample covers a distinct capability, ensuring features are exhaustively demonstrated.
+This project contains **26 focused, educational samples** demonstrating all major AgentEval features. Each sample covers a distinct capability, ensuring features are exhaustively demonstrated.
 
 ## ⚡ Core Principle
 
@@ -11,7 +11,7 @@ This project contains **25 focused, educational samples** demonstrating all majo
 - **Evaluation** (LLM-as-judge scores, metrics) → Always real or gracefully skipped
 - **Structure** (tool ordering, workflows, conversations) → Can be demonstrated with mock data
 
-This means samples 1-4 work fully without credentials (mock mode), while samples 5-24 require Azure OpenAI for meaningful results.
+This means samples 1-4, 25, and 26 work fully without credentials (mock/offline mode), while samples 5-24 require Azure OpenAI for meaningful results.
 
 
 
@@ -54,9 +54,11 @@ You'll see an interactive menu to run each sample.
 | 23 | **Benchmark System** | **JSONL-loaded tool accuracy benchmarks via PerformanceBenchmark + AgenticBenchmark** ⭐ | Yes | 5 min |
 | 24 | **Calibrated Evaluator** | **Multi-model consensus evaluation with calibrated scoring** | Yes | 5 min |
 | 25 | **Dataset Loaders** | Multi-format dataset pipeline: JSONL, JSON, YAML, CSV (offline) | No | 5 min |
+| 26 | **Extensibility** | **DI registries, custom metrics/exporters/loaders/attacks** 🔌 | No* | 3 min |
 
 > **⭐ Samples 03 & 04** provide the foundational knowledge for tool chain and performance assertions.
 > **🛡️ Samples 20 & 21** demonstrate AgentEval's red team security scanning capabilities.
+> **🔌 Sample 26** Steps 1-6 run offline; Step 7 (optional live LLM demo) requires Azure credentials.
 > **Yes (×3)** means the sample uses 3 model deployments (`AZURE_OPENAI_DEPLOYMENT`, `_2`, `_3`).
 
 ## 🔧 Prerequisites

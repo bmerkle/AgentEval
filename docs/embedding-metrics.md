@@ -262,6 +262,19 @@ public interface IAgentEvalEmbeddings
 }
 ```
 
+### DI Registration
+
+`IAgentEvalEmbeddings` is automatically registered in DI when you call `services.AddAgentEval()`, provided you register an `IEmbeddingGenerator<string, Embedding<float>>` first. It wraps the generator with `MEAIEmbeddingAdapter`. You can also register your own implementation before `AddAgentEval()` and it will be preserved (TryAdd semantics):
+
+```csharp
+services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(generator);
+services.AddAgentEval(); // IAgentEvalEmbeddings now available via DI
+
+// Or register your own:
+services.AddSingleton<IAgentEvalEmbeddings>(new MyCustomEmbeddings());
+services.AddAgentEval(); // Your registration wins
+```
+
 ### OpenAI Example
 
 ```csharp
