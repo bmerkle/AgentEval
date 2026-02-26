@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Copyright (c) 2025 AgentEval. All rights reserved.
+// Copyright (c) 2026 AgentEval Contributors
 // Licensed under the MIT License.
 
 using System.Diagnostics;
