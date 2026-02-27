@@ -105,7 +105,7 @@ dotnet add package AgentEval --prerelease
 - `AgentEval.Core` — Metrics, assertions, comparison, tracing
 - `AgentEval.DataLoaders` — Data loading and export (JSON, YAML, CSV, JSONL)
 - `AgentEval.MAF` — Microsoft Agent Framework integration
-- `AgentEval.RedTeam` — Security testing (9 attack types, 192 probes)
+- `AgentEval.RedTeam` — Security testing (multiple attack types and probes)
 
 ### Service Registration
 

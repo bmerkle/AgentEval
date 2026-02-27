@@ -384,7 +384,7 @@ misInfoResult.Should().HavePassed();
 
 ### CLI Tool
 - `agenteval eval` - Evaluate any OpenAI-compatible agent from the command line
-- 15 options, 7 export formats, LLM-as-judge, CI/CD exit codes
+- Flexible CLI with multiple options, several export formats, LLM-as-judge, CI/CD-friendly exit codes
 - Packaged as `dotnet tool install AgentEval.Cli`
 
 ### Cross-Framework & DI

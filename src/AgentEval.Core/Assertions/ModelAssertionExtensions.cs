@@ -10,10 +10,8 @@ namespace AgentEval.Assertions;
 /// Extension methods to start fluent assertions on model types.
 /// </summary>
 /// <remarks>
-/// These methods were moved from instance methods on the model classes
-/// to extension methods to decouple Models/ from Assertions/ (Phase 0.3).
-/// Consumer code continues to work unchanged — <c>result.Performance!.Should()</c>
-/// resolves the extension method when <c>using AgentEval.Assertions;</c> is in scope.
+/// These are extension methods that decouple Models/ from Assertions/.
+/// Usage: <c>result.Performance!.Should()</c> — requires <c>using AgentEval.Assertions;</c> in scope.
 /// </remarks>
 public static class ModelAssertionExtensions
 {
