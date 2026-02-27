@@ -138,6 +138,9 @@ public static class Program
                 case 26:
                     await Sample26_Extensibility.RunAsync();
                     break;
+                case 27:
+                    await Sample27_CrossFrameworkEvaluation.RunAsync();
+                    break;
                 default:
                     Console.WriteLine($"❌ Sample {sampleNumber} not found.\n");
                     break;
@@ -209,6 +212,7 @@ public static class Program
         Console.WriteLine("│ 24. ⚖️ Calibrated Eval   - Multi-model harness evaluation    │");
         Console.WriteLine("│ 25. 📂 Dataset Loaders   - Multi-format pipeline (offline)  │");
         Console.WriteLine("│ 26. 🔌 Extensibility     - DI registries & custom extensions │");
+        Console.WriteLine("│ 27. 🌐 Cross-Framework   - Universal IChatClient adapter     │");
         
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("├─────────────────────────────────────────────────────────────┤");

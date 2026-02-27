@@ -16,14 +16,20 @@ AgentEval is **the comprehensive .NET evaluation toolkit for AI agents**, built 
 ### Build & Test
 ```powershell
 dotnet build                    # Build all projects
-dotnet test                     # Run 1,000+ tests (×3 TFMs)
+dotnet test                     # Run all tests (×3 TFMs)
 dotnet run --project samples/AgentEval.Samples
 ```
 
 ### Key Directories
-- `src/AgentEval/` - Main library
+- `src/AgentEval/` - Umbrella packaging project (NuGet: AgentEval)
+- `src/AgentEval.Abstractions/` - Public contracts: interfaces, models
+- `src/AgentEval.Core/` - Implementations: metrics, assertions, comparison, tracing
+- `src/AgentEval.DataLoaders/` - Data loaders, exporters, output formatting
+- `src/AgentEval.MAF/` - Microsoft Agent Framework integration
+- `src/AgentEval.RedTeam/` - Security scanning, attack types, compliance
+- `src/AgentEval.Cli/` - CLI tool (`dotnet tool install AgentEval.Cli`)
 - `tests/AgentEval.Tests/` - Unit tests (mirrors src structure)
-- `samples/AgentEval.Samples/` - 26 runnable samples
+- `samples/AgentEval.Samples/` - 27 runnable samples
 - `docs/` - Documentation
 
 ### Core Interfaces
@@ -70,8 +76,13 @@ This codebase follows **SOLID, DRY, KISS, CLEAN** principles strictly. See `docs
 
 ### DI Pattern
 ```csharp
-// Register services
-services.AddAgentEval(options => options.DefaultModelId = "gpt-4o");
+// Register all services (umbrella convenience):
+services.AddAgentEvalAll();
+
+// Or register selectively:
+services.AddAgentEval();              // Core services
+services.AddAgentEvalDataLoaders();   // DataLoaders + Exporters
+services.AddAgentEvalRedTeam();       // Red Team security testing
 
 // Inject interfaces
 public class MyService(IStochasticRunner runner, IModelComparer comparer) { }
@@ -80,10 +91,12 @@ public class MyService(IStochasticRunner runner, IModelComparer comparer) { }
 ## Common Tasks
 
 ### Adding a New Metric
-1. Create in `Metrics/RAG/` or `Metrics/Agentic/`
+1. Create in appropriate sub-project:
+   - `src/AgentEval.Core/Metrics/RAG/` for RAG metrics
+   - `src/AgentEval.Core/Metrics/Agentic/` for agentic metrics
 2. Implement `IRAGMetric` or `IAgenticMetric`
 3. Use appropriate prefix (`llm_`/`code_`/`embed_`)
-4. Add tests using `FakeChatClient`
+4. Add tests using `FakeChatClient` in `tests/AgentEval.Tests/Metrics/`
 
 ### Adding a New Assertion
 1. Add to `ToolUsageAssertions`, `PerformanceAssertions`, or `ResponseAssertions`

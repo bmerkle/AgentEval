@@ -198,6 +198,18 @@ await result.ExportAsync("security-report.pdf", ExportFormat.Pdf);
     
     Toxicity detection, bias measurement, misinformation risk
 
+-   **🖥️ CLI Tool**
+    
+    `agenteval eval` - evaluate any AI agent from the command line
+
+-   **🔌 Cross-Framework**
+    
+    Universal `IChatClient.AsEvaluableAgent()` one-liner + Semantic Kernel bridge
+
+-   **📦 Dependency Injection**
+    
+    `services.AddAgentEval()` - interface-first architecture
+
 -   **📊 RAG Metrics**
     
     Faithfulness, Relevance, Context Precision/Recall
@@ -228,7 +240,7 @@ Rigorous evaluation capabilities: RAG metrics (Faithfulness, Relevance, Context 
 
 ## Samples
 
-**23 detailed examples** included—from Hello World to advanced Multi-Agent Workflows and Red Team Security.
+**27 detailed examples** included—from Hello World to advanced Multi-Agent Workflows, Red Team Security, and Cross-Framework evaluation.
 
 ```bash
 dotnet run --project samples/AgentEval.Samples

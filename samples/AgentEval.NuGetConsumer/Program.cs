@@ -97,7 +97,8 @@ static void PrintUsage()
                          0   = Complete Example
                          1   = Behavioral Policies
                          2   = Stochastic Model Comparison
-                         3   = Run ALL demos
+                         3   = Semantic Kernel Flight Agent
+                         4   = Run ALL demos
                          all = Run ALL demos
       --help, -h       Show this help
     
@@ -153,7 +154,10 @@ static async Task RunAutomated(bool useMock, string demoChoice)
                 else
                     Demos.ShowStochasticExplanation();
                 break;
-            case "3" or "all":
+            case "3":
+                await SemanticKernelDemo.RunAsync(useMock);
+                break;
+            case "4" or "all":
                 await Demos.RunCompleteExample(useMock);
                 Console.WriteLine("\n" + new string('═', 80) + "\n");
                 await Demos.RunBehavioralPoliciesDemo(useMock);
@@ -162,6 +166,8 @@ static async Task RunAutomated(bool useMock, string demoChoice)
                     await Demos.RunStochasticEvaluationDemo();
                 else
                     Demos.ShowStochasticExplanation();
+                Console.WriteLine("\n" + new string('═', 80) + "\n");
+                await SemanticKernelDemo.RunAsync(useMock);
                 break;
             default:
                 Console.WriteLine($"Unknown demo: {demoChoice}. Use 0, 1, 2, 3, or 'all'");
@@ -198,7 +204,8 @@ static async Task ShowDemoMenu(bool useMock)
         Console.WriteLine("  🎯 [0] COMPLETE EXAMPLE - All AgentEval features in one comprehensive demo");
         Console.WriteLine("  🛡️  [1] BEHAVIORAL POLICIES - LLM-as-a-judge evaluation + safety guardrails");
         Console.WriteLine("  📊 [2] STOCHASTIC MODEL COMPARISON - Statistical analysis across models");
-        Console.WriteLine("  🏃 [3] Run ALL Demos");
+        Console.WriteLine("  ✈️  [3] SEMANTIC KERNEL FLIGHT AGENT - Real SK [KernelFunction] + AgentEval");
+        Console.WriteLine("  🏃 [4] Run ALL Demos");
         Console.WriteLine("  ❌ [Q] Quit");
         Console.WriteLine();
         
@@ -207,7 +214,7 @@ static async Task ShowDemoMenu(bool useMock)
         Console.ResetColor();
         Console.WriteLine();
         
-        Console.Write("  Enter choice [0-3/Q]: ");
+        Console.Write("  Enter choice [0-4/Q]: ");
         
         var choice = Console.ReadKey(intercept: true).KeyChar.ToString().ToUpper();
         Console.WriteLine(choice);
@@ -234,6 +241,9 @@ static async Task ShowDemoMenu(bool useMock)
                     }
                     break;
                 case "3":
+                    await SemanticKernelDemo.RunAsync(useMock);
+                    break;
+                case "4":
                     await Demos.RunCompleteExample(useMock);
                     await Demos.RunBehavioralPoliciesDemo(useMock);
                     if (!useMock)
@@ -244,6 +254,7 @@ static async Task ShowDemoMenu(bool useMock)
                     {
                         Demos.ShowStochasticExplanation();
                     }
+                    await SemanticKernelDemo.RunAsync(useMock);
                     ShowSummary(useMock);
                     return; // Exit menu after running all
                 case "Q":
@@ -378,10 +389,12 @@ static void ShowSummary(bool useMock)
     if (!useMock)
     {
         Console.WriteLine("║   📊 Model Comparison         - Real statistical analysis across models       ║");
+        Console.WriteLine("║   ✈️  Semantic Kernel          - Real SK [KernelFunction] plugins + AgentEval  ║");
     }
     else
     {
         Console.WriteLine("║   ℹ️  Model Comparison         - Run in REAL mode for live comparison         ║");
+        Console.WriteLine("║   ℹ️  Semantic Kernel          - Run in REAL mode for SK demo                 ║");
     }
     
     Console.WriteLine("""

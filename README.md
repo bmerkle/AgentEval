@@ -382,10 +382,20 @@ misInfoResult.Should().HavePassed();
 - Trace artifacts - auto-save traces for failed evaluations
 - Behavioral policies - NeverCallTool, MustConfirmBefore, NeverPassArgumentMatching
 
+### CLI Tool
+- `agenteval eval` - Evaluate any OpenAI-compatible agent from the command line
+- Flexible CLI with multiple options, several export formats, LLM-as-judge, CI/CD-friendly exit codes
+- Packaged as `dotnet tool install AgentEval.Cli`
+
+### Cross-Framework & DI
+- Universal `IChatClient.AsEvaluableAgent()` one-liner for any AI provider
+- Dependency Injection via `services.AddAgentEval()` / `services.AddAgentEvalAll()`
+- Semantic Kernel bridge via `AIFunctionFactory.Create()` (see NuGetConsumer sample)
+
 ### Integration
 - CI/CD integration - JUnit XML, Markdown, JSON, SARIF export
 - Benchmarks - custom patterns with dataset loaders (JSON, YAML, CSV, JSONL)
-- 1,000+ tests (×3 TFMs) - production quality
+- Comprehensive multi-target test suite across all supported TFMs
 
 ---
 
@@ -393,6 +403,19 @@ misInfoResult.Should().HavePassed();
 
 ```bash
 dotnet add package AgentEval --prerelease
+```
+
+**Single package, modular internals:**
+- `AgentEval.Abstractions` — Public contracts and interfaces
+- `AgentEval.Core` — Metrics, assertions, comparison, tracing
+- `AgentEval.DataLoaders` — Data loading and export
+- `AgentEval.MAF` — Microsoft Agent Framework integration
+- `AgentEval.RedTeam` — Security testing
+
+**CLI Tool:**
+```bash
+dotnet tool install -g AgentEval.Cli --prerelease
+agenteval eval --endpoint https://your-resource.openai.azure.com --model gpt-4o --dataset tests.yaml
 ```
 
 **Supported Frameworks:** .NET 8.0, 9.0, 10.0
@@ -415,6 +438,10 @@ See the **[Getting Started Guide](docs/getting-started.md)** for a complete walk
 | [Model Comparison](docs/model-comparison.md) | Compare models with confidence |
 | [Benchmarks](docs/benchmarks.md) | Benchmark patterns and best practices |
 | [Tracing](docs/tracing.md) | Record and Replay patterns |
+| [Red Team Security](docs/redteam.md) | Security probes, OWASP/MITRE coverage |
+| [Responsible AI](docs/ResponsibleAI.md) | Toxicity, bias, misinformation detection |
+| [Cross-Framework](docs/cross-framework.md) | Semantic Kernel, IChatClient adapters |
+| [CLI Tool](docs/cli.md) | Command-line evaluation guide |
 | [Migration Guide](docs/comparison.md) | Coming from Python/Node.js frameworks |
 | [Code Gallery](docs/showcase/code-gallery.md) | Stunning code examples |
 
@@ -422,7 +449,7 @@ See the **[Getting Started Guide](docs/getting-started.md)** for a complete walk
 
 ## Samples
 
-Run all 26 included samples:
+Run all 27 included samples:
 
 ```bash
 dotnet run --project samples/AgentEval.Samples
@@ -456,6 +483,7 @@ dotnet run --project samples/AgentEval.Samples
 | **24: Calibrated Evaluator** | Multi-model consensus evaluation with calibrated scoring | 8 min |
 | **25: Dataset Loaders** | Multi-format dataset pipeline: JSONL, JSON, YAML, CSV | 5 min |
 | **26: Extensibility** | DI registries, custom metrics/exporters/loaders/attacks | 3 min |
+| **27: Cross-Framework** | Universal IChatClient adapter for any AI provider | 3 min |
 
 ---
 

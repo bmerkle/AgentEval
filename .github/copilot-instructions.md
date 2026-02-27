@@ -6,18 +6,19 @@ AgentEval is **the comprehensive .NET evaluation toolkit for AI agents**, built 
 
 ```
 AgentEval/
-├── src/AgentEval/          # Main library (multi-target: net8.0, net9.0, net10.0)
-│   ├── Core/               # Interfaces: IMetric, IEvaluableAgent, IEvaluationHarness
-│   ├── Assertions/         # Fluent assertions: ToolUsageAssertions, PerformanceAssertions
-│   ├── Comparison/         # StochasticRunner, IAgentFactory, ModelComparer
-│   ├── MAF/                # Microsoft Agent Framework: MAFEvaluationHarness, MAFAgentAdapter
-│   ├── Metrics/            # RAG/ (Faithfulness, Relevance) + Agentic/ (ToolSelection, etc.)
-│   ├── Models/             # TestCase, TestResult, ToolCallRecord, PerformanceMetrics
-│   ├── Tracing/            # TraceRecordingAgent, ChatTraceRecorder, WorkflowTraceRecorder
-│   └── Testing/            # FakeChatClient for mocking IChatClient
-├── tests/AgentEval.Tests/  # xUnit tests, mirrors src/ structure
-└── samples/AgentEval.Samples/  # 26 runnable samples (Sample01_HelloWorld, etc.)
+├── src/
+│   ├── AgentEval.Abstractions/  # Public contracts: IMetric, IEvaluableAgent, models
+│   ├── AgentEval.Core/          # Implementations: metrics, assertions, comparison, tracing
+│   ├── AgentEval.DataLoaders/   # Data loaders, exporters, output formatting
+│   ├── AgentEval.MAF/           # Microsoft Agent Framework integration
+│   ├── AgentEval.RedTeam/       # Security scanning, attack types, compliance
+│   ├── AgentEval.Cli/           # CLI tool (dotnet tool install AgentEval.Cli)
+│   └── AgentEval/               # Umbrella packaging project (NuGet: AgentEval)
+├── tests/AgentEval.Tests/       # xUnit tests, mirrors src/ structure
+└── samples/AgentEval.Samples/   # 27 runnable samples (Sample01_HelloWorld, etc.)
 ```
+
+All 6 library sub-projects use `RootNamespace=AgentEval` to preserve original namespaces. The CLI uses `RootNamespace=AgentEval.Cli` as a separate tool. Only the umbrella is `IsPackable=true`; the single NuGet package contains all 6 DLLs per TFM. The CLI is packaged separately as `AgentEval.Cli`.
 
 ## Environment Setup
 
@@ -34,7 +35,7 @@ $env:AZURE_OPENAI_DEPLOYMENT_2 = "gpt-4o-mini"    # Secondary model
 
 ```powershell
 dotnet build                 # Build all projects
-dotnet test                  # Run all 1,000+ tests (×3 TFMs = 3,000+ total)
+dotnet test                  # Run all tests (×3 TFMs)
 dotnet run --project samples/AgentEval.Samples  # Run samples
 dotnet pack src/AgentEval   # Create NuGet package
 ```
@@ -161,7 +162,9 @@ ModelPricing.SetPricing("custom-model", inputPer1K: 0.002m, outputPer1K: 0.006m)
 ## Adding New Features
 
 ### New Metric
-1. Create in `src/AgentEval/Metrics/RAG/` or `Metrics/Agentic/`
+1. Create in appropriate sub-project:
+   - `src/AgentEval.Core/Metrics/RAG/` for RAG metrics
+   - `src/AgentEval.Core/Metrics/Agentic/` for agentic metrics
 2. Implement `IRAGMetric` or `IAgenticMetric`
 3. Use `llm_`/`code_`/`embed_` prefix in `Name` property
 4. Add tests in `tests/AgentEval.Tests/Metrics/`
@@ -212,11 +215,13 @@ AgentEval uses Microsoft.Extensions.DependencyInjection for service registration
 
 ### Registration Pattern
 ```csharp
-// In Program.cs or Startup.cs
-services.AddAgentEval(options =>
-{
-    options.DefaultModelId = "gpt-4o";
-});
+// Register all services (umbrella convenience):
+services.AddAgentEvalAll();
+
+// Or register selectively:
+services.AddAgentEval();              // Core services
+services.AddAgentEvalDataLoaders();   // DataLoaders + Exporters
+services.AddAgentEvalRedTeam();       // Red Team security testing
 
 // Resolved via DI
 public class MyService(IStochasticRunner runner, IModelComparer comparer)

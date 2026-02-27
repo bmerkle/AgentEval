@@ -548,145 +548,50 @@ var llm01 = attacks.GetByOwaspId("LLM01"); // All attacks for OWASP LLM01
 
 ## Package Structure
 
+The codebase is organized into 6 internal projects (single NuGet package):
+
 ```
-AgentEval/
-├── Core/                    # Core interfaces and utilities
-│   ├── IMetric.cs
-│   ├── IEvaluableAgent.cs
-│   ├── IEvaluationHarness.cs
-│   ├── IEvaluator.cs
-│   ├── IAgentEvalLogger.cs
-│   ├── IAgentEvalPlugin.cs
-│   ├── IToolUsageExtractor.cs
-│   ├── IWorkflowEvaluableAgent.cs
-│   ├── IExporterRegistry.cs
-│   ├── AgentEvalBuilder.cs
-│   ├── ChatClientAgentAdapter.cs
-│   ├── MetricRegistry.cs
-│   ├── ScoreNormalizer.cs
-│   ├── RetryPolicy.cs
-│   ├── LlmJsonParser.cs
-│   └── EvaluationDefaults.cs
+src/
+├── AgentEval.Abstractions/       # Public contracts
+│   ├── Core/                     # IMetric, IEvaluableAgent, IEvaluationHarness, etc.
+│   ├── Models/                   # TestCase, TestResult, ToolCallRecord, PerformanceMetrics
+│   ├── Embeddings/               # IAgentEvalEmbeddings
+│   ├── Snapshots/                # ISnapshotComparer, ISnapshotStore
+│   └── DependencyInjection/      # AgentEvalServiceOptions
 │
-├── Models/                  # Data models
-│   ├── TestModels.cs        # TestCase, TestResult, TestSummary
-│   ├── WorkflowModels.cs    # WorkflowTestCase, WorkflowTestResult
-│   ├── ToolCallRecord.cs
-│   ├── ToolUsageReport.cs
-│   ├── ToolCallTimeline.cs
-│   ├── PerformanceMetrics.cs
-│   └── FailureReport.cs
+├── AgentEval.Core/               # Implementations
+│   ├── Assertions/               # ToolUsageAssertions, PerformanceAssertions, ResponseAssertions
+│   ├── Metrics/                  # RAG/, Agentic/, Retrieval/, Safety/, Embedding
+│   ├── Comparison/               # StochasticRunner, ModelComparer, StatisticsCalculator
+│   ├── Tracing/                  # TraceRecordingAgent, TraceReplayingAgent, ChatTraceRecorder
+│   ├── Calibration/              # CalibratedJudge, VotingStrategy
+│   ├── Benchmarks/               # PerformanceBenchmark, AgenticBenchmark
+│   ├── Adapters/                 # MicrosoftEvaluatorAdapter, ChatClientAgentAdapter
+│   ├── Testing/                  # FakeChatClient
+│   └── DependencyInjection/      # AddAgentEval()
 │
-├── Metrics/                 # Metric implementations
-│   ├── RAG/
-│   │   ├── RAGMetrics.cs    # Faithfulness, Relevance, etc.
-│   │   └── EmbeddingMetrics.cs
-│   ├── Agentic/
-│   │   └── AgenticMetrics.cs # ToolSelection, ToolSuccess, etc.
-│   ├── Retrieval/
-│   │   ├── MRRMetric.cs
-│   │   └── RecallAtKMetric.cs
-│   └── Safety/
-│       └── SafetyMetrics.cs
+├── AgentEval.DataLoaders/        # Data loading and export
+│   ├── DataLoaders/              # JSON, JSONL, YAML, CSV loaders
+│   ├── Exporters/                # JUnit XML, Markdown, JSON, CSV, TRX exporters
+│   ├── Output/                   # TableFormatter, AgentEvalTestBase, TimeTravelTrace
+│   └── DependencyInjection/      # AddAgentEvalDataLoaders()
 │
-├── Assertions/              # Fluent assertions
-│   ├── ToolUsageAssertions.cs
-│   ├── PerformanceAssertions.cs
-│   ├── ResponseAssertions.cs
-│   └── WorkflowResultAssertions.cs
-│
-├── Benchmarks/              # Benchmarking infrastructure
-│   ├── PerformanceBenchmark.cs
-│   └── AgenticBenchmark.cs
-│
-├── Calibration/             # Multi-judge calibration
-│   ├── ICalibratedJudge.cs
-│   ├── CalibratedJudge.cs
-│   ├── CalibratedJudgeOptions.cs
-│   ├── CalibratedResult.cs
-│   └── VotingStrategy.cs
-│
-├── Comparison/              # Stochastic & model comparison
-│   ├── IAgentFactory.cs
-│   ├── IStatisticsCalculator.cs
-│   ├── StochasticRunner.cs
-│   ├── StochasticOptions.cs
-│   ├── StochasticResult.cs
-│   ├── ModelComparer.cs
-│   └── ModelComparisonResult.cs
-│
-├── Tracing/                 # Trace record & replay
-│   ├── AgentTrace.cs
-│   ├── TraceRecordingAgent.cs
-│   ├── TraceReplayingAgent.cs
-│   ├── TraceSerializer.cs
-│   ├── ChatTraceRecorder.cs
-│   └── WorkflowTraceRecorder.cs
-│
-├── Adapters/                # Framework integrations
-│   └── MicrosoftEvaluatorAdapter.cs
-│
-├── MAF/                     # Microsoft Agent Framework
-│   ├── MAFAgentAdapter.cs
-│   ├── MAFIdentifiableAgentAdapter.cs
-│   ├── MAFEvaluationHarness.cs
-│   ├── MAFWorkflowAdapter.cs
-│   ├── MAFWorkflowEventBridge.cs
+├── AgentEval.MAF/                # Microsoft Agent Framework
+│   ├── MAFAgentAdapter.cs        # Wraps AIAgent → IStreamableAgent
+│   ├── MAFEvaluationHarness.cs   # MAF-specific evaluation harness
+│   ├── MAFWorkflowAdapter.cs     # Workflow integration
 │   └── WorkflowEvaluationHarness.cs
 │
-├── Embeddings/              # Embedding utilities
-│   ├── IAgentEvalEmbeddings.cs
-│   └── EmbeddingSimilarity.cs
+├── AgentEval.RedTeam/            # Security testing
+│   ├── RedTeamRunner.cs          # Orchestrator
+│   ├── AttackPipeline.cs         # Attack execution
+│   ├── Attacks/                  # 9 built-in attack types
+│   ├── Evaluators/               # Probe evaluators
+│   ├── ResponsibleAI/            # Toxicity, Bias, Misinformation metrics
+│   └── DependencyInjection/      # AddAgentEvalRedTeam()
 │
-├── Exporters/               # Result exporters
-│   ├── IResultExporter.cs
-│   ├── ExporterRegistry.cs
-│   ├── JUnitXmlExporter.cs
-│   ├── MarkdownExporter.cs
-│   ├── JsonExporter.cs
-│   └── TrxExporter.cs
-│
-├── DataLoaders/             # Dataset loaders
-│   ├── IDatasetLoader.cs
-│   ├── IDatasetLoaderFactory.cs
-│   ├── DefaultDatasetLoaderFactory.cs
-│   ├── DatasetTestCaseExtensions.cs
-│   ├── JsonlDatasetLoader.cs
-│   ├── JsonDatasetLoader.cs
-│   ├── YamlDatasetLoader.cs
-│   ├── CsvDatasetLoader.cs
-│   └── JsonParsingHelper.cs
-│
-├── Snapshots/               # Snapshot comparison
-│   ├── ISnapshotComparer.cs # Interface for DI
-│   ├── ISnapshotStore.cs    # Interface for DI
-│   └── SnapshotComparer.cs  # SnapshotComparer, SnapshotStore, Options, Results
-│
-├── Output/                  # Output formatting utilities
-│   ├── TableFormatter.cs
-│   ├── EvaluationOutputWriter.cs
-│   └── StochasticResultExtensions.cs
-│
-├── RedTeam/                 # Red team security evaluation
-│   ├── RedTeamRunner.cs
-│   ├── AttackPipeline.cs
-│   ├── RedTeamAssertions.cs
-│   ├── IAttackTypeRegistry.cs
-│   ├── AttackTypeRegistry.cs
-│   ├── Attacks/             # Attack strategies
-│   └── Evaluators/          # Attack evaluators
-│
-├── ResponsibleAI/           # Responsible AI metrics
-│   ├── ToxicityMetric.cs
-│   ├── BiasMetric.cs
-│   └── MisinformationMetric.cs
-│
-├── DependencyInjection/     # DI registration
-│   ├── AgentEvalServiceCollectionExtensions.cs
-│   └── AgentEvalServiceOptions.cs
-│
-└── Testing/                 # Test utilities
-    └── FakeChatClient.cs
+└── AgentEval/                    # Umbrella (packaging only)
+    └── AddAgentEvalAll()         # Registers all services from all sub-projects
 ```
 
 ---
@@ -881,6 +786,36 @@ catch (BehavioralPolicyViolationException ex)
         Console.WriteLine($"  → {s}");
 }
 ```
+
+---
+
+## Internal Project Structure
+
+AgentEval ships as a **single NuGet package** (`AgentEval`) but is internally organized into 6 projects for maintainability and compile-time dependency enforcement (see [ADR-016](adr/016-monolith-modularization.md)).
+
+### Dependency Graph
+
+```
+AgentEval (NuGet package — umbrella)
+├── AgentEval.Abstractions     → M.E.AI.Abstractions
+├── AgentEval.Core             → Abstractions + M.E.AI + M.E.AI.Eval.Quality + S.N.Tensors
+├── AgentEval.DataLoaders      → Abstractions + Core + YamlDotNet
+├── AgentEval.MAF              → Abstractions + Core + M.Agents.AI + M.Agents.AI.Workflows
+└── AgentEval.RedTeam          → Abstractions + Core + M.E.AI + M.E.DI + PdfSharp-MigraDoc
+```
+
+### Project Responsibilities
+
+| Project | Files | Purpose |
+|---|---|---|
+| `AgentEval.Abstractions` | ~48 | Public contracts: `IMetric`, `IEvaluableAgent`, models, enums |
+| `AgentEval.Core` | ~63 | Implementations: metrics, assertions, comparison, tracing, testing |
+| `AgentEval.DataLoaders` | ~23 | Data loaders (JSON/YAML/CSV/JSONL), exporters, output formatting |
+| `AgentEval.MAF` | 7 | Microsoft Agent Framework adapters and harnesses |
+| `AgentEval.RedTeam` | 61 | Security scanning, attack types, evaluators, compliance reports |
+| `AgentEval` (umbrella) | 1 | Packaging + `AddAgentEvalAll()` DI convenience method |
+
+All projects use `RootNamespace=AgentEval` so consumers see no namespace changes.
 
 ---
 

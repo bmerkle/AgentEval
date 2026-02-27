@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+    <RootNamespace>AgentEval.Cli</RootNamespace>
+
+    <!-- .NET Tool packaging -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>agenteval</ToolCommandName>
+    <PackageId>AgentEval.Cli</PackageId>
+    <Version>0.1.0-alpha</Version>
+    <Description>CLI for AgentEval — evaluate any OpenAI-compatible AI agent from the command line.</Description>
+    <PackageTags>ai;agent;evaluation;cli;openai;ollama;llm;testing</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Reference library sub-projects directly (monorepo build) -->
+    <ProjectReference Include="../AgentEval.Abstractions/AgentEval.Abstractions.csproj" />
+    <ProjectReference Include="../AgentEval.Core/AgentEval.Core.csproj" />
+    <ProjectReference Include="../AgentEval.DataLoaders/AgentEval.DataLoaders.csproj" />
+    <ProjectReference Include="../AgentEval.MAF/AgentEval.MAF.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
+    <PackageReference Include="Azure.AI.OpenAI" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AgentEval.Tests" />
+  </ItemGroup>
+
+</Project>

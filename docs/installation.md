@@ -93,8 +93,21 @@ If this runs without errors and shows "Passed: True", AgentEval is correctly ins
 
 ---
 
+## CLI Tool
+
+AgentEval also ships a standalone CLI for terminal and CI/CD usage:
+
+```bash
+dotnet tool install --global AgentEval.Cli --prerelease
+agenteval eval --azure --model gpt-4o --dataset tests.yaml
+```
+
+See [CLI Reference](cli.md) for full documentation.
+
 ## Next Steps
 
 - [Quick Start](getting-started.md) - Run your first agent evaluation
+- [CLI Reference](cli.md) - Evaluate agents from the terminal
+- [Cross-Framework Evaluation](cross-framework.md) - Use with any LLM provider
 - [Walkthrough](walkthrough.md) - Step-by-step tutorial
 - [Architecture](architecture.md) - Understand the framework design

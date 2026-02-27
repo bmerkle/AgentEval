@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>AgentEval</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AgentEval" />
+    <InternalsVisibleTo Include="AgentEval.Core" />
+    <InternalsVisibleTo Include="AgentEval.DataLoaders" />
+    <InternalsVisibleTo Include="AgentEval.Tests" />
+  </ItemGroup>
+</Project>
