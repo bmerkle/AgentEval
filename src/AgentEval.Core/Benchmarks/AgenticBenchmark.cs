@@ -2,6 +2,7 @@
 // Copyright (c) 2026 AgentEval Contributors
 // Licensed under the MIT License.
 
+using System.Globalization;
 using AgentEval.Core;
 using AgentEval.Models;
 
@@ -401,7 +402,7 @@ public class ToolAccuracyResult
     
     public override string ToString() =>
         $"Tool Accuracy: {AgentName}\n" +
-        $"  Passed: {PassedTests}/{TotalTests} ({OverallAccuracy:P1})";
+        $"  Passed: {PassedTests}/{TotalTests} ({(OverallAccuracy * 100).ToString("F1", CultureInfo.InvariantCulture)}%)";
 }
 
 public class ToolAccuracyTestResult
@@ -456,7 +457,7 @@ public class MultiStepReasoningResult
     
     public override string ToString() =>
         $"Multi-Step Reasoning: {AgentName}\n" +
-        $"  Passed: {PassedTests}/{TotalTests} | Avg Step Completion: {AverageStepCompletion:P1}";
+        $"  Passed: {PassedTests}/{TotalTests} | Avg Step Completion: {(AverageStepCompletion * 100).ToString("F1", CultureInfo.InvariantCulture)}%";
 }
 
 public class MultiStepTestResult
