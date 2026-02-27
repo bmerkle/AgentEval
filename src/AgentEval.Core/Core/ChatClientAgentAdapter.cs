@@ -95,7 +95,7 @@ public class ChatClientAgentAdapter : IStreamableAgent
                 };
             }
             
-            // Check for UsageContent in the streaming update contents
+            // Check for structured content in the streaming update
             if (update.Contents != null)
             {
                 foreach (var content in update.Contents)
@@ -106,6 +106,30 @@ public class ChatClientAgentAdapter : IStreamableAgent
                         {
                             PromptTokens = (int)(usage.Details.InputTokenCount ?? 0),
                             CompletionTokens = (int)(usage.Details.OutputTokenCount ?? 0)
+                        };
+                    }
+                    else if (content is FunctionCallContent call)
+                    {
+                        yield return new AgentResponseChunk
+                        {
+                            ToolCallStarted = new ToolCallInfo
+                            {
+                                Name = call.Name,
+                                CallId = call.CallId,
+                                Arguments = call.Arguments
+                            }
+                        };
+                    }
+                    else if (content is FunctionResultContent result)
+                    {
+                        yield return new AgentResponseChunk
+                        {
+                            ToolCallCompleted = new ToolResultInfo
+                            {
+                                CallId = result.CallId,
+                                Result = result.Result,
+                                Exception = result.Exception
+                            }
                         };
                     }
                 }
