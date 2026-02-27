@@ -198,7 +198,7 @@ await result.ExportAsync("security-report.pdf", ExportFormat.Pdf);
     
     Toxicity detection, bias measurement, misinformation risk
 
--   **� CLI Tool**
+-   **🖥️ CLI Tool**
     
     `agenteval eval` - evaluate any AI agent from the command line
 
@@ -210,7 +210,7 @@ await result.ExportAsync("security-report.pdf", ExportFormat.Pdf);
     
     `services.AddAgentEval()` - interface-first architecture
 
--   **�📊 RAG Metrics**
+-   **📊 RAG Metrics**
     
     Faithfulness, Relevance, Context Precision/Recall
 

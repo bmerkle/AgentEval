@@ -7,7 +7,7 @@ namespace AgentEval.Core;
 /// <summary>
 /// Base class for plugins with common functionality.
 /// </summary>
-public abstract class AgentEvalPluginBase : IAgentEvalPlugin
+public abstract class AgentEvalPluginBase : IAgentEvalPlugin, IAsyncDisposable
 {
     private PluginLifecycleStage _stage = PluginLifecycleStage.Initializing;
 
@@ -45,11 +45,24 @@ public abstract class AgentEvalPluginBase : IAgentEvalPlugin
 
     protected virtual Task OnShutdownAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
+    /// <summary>
+    /// Asynchronously disposes the plugin by calling <see cref="ShutdownAsync"/>.
+    /// Prefer this over <see cref="Dispose"/> to avoid potential deadlocks.
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        if (_stage != PluginLifecycleStage.Disposed)
+        {
+            await ShutdownAsync().ConfigureAwait(false);
+        }
+        GC.SuppressFinalize(this);
+    }
+
     public virtual void Dispose()
     {
         if (_stage != PluginLifecycleStage.Disposed)
         {
-            ShutdownAsync().GetAwaiter().GetResult();
+            ShutdownAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
         GC.SuppressFinalize(this);
     }

@@ -35,7 +35,7 @@ $env:AZURE_OPENAI_DEPLOYMENT_2 = "gpt-4o-mini"    # Secondary model
 
 ```powershell
 dotnet build                 # Build all projects
-dotnet test                  # Run all 1,000+ tests (×3 TFMs = 3,000+ total)
+dotnet test                  # Run all tests (×3 TFMs)
 dotnet run --project samples/AgentEval.Samples  # Run samples
 dotnet pack src/AgentEval   # Create NuGet package
 ```

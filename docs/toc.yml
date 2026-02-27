@@ -87,8 +87,6 @@
     href: showcase/code-gallery.md
   - name: Architecture Decisions
     href: adr/README.md
-  - name: Roadmap
-    href: roadmap.md
   - name: GitHub Repository
     href: https://github.com/joslat/AgentEval
   - name: Contributing

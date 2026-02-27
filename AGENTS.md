@@ -16,7 +16,7 @@ AgentEval is **the comprehensive .NET evaluation toolkit for AI agents**, built 
 ### Build & Test
 ```powershell
 dotnet build                    # Build all projects
-dotnet test                     # Run 1,000+ tests (×3 TFMs)
+dotnet test                     # Run all tests (×3 TFMs)
 dotnet run --project samples/AgentEval.Samples
 ```
 

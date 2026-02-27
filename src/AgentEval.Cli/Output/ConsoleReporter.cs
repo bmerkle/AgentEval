@@ -2,6 +2,7 @@
 // Copyright (c) 2026 AgentEval Contributors
 // Licensed under the MIT License.
 
+using System.Reflection;
 using AgentEval.Models;
 
 namespace AgentEval.Cli.Output;
@@ -21,8 +22,12 @@ internal static class ConsoleReporter
     /// <param name="testCount">Number of test cases.</param>
     public static void WriteHeader(string model, string dataset, int testCount)
     {
+        var version = typeof(ConsoleReporter).Assembly
+            .GetCustomAttribute<System.Reflection.AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion ?? "unknown";
+
         Console.Error.WriteLine();
-        Console.Error.WriteLine($"  AgentEval CLI v0.1.0");
+        Console.Error.WriteLine($"  AgentEval CLI v{version}");
         Console.Error.WriteLine($"  Model:   {model}");
         Console.Error.WriteLine($"  Dataset: {dataset} ({testCount} test{(testCount != 1 ? "s" : "")})");
         Console.Error.WriteLine();

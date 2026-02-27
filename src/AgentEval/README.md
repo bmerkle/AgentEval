@@ -91,7 +91,7 @@ Console.WriteLine(result.ToMarkdown());
 
 ## Test Coverage
 
-- **7,000+ tests** across 3 TFMs (net8.0, net9.0, net10.0)
+- **Comprehensive test suite** across 3 TFMs (net8.0, net9.0, net10.0)
 - All tests passing ✅
 
 ## Installation

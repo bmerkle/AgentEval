@@ -395,7 +395,7 @@ misInfoResult.Should().HavePassed();
 ### Integration
 - CI/CD integration - JUnit XML, Markdown, JSON, SARIF export
 - Benchmarks - custom patterns with dataset loaders (JSON, YAML, CSV, JSONL)
-- 2,400+ tests (×3 TFMs = 7,300+ total) - production quality
+- Comprehensive multi-target test suite across all supported TFMs
 
 ---
 
