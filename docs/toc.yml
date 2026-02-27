@@ -14,6 +14,10 @@
 
 - name: Core Features
   items:
+  - name: CLI Reference
+    href: cli.md
+  - name: Cross-Framework Evaluation
+    href: cross-framework.md
   - name: Fluent Assertions
     href: assertions.md
   - name: LLM as a Judge

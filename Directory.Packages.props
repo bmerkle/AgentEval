@@ -17,12 +17,12 @@
     <PackageVersion Include="AgentEval" Version="0.4.0-beta" />
     
     <!-- Azure -->
-    <PackageVersion Include="Azure.AI.OpenAI" Version="2.5.0-beta.1" />
+    <PackageVersion Include="Azure.AI.OpenAI" Version="2.7.0-beta.2" />
     <PackageVersion Include="Azure.Identity" Version="1.17.0" />
     
     <!-- Core -->
     <PackageVersion Include="System.Numerics.Tensors" Version="10.0.3" />
-    <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageVersion Include="System.CommandLine" Version="2.0.3" />
     <PackageVersion Include="YamlDotNet" Version="16.3.0" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0" />

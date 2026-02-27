@@ -12,12 +12,13 @@ AgentEval/
 │   ├── AgentEval.DataLoaders/   # Data loaders, exporters, output formatting
 │   ├── AgentEval.MAF/           # Microsoft Agent Framework integration
 │   ├── AgentEval.RedTeam/       # Security scanning, attack types, compliance
+│   ├── AgentEval.Cli/           # CLI tool (dotnet tool install AgentEval.Cli)
 │   └── AgentEval/               # Umbrella packaging project (NuGet: AgentEval)
 ├── tests/AgentEval.Tests/       # xUnit tests, mirrors src/ structure
-└── samples/AgentEval.Samples/   # 26 runnable samples (Sample01_HelloWorld, etc.)
+└── samples/AgentEval.Samples/   # 27 runnable samples (Sample01_HelloWorld, etc.)
 ```
 
-All 6 sub-projects use `RootNamespace=AgentEval` to preserve original namespaces. Only the umbrella is `IsPackable=true`; the single NuGet package contains all 6 DLLs per TFM.
+All 6 library sub-projects use `RootNamespace=AgentEval` to preserve original namespaces. The CLI uses `RootNamespace=AgentEval.Cli` as a separate tool. Only the umbrella is `IsPackable=true`; the single NuGet package contains all 6 DLLs per TFM. The CLI is packaged separately as `AgentEval.Cli`.
 
 ## Environment Setup
 

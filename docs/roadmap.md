@@ -51,6 +51,27 @@ AgentEval is in **beta** with all core features complete and ready for productio
 - **Dataset loaders:** JSON, JSONL, CSV, YAML (including workflow test cases)
 - **Rich test output** with verbosity levels and trace artifacts
 
+### Security & Responsible AI
+- **Red Team security scanning** - 192 probes across 9 attack types
+  - 60% OWASP LLM Top 10 2025 coverage (6/10) and 6 MITRE ATLAS techniques
+  - 6 export formats: JSON, JUnit XML, SARIF, Markdown, PDF, CSV
+  - 4 compliance reports: OWASP, MITRE, SOC2, ISO27001
+  - Fluent assertions: `result.Should().HaveOverallScoreAbove(85)`
+  - Baseline comparison for CI/CD regression tracking
+- **Responsible AI metrics:** Toxicity, Bias, Misinformation detection
+- **Calibrated Evaluator:** Multi-model consensus evaluation with voting strategies
+
+### CLI Tool
+- **`agenteval eval` command** — Evaluate any OpenAI-compatible AI agent from the command line
+  - 15 CLI options, 7 export formats, LLM-as-judge, system prompt from file
+  - CI/CD exit codes (0=pass, 1=fail, 2=usage error, 3=runtime error)
+  - Packaged as `dotnet tool install AgentEval.Cli`
+
+### Cross-Framework & DI
+- **`IChatClient.AsEvaluableAgent()` one-liner** — Universal adapter for any AI provider
+- **Dependency Injection architecture** — `services.AddAgentEval()`, `services.AddAgentEvalAll()`
+- **NuGetConsumer Semantic Kernel demo** — Real SK with `[KernelFunction]` plugins evaluated by AgentEval
+
 ### Framework Support
 - **Microsoft Agent Framework (MAF)** adapter with comprehensive workflow support
   - `MAFWorkflowAdapter` for multi-agent pipeline evaluation
@@ -65,11 +86,13 @@ AgentEval is in **beta** with all core features complete and ready for productio
 
 We're focused on making AgentEval the most comprehensive evaluation toolkit for AI agents in .NET. Upcoming areas include:
 
-- **CLI tool** — command-line interface for config-driven evaluation (deferred from initial launch)
-- **Additional framework adapters** — Semantic Kernel, LangChain.NET
-- **Visual reporting** - HTML reports, interactive diagrams
-- **Experiment management** - A/B evaluation, baseline comparison
-- **Safety evaluation** - red-teaming, adversarial inputs
+- **CLI Phase 2** — `compare`, `replay`, `record`, and `stochastic` commands (the `eval` command shipped in 0.6.0-beta)
+- **Additional framework adapters** — Semantic Kernel native adapter, LangChain.NET
+- **Visual reporting** — HTML reports, interactive diagrams
+- **Experiment management** — A/B evaluation, baseline comparison, run metadata and tagging
+- **MCP Server** — AI coding assistant integration for discoverability
+- **Benchmark runner** — `IBenchmark`/`BenchmarkRunner` orchestration abstraction
+- **Verify.Xunit integration** — Snapshot testing with Verify library
 
 ---
 
@@ -85,7 +108,11 @@ We prioritize based on community needs and contributions.
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| 0.2.0-beta | Feb 2026 | Multi-agent workflow evaluation, comprehensive MAF integration, workflow performance benchmarks |
-| 0.1.x-alpha | Jan 2026 | Core evaluation toolkit, stochastic evaluation, model comparison, trace replay |
+| 0.6.0-beta | Feb 2026 | CLI `eval` command, `AsEvaluableAgent()` one-liner, DI/IOC architecture, NuGetConsumer SK demo, 27 samples, 7,345 tests |
+| 0.4.0-beta | Feb 2026 | Red Team security (192 probes, OWASP LLM 2025), Responsible AI metrics, Calibrated Evaluator, MAF RC1, 6,573 tests |
+| 0.3.0-beta | Jan 2026 | Brand rename: evaluation-first naming (Test→Evaluation across all APIs) |
+| 0.2.1-beta | Jan 2026 | Enhanced token tracking, Sample 19, positioning refresh |
+| 0.2.0-beta | Jan 2026 | Public beta, NuGet consumer sample, comprehensive documentation site |
+| 0.1.x-alpha | Jan 2026 | Core evaluation toolkit, stochastic evaluation, model comparison, trace replay, security scanning |
 
 See [CHANGELOG.md](https://github.com/joslat/AgentEval/blob/main/CHANGELOG.md) for detailed release notes.

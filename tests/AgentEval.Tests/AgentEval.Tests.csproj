@@ -31,4 +31,9 @@
     <ProjectReference Include="..\..\src\AgentEval\AgentEval.csproj" />
   </ItemGroup>
 
+  <!-- CLI project only targets net9.0, so conditionally reference -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'net8.0'">
+    <ProjectReference Include="..\..\src\AgentEval.Cli\AgentEval.Cli.csproj" />
+  </ItemGroup>
+
 </Project>
