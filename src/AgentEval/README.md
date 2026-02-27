@@ -91,13 +91,32 @@ Console.WriteLine(result.ToMarkdown());
 
 ## Test Coverage
 
-- **6,500+ tests** across 3 TFMs (net8.0, net9.0, net10.0)
+- **7,000+ tests** across 3 TFMs (net8.0, net9.0, net10.0)
 - All tests passing ✅
 
 ## Installation
 
 ```bash
 dotnet add package AgentEval --prerelease
+```
+
+**Single package, modular internals** — AgentEval ships as one NuGet package containing 6 focused assemblies:
+- `AgentEval.Abstractions` — Public contracts and interfaces
+- `AgentEval.Core` — Metrics, assertions, comparison, tracing
+- `AgentEval.DataLoaders` — Data loading and export (JSON, YAML, CSV, JSONL)
+- `AgentEval.MAF` — Microsoft Agent Framework integration
+- `AgentEval.RedTeam` — Security testing (9 attack types, 192 probes)
+
+### Service Registration
+
+```csharp
+// Register all services at once (recommended):
+services.AddAgentEvalAll();
+
+// Or register selectively:
+services.AddAgentEval();              // Core services only
+services.AddAgentEvalDataLoaders();   // DataLoaders + Exporters
+services.AddAgentEvalRedTeam();       // Red Team security testing
 ```
 
 ## Documentation

@@ -15,25 +15,48 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    
+    <!-- Include sub-project DLLs in the NuGet package (they're internal, not separate packages) -->
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeSubProjectDlls</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
+
+  <!-- MSBuild target: embed all ProjectReference DLLs into the NuGet lib/ folder -->
+  <Target Name="IncludeSubProjectDlls" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)"
+          Condition="'%(ReferenceCopyLocalPaths.ReferenceSourceTarget)' == 'ProjectReference'" />
+    </ItemGroup>
+  </Target>
 
   <!-- Expose internal members to test project -->
   <ItemGroup>
     <InternalsVisibleTo Include="AgentEval.Tests" />
   </ItemGroup>
 
-  <!-- All 5 sub-projects: types flow transitively to NuGet consumers -->
+  <!-- All 5 sub-projects: PrivateAssets=all embeds DLLs directly in the NuGet package
+       (these are internal projects, NOT published as separate NuGet packages) -->
   <ItemGroup>
-    <ProjectReference Include="../AgentEval.Abstractions/AgentEval.Abstractions.csproj" />
-    <ProjectReference Include="../AgentEval.Core/AgentEval.Core.csproj" />
-    <ProjectReference Include="../AgentEval.DataLoaders/AgentEval.DataLoaders.csproj" />
-    <ProjectReference Include="../AgentEval.MAF/AgentEval.MAF.csproj" />
-    <ProjectReference Include="../AgentEval.RedTeam/AgentEval.RedTeam.csproj" />
+    <ProjectReference Include="../AgentEval.Abstractions/AgentEval.Abstractions.csproj" PrivateAssets="all" />
+    <ProjectReference Include="../AgentEval.Core/AgentEval.Core.csproj" PrivateAssets="all" />
+    <ProjectReference Include="../AgentEval.DataLoaders/AgentEval.DataLoaders.csproj" PrivateAssets="all" />
+    <ProjectReference Include="../AgentEval.MAF/AgentEval.MAF.csproj" PrivateAssets="all" />
+    <ProjectReference Include="../AgentEval.RedTeam/AgentEval.RedTeam.csproj" PrivateAssets="all" />
   </ItemGroup>
 
-  <!-- DI for umbrella AddAgentEvalAll() convenience method -->
+  <!-- External NuGet deps (explicit because PrivateAssets=all suppresses transitive propagation) -->
   <ItemGroup>
+    <!-- Core -->
+    <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Microsoft.Extensions.AI.Evaluation.Quality" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="System.Numerics.Tensors" />
+    <!-- DataLoaders -->
+    <PackageReference Include="YamlDotNet" />
+    <!-- MAF -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Agents.AI.Workflows" />
+    <!-- RedTeam -->
+    <PackageReference Include="PdfSharp-MigraDoc" />
   </ItemGroup>
 
   <ItemGroup>

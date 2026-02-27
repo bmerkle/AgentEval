@@ -395,6 +395,13 @@ misInfoResult.Should().HavePassed();
 dotnet add package AgentEval --prerelease
 ```
 
+**Single package, modular internals:**
+- `AgentEval.Abstractions` — Public contracts and interfaces
+- `AgentEval.Core` — Metrics, assertions, comparison, tracing
+- `AgentEval.DataLoaders` — Data loading and export
+- `AgentEval.MAF` — Microsoft Agent Framework integration
+- `AgentEval.RedTeam` — Security testing
+
 **Supported Frameworks:** .NET 8.0, 9.0, 10.0
 
 ---

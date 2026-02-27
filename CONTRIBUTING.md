@@ -163,22 +163,40 @@ public async Task HaveCalledTool_WhenToolWasCalled_ShouldPass()
 ```
 AgentEval/
 ├── src/
-│   └── AgentEval/           # Main library
-│       ├── Adapters/        # Agent adapters (MAF, IChatClient)
-│       ├── Assertions/      # Fluent assertion API
-│       ├── Benchmarks/      # Benchmark runners
-│       ├── Core/            # Core abstractions
-│       ├── Exporters/       # Output formatters (JSON, JUnit, Markdown, CSV)
-│       ├── MAF/             # Microsoft Agent Framework integration
-│       ├── Metrics/         # Evaluation metrics
-│       ├── Models/          # Data models
-│       └── Snapshots/       # Snapshot testing
+│   ├── AgentEval.Abstractions/  # Public contracts: interfaces, models
+│   ├── AgentEval.Core/          # Implementations: metrics, assertions, comparison, tracing
+│   ├── AgentEval.DataLoaders/   # Data loaders, exporters, output formatting
+│   ├── AgentEval.MAF/           # Microsoft Agent Framework integration
+│   ├── AgentEval.RedTeam/       # Security scanning, attack types, compliance
+│   └── AgentEval/               # Umbrella packaging project (NuGet: AgentEval)
 ├── samples/
-│   └── AgentEval.Samples/   # Sample code
+│   └── AgentEval.Samples/       # Sample code
 ├── tests/
-│   └── AgentEval.Tests/     # Unit tests
-└── docs/                    # DocFX documentation
+│   └── AgentEval.Tests/         # Unit tests
+└── docs/                        # DocFX documentation
 ```
+
+### Which Project Owns What
+
+When adding new files, choose the correct sub-project based on these guidelines:
+
+| If your code is... | Put it in... |
+|---------------------|-------------|
+| An interface, model, or public contract | `AgentEval.Abstractions` |
+| A metric, assertion, comparison, or tracing implementation | `AgentEval.Core` |
+| A data loader, exporter, or output formatter | `AgentEval.DataLoaders` |
+| MAF-specific (MAFAgentAdapter, MAFEvaluationHarness) | `AgentEval.MAF` |
+| Red team / security scanning | `AgentEval.RedTeam` |
+
+All 6 projects use `RootNamespace=AgentEval` — namespace should match the original folder structure (e.g., `AgentEval.Metrics.RAG`, `AgentEval.Core`), **not** the project name.
+
+### DI Registration
+
+Each sub-project has its own DI extension method:
+- `AddAgentEval()` — Core services (in `AgentEval.Core`)
+- `AddAgentEvalDataLoaders()` — DataLoaders + Exporters
+- `AddAgentEvalRedTeam()` — Red Team security testing
+- `AddAgentEvalAll()` — Umbrella convenience (all of the above)
 
 ---
 
