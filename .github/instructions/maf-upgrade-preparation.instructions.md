@@ -1,5 +1,5 @@
 ---
-applyTo: "MAF/**,MAFvnext/**,src/AgentEval/MAF/**"
+applyTo: "MAF/**,MAFVnext/**,src/AgentEval.MAF/**"
 description: Instructions for analyzing a new MAF version and producing an upgrade plan BEFORE updating the NuGet package
 ---
 
@@ -23,20 +23,53 @@ Phase 1 (this file):  Diff source → produce plan document
 Phase 2 (maf-updates.instructions.md):  Update NuGet → implement plan → run tests
 ```
 
-The output of Phase 1 is a markdown document (`src/AgentEval/MAF/MAF-Upgrade-Plan.md`) that serves as input to Phase 2.
+The output of Phase 1 is a markdown document (`src/AgentEval.MAF/MAF-Upgrade-Plan.md`) that serves as input to Phase 2.
 
 ## Prerequisites
 
 - `/MAF/` contains the **current** MAF source (matching the version pinned in `Directory.Packages.props`)
-- `/MAFvnext/` contains the **newer** MAF source to upgrade to
+- `/MAFVnext/` contains the **newer** MAF source to upgrade to
 - Both directories are gitignored and local-only
 - Do NOT update `Directory.Packages.props` yet — that happens in Phase 2
+
+## Solution Structure (Post-Modularization)
+
+AgentEval is modularized into 6 sub-projects (see ADR-016). MAF dependencies are **compile-time isolated** in a separate project:
+
+```
+src/
+├── AgentEval.Abstractions/   ← Interfaces, models — zero external deps
+├── AgentEval.Core/           ← Metrics, assertions, comparison — no MAF deps
+├── AgentEval.DataLoaders/    ← Dataset loading, exporters — no MAF deps
+├── AgentEval.MAF/            ← MAF adapters (7 files) — ONLY project with MAF deps
+│   └── MAF/
+│       ├── MAFAgentAdapter.cs              ← Microsoft.Agents.AI
+│       ├── MAFIdentifiableAgentAdapter.cs  ← Microsoft.Agents.AI
+│       ├── MAFWorkflowEventBridge.cs       ← Microsoft.Agents.AI.Workflows (heaviest)
+│       ├── MAFGraphExtractor.cs            ← Microsoft.Agents.AI.Workflows + Checkpointing
+│       ├── MAFWorkflowAdapter.cs           ← Microsoft.Agents.AI.Workflows (factory only)
+│       ├── MAFEvaluationHarness.cs         ← NO MAF deps (works through interfaces)
+│       └── WorkflowEvaluationHarness.cs    ← NO MAF deps (works through interfaces)
+├── AgentEval.RedTeam/        ← Security scanning — no MAF deps
+├── AgentEval/                ← Umbrella NuGet package (embeds all 5 DLLs)
+└── AgentEval.Cli/            ← CLI tool (separate NuGet)
+```
+
+**Which `.csproj` files reference MAF NuGet packages:**
+
+| Project | MAF Packages | Why |
+|---------|-------------|-----|
+| `src/AgentEval.MAF/AgentEval.MAF.csproj` | `Microsoft.Agents.AI`, `Microsoft.Agents.AI.Workflows` | Compile-time dependency (adapter code) |
+| `src/AgentEval/AgentEval.csproj` (umbrella) | Same two packages re-declared | `PrivateAssets="all"` suppresses transitive propagation from sub-projects, so umbrella must re-declare for NuGet consumers |
+| `samples/AgentEval.Samples/AgentEval.Samples.csproj` | `Microsoft.Agents.AI.OpenAI`, `Microsoft.Agents.AI.Workflows` | Samples create real MAF agents |
+
+All versions are centrally managed in `Directory.Packages.props`.
 
 ## Step 1: Read the Current MAF Version
 
 Read `Directory.Packages.props` and note the current pinned version of `Microsoft.Agents.AI`.
 
-Also check if `/MAFvnext/` has a version identifier (in its `Directory.Build.props`, `.csproj` files, or `CHANGELOG.md`).
+Also check if `/MAFVnext/` has a version identifier (in its `Directory.Build.props`, `.csproj` files, or `CHANGELOG.md`).
 
 ## Step 2: Identify What to Diff
 
@@ -80,8 +113,8 @@ Find and diff the files containing these types:
 
 For each relevant file, compare:
 ```
-MAF/dotnet/src/.../File.cs      (current)
-MAFvnext/dotnet/src/.../File.cs  (next)
+MAF/dotnet/src/.../File.cs       (current)
+MAFVnext/dotnet/src/.../File.cs  (next)
 ```
 
 Look for:
@@ -100,11 +133,11 @@ For each change found, identify which AgentEval adapter file(s) are affected:
 
 | AgentEval File | MAF APIs It Uses |
 |---------------|-----------------|
-| `src/AgentEval/MAF/MAFAgentAdapter.cs` | `AIAgent.RunAsync()`, `RunStreamingAsync()`, `CreateSessionAsync()`, `AgentResponse.Text/Messages/Usage` |
-| `src/AgentEval/MAF/MAFIdentifiableAgentAdapter.cs` | Same as above |
-| `src/AgentEval/MAF/MAFWorkflowEventBridge.cs` | `Workflow`, `InProcessExecution.RunStreamingAsync()`, `StreamingRun`, `TurnToken`, all `*Event` types, `ChatProtocol` |
-| `src/AgentEval/MAF/MAFGraphExtractor.cs` | `Workflow.ReflectEdges()`, `EdgeKind`, `EdgeInfo`, `DirectEdgeInfo`, `Checkpointing` |
-| `src/AgentEval/MAF/MAFWorkflowAdapter.cs` | `Workflow` (only in `FromMAFWorkflow()` factory) |
+| `src/AgentEval.MAF/MAF/MAFAgentAdapter.cs` | `AIAgent.RunAsync()`, `RunStreamingAsync()`, `CreateSessionAsync()`, `AgentResponse.Text/Messages/Usage` |
+| `src/AgentEval.MAF/MAF/MAFIdentifiableAgentAdapter.cs` | Same as above |
+| `src/AgentEval.MAF/MAF/MAFWorkflowEventBridge.cs` | `Workflow`, `InProcessExecution.RunStreamingAsync()`, `StreamingRun`, `TurnToken`, all `*Event` types, `ChatProtocol` |
+| `src/AgentEval.MAF/MAF/MAFGraphExtractor.cs` | `Workflow.ReflectEdges()`, `EdgeKind`, `EdgeInfo`, `DirectEdgeInfo`, `Checkpointing` |
+| `src/AgentEval.MAF/MAF/MAFWorkflowAdapter.cs` | `Workflow` (only in `FromMAFWorkflow()` factory) |
 
 Also check test files for test-only MAF APIs:
 | Test File | MAF APIs It Uses |
@@ -113,9 +146,16 @@ Also check test files for test-only MAF APIs:
 | `tests/AgentEval.Tests/MAF/MAFGraphExtractorTests.cs` | `WorkflowBuilder`, `ExecutorBindingExtensions` |
 | `tests/AgentEval.Tests/MAF/MAFWorkflowAdapterFromMAFWorkflowTests.cs` | `WorkflowBuilder`, `ExecutorBindingExtensions` |
 
+Also check sample files and the umbrella project for MAF API usage:
+| File | MAF APIs It Uses |
+|------|-----------------|
+| `samples/AgentEval.Samples/*.cs` (8 samples) | `ChatClientAgent`, `ChatClientAgentOptions`, `ChatOptions`, `MAFAgentAdapter`, `MAFEvaluationHarness`, `WorkflowBuilder` |
+| `src/AgentEval/AgentEval.csproj` (umbrella) | Re-declares MAF package refs — must match versions in `Directory.Packages.props` |
+| `src/AgentEval.Cli/Commands/EvalCommand.cs` | `MAFEvaluationHarness` (via `using AgentEval.MAF`) |
+
 ## Step 5: Produce the Plan Document
 
-Create the file `src/AgentEval/MAF/MAF-Upgrade-Plan.md` with this structure:
+Create the file `src/AgentEval.MAF/MAF-Upgrade-Plan.md` with this structure:
 
 ```markdown
 # MAF Upgrade Plan: <current-version> → <new-version>
@@ -198,7 +238,7 @@ Changes in MAF areas AgentEval doesn't use (listed for completeness).
 After creating the plan document:
 
 1. Give the user a concise summary (not the full document): how many breaking changes, which files affected, overall risk
-2. Tell the user the plan is at `src/AgentEval/MAF/MAF-Upgrade-Plan.md`
+2. Tell the user the plan is at `src/AgentEval.MAF/MAF-Upgrade-Plan.md`
 3. Ask: "Ready to proceed with the upgrade? I'll follow `maf-updates.instructions.md` and use this plan."
 
 ## What Happens Next
@@ -207,7 +247,7 @@ When the user approves:
 1. Follow `.github/instructions/maf-updates.instructions.md`
 2. The plan document serves as pre-analyzed context — the agent already knows what will break and how to fix it
 3. After successful upgrade, update the plan document status to "Completed" and note the date
-4. Rename `/MAFvnext/` content to `/MAF/` (or ask the user to do so)
+4. Rename `/MAFVnext/` content to `/MAF/` (or ask the user to do so)
 
 ## Important Rules
 

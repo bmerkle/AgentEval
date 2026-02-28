@@ -1,5 +1,5 @@
 ---
-applyTo: "src/AgentEval/MAF/**,tests/AgentEval.Tests/MAF/**,Directory.Packages.props"
+applyTo: "src/AgentEval.MAF/**,tests/AgentEval.Tests/MAF/**,Directory.Packages.props"
 description: Instructions for detecting and adapting to Microsoft Agent Framework (MAF) breaking changes
 ---
 
@@ -14,7 +14,7 @@ MAF upgrades follow two phases:
 ```
 Phase 1 (OPTIONAL):  maf-upgrade-preparation.instructions.md
                      Diff MAF source → produce plan document
-                     Output: src/AgentEval/MAF/MAF-Upgrade-Plan.md
+                     Output: src/AgentEval.MAF/MAF-Upgrade-Plan.md
 
 Phase 2 (THIS FILE): Update NuGet → fix breaks → run tests
                      Input: plan document (if available) OR compile errors
@@ -24,7 +24,7 @@ Phase 1 is recommended for major MAF version changes. For minor/patch updates or
 
 ## Step 0: Check for an Existing Upgrade Plan
 
-Before starting, check if `src/AgentEval/MAF/MAF-Upgrade-Plan.md` exists.
+Before starting, check if `src/AgentEval.MAF/MAF-Upgrade-Plan.md` exists.
 
 - **If it exists:** Read it first. It contains pre-analyzed breaking changes, behavioral changes, and concrete fix code snippets produced by Phase 1. Use it as a guide — you already know what will break and how to fix it.
 - **If it doesn't exist:** Proceed normally with build-error-driven detection (Step 1).
@@ -56,8 +56,9 @@ Also update the Microsoft.Extensions.AI packages if the MAF release requires a n
 **Current versions — always check `Directory.Packages.props` for the actual pinned versions.**
 
 **Which projects reference which MAF packages:**
-- `src/AgentEval/AgentEval.csproj` → `Microsoft.Agents.AI`, `Microsoft.Agents.AI.Workflows`
-- `samples/AgentEval.Samples/AgentEval.Samples.csproj` → `Microsoft.Agents.AI.OpenAI`
+- `src/AgentEval.MAF/AgentEval.MAF.csproj` → `Microsoft.Agents.AI`, `Microsoft.Agents.AI.Workflows` (compile-time dependency)
+- `src/AgentEval/AgentEval.csproj` (umbrella) → `Microsoft.Agents.AI`, `Microsoft.Agents.AI.Workflows` (re-declared for NuGet consumers because `PrivateAssets="all"` suppresses transitive propagation from sub-projects)
+- `samples/AgentEval.Samples/AgentEval.Samples.csproj` → `Microsoft.Agents.AI.OpenAI`, `Microsoft.Agents.AI.Workflows`
 
 ## Step 1: Update the NuGet Version and Detect Breaking Changes
 
@@ -76,7 +77,7 @@ When a Dependabot PR arrives (or when manually bumping MAF versions):
 
 ## Step 2: Fix MAF Breaking Changes
 
-MAF-dependent code is confined to exactly these files in `src/AgentEval/MAF/`:
+MAF-dependent code is confined to exactly these files in `src/AgentEval.MAF/MAF/`:
 
 | File | MAF APIs Used | Most Likely to Break |
 |------|--------------|---------------------|
@@ -92,10 +93,12 @@ MAF-dependent code is confined to exactly these files in `src/AgentEval/MAF/`:
 2. Check MAF release notes or changelog for the API change
 3. Update ONLY the affected adapter file(s) to match the new MAF API
 4. **Do NOT change** any of these (they have zero MAF dependencies):
-   - Core interfaces (`IEvaluableAgent`, `IStreamableAgent`, `IWorkflowEvaluableAgent`)
+   - Core interfaces in `src/AgentEval.Abstractions/` (`IEvaluableAgent`, `IStreamableAgent`, `IWorkflowEvaluableAgent`)
    - `MAFEvaluationHarness.cs` (despite the name, no MAF imports)
    - `WorkflowEvaluationHarness.cs` (no MAF imports)
-   - Anything in `Core/`, `Models/`, `Metrics/`, `Assertions/`, `Comparison/`, `Tracing/`
+   - Anything in `src/AgentEval.Core/` (metrics, assertions, comparison, tracing)
+   - Anything in `src/AgentEval.DataLoaders/` (data loading, exporters)
+   - Anything in `src/AgentEval.RedTeam/` (security scanning)
 
 ### Common breaking change patterns and how to fix:
 
@@ -159,6 +162,7 @@ dotnet test
 - `WorkflowEvaluationHarnessTests.cs`
 - `WorkflowToolTrackingTests.cs`
 - `MicrosoftEvaluatorAdapterTests.cs`
+- `ChatClientAdapterStreamingIntegrationTests.cs`
 
 ## Step 4: Update Compatibility Note
 
@@ -183,35 +187,44 @@ AgentEval X.Y.Z — Compatible with MAF <new-version>
 - A MAF update with zero code changes → bump AgentEval **patch** version (if releasing for compatibility note only)
 - Do NOT try to match AgentEval version numbers to MAF version numbers
 
-## Architecture Reference
+## Architecture Reference (Post-Modularization)
+
+AgentEval is modularized into 6 sub-projects (see ADR-016). MAF dependencies are **compile-time isolated** in a separate project:
 
 ```
-src/AgentEval/
-├── Core/           ← NO MAF deps — interfaces, extractors
-├── Models/         ← NO MAF deps — AgentResponse, TestResult, etc.
-├── Metrics/        ← NO MAF deps — all metrics
-├── Assertions/     ← NO MAF deps — all assertions
-├── Comparison/     ← NO MAF deps — stochastic runner, model comparison
-├── Tracing/        ← NO MAF deps — trace record/replay
-├── MAF/            ← ALL MAF deps confined here (4 files with imports)
-│   ├── MAFAgentAdapter.cs              ← Microsoft.Agents.AI
-│   ├── MAFIdentifiableAgentAdapter.cs  ← Microsoft.Agents.AI
-│   ├── MAFWorkflowEventBridge.cs       ← Microsoft.Agents.AI.Workflows (heaviest)
-│   ├── MAFGraphExtractor.cs            ← Microsoft.Agents.AI.Workflows + Checkpointing
-│   ├── MAFWorkflowAdapter.cs           ← Microsoft.Agents.AI.Workflows (only in factory)
-│   ├── MAFEvaluationHarness.cs         ← NO MAF deps (works through interfaces)
-│   └── WorkflowEvaluationHarness.cs    ← NO MAF deps (works through interfaces)
-└── AgentEval.csproj                    ← Package refs pinned in Directory.Packages.props
+src/
+├── AgentEval.Abstractions/   ← Interfaces, models — zero external deps
+│   ├── Core/                 ← IEvaluableAgent, IStreamableAgent, IMetric, etc.
+│   ├── Comparison/           ← IModelIdentifiable, IAgentFactory, etc.
+│   └── Models/               ← TestCase, TestResult, PerformanceMetrics, etc.
+├── AgentEval.Core/           ← NO MAF deps — metrics, assertions, comparison, tracing
+├── AgentEval.DataLoaders/    ← NO MAF deps — dataset loading, 6 export formats
+├── AgentEval.MAF/            ← ALL MAF deps confined here (4 of 7 files with imports)
+│   └── MAF/
+│       ├── MAFAgentAdapter.cs              ← Microsoft.Agents.AI
+│       ├── MAFIdentifiableAgentAdapter.cs  ← Microsoft.Agents.AI
+│       ├── MAFWorkflowEventBridge.cs       ← Microsoft.Agents.AI.Workflows (heaviest)
+│       ├── MAFGraphExtractor.cs            ← Microsoft.Agents.AI.Workflows + Checkpointing
+│       ├── MAFWorkflowAdapter.cs           ← Microsoft.Agents.AI.Workflows (factory only)
+│       ├── MAFEvaluationHarness.cs         ← NO MAF deps (works through interfaces)
+│       └── WorkflowEvaluationHarness.cs    ← NO MAF deps (works through interfaces)
+├── AgentEval.RedTeam/        ← NO MAF deps — security scanning
+├── AgentEval/                ← Umbrella NuGet (embeds all 5 DLLs via PrivateAssets="all")
+│   └── AgentEval.csproj      ← Re-declares MAF package refs for NuGet consumers
+└── AgentEval.Cli/            ← CLI tool (separate NuGet)
+    └── Commands/EvalCommand.cs  ← uses AgentEval.MAF (MAFEvaluationHarness)
 ```
 
-Only 4 out of 7 files in `src/AgentEval/MAF/` actually import MAF types. The other 3 are framework-agnostic and work entirely through `IEvaluableAgent`/`IStreamableAgent`/`IWorkflowEvaluableAgent`.
+Only 4 out of 7 files in `src/AgentEval.MAF/MAF/` actually import MAF types. The other 3 are framework-agnostic and work entirely through `IEvaluableAgent`/`IStreamableAgent`/`IWorkflowEvaluableAgent`.
+
+**Key isolation property:** A `using Microsoft.Agents.AI` in Core, Abstractions, DataLoaders, or RedTeam would fail to compile — isolation is enforced by project boundaries, not convention.
 
 ## Step 5: Clean Up After Upgrade
 
 After a successful upgrade:
 
-1. If `src/AgentEval/MAF/MAF-Upgrade-Plan.md` exists, update its status to "Completed" with the date, or delete it
-2. If `/MAFvnext/` exists, move its contents to `/MAF/` (so `/MAF/` reflects the new current version), then remove `/MAFvnext/`
+1. If `src/AgentEval.MAF/MAF-Upgrade-Plan.md` exists, update its status to "Completed" with the date, or delete it
+2. If `/MAFVnext/` exists, move its contents to `/MAF/` (so `/MAF/` reflects the new current version), then remove `/MAFVnext/`
 3. Update documentation:
    - Check all code examples in `docs/*.md` for stale API patterns (especially `ChatClientAgentOptions` configuration)
    - Update `.github/instructions/` files to reflect new API names
@@ -231,4 +244,4 @@ The RC1 upgrade revealed that `ChatClientAgentOptions.Instructions` was removed 
 ## Related Instructions
 
 - **Pre-upgrade analysis:** `.github/instructions/maf-upgrade-preparation.instructions.md` — Diff MAF source before updating NuGet
-- **Detailed architecture:** `src/AgentEval/MAF/Analysis-Microsoft-Agent-Framework-Integration.md` — Full MAF integration analysis, versioning decisions, extraction contingency plan
+- **Detailed architecture:** `strategy/MAF-Integration-Analysis.md` — Full MAF integration analysis, versioning decisions, extraction contingency plan
