@@ -72,7 +72,7 @@ The `DirectoryExporter` produces:
 | `results.jsonl` | Per-test results | JSON Lines |
 | `summary.json` | Aggregate statistics | JSON |
 | `run.json` | Run metadata | JSON |
-| `config.json` | Original config copy | JSON |
+| *(original filename)* | Original config copy | *(original)* |
 
 **Usage:**
 

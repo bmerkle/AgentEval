@@ -186,9 +186,10 @@ internal static class EvalCommand
             || opts.Format.Equals("dir", StringComparison.OrdinalIgnoreCase);
 
         if (isDirectoryFormat && opts.OutputDir is null)
-            throw new InvalidOperationException(
+            throw new ArgumentException(
                 "The 'directory' format produces a structured directory (results.jsonl, summary.json, run.json). " +
-                "Specify --output-dir <path> to write the directory output.");
+                "Specify --output-dir <path> to write the directory output.",
+                nameof(opts.Format));
 
         if (!isDirectoryFormat)
             await ExportHandler.ExportAsync(report, opts.Format, opts.Output, ct);

@@ -82,7 +82,7 @@ public sealed class CrossPlatformFontResolver : IFontResolver
 
             if (!string.IsNullOrEmpty(winFonts))
             {
-                foreach (var ext in new[] { ".ttf", ".otf", ".TTF", ".OTF" })
+                foreach (var ext in new[] { ".ttf", ".otf" })
                 {
                     var path = Path.Combine(winFonts, faceName + ext);
                     if (File.Exists(path)) return File.ReadAllBytes(path);
@@ -185,7 +185,7 @@ public sealed class CrossPlatformFontResolver : IFontResolver
         {
             if (!Directory.Exists(dir)) continue;
 
-            foreach (var ext in new[] { ".ttf", ".otf", ".TTF", ".OTF" })
+            foreach (var ext in new[] { ".ttf", ".otf" })
             {
                 var direct = Path.Combine(dir, faceName + ext);
                 if (File.Exists(direct)) return direct;
