@@ -200,13 +200,14 @@ public class DirectoryExporterTests : IDisposable
         var report = CreateSampleReport();
         var outputDir = Path.Combine(_tempDir, "run-with-config");
 
-        // Create a fake config file
+        // Create a fake config file with non-.json extension
         var configPath = Path.Combine(_tempDir, "my-config.yaml");
         await File.WriteAllTextAsync(configPath, "dataset:\n  - name: test1\n    input: hello");
 
         await exporter.ExportToDirectoryAsync(report, outputDir, configFilePath: configPath);
 
-        var configDest = Path.Combine(outputDir, DirectoryExporter.ConfigFileName);
+        // Original filename should be preserved (not renamed to config.json)
+        var configDest = Path.Combine(outputDir, "my-config.yaml");
         Assert.True(File.Exists(configDest));
         var content = await File.ReadAllTextAsync(configDest);
         Assert.Contains("dataset:", content);

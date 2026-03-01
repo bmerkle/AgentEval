@@ -47,6 +47,13 @@ internal static class ExportHandler
                 $"Unknown format '{format}'. Valid formats: {string.Join(", ", s_formatMap.Keys.Order())}",
                 nameof(format));
 
+        // Directory format requires --output-dir, not --format + --output
+        if (exportFormat == ExportFormat.Directory)
+            throw new ArgumentException(
+                $"The '{format}' format produces a structured directory (results.jsonl, summary.json, run.json). " +
+                "Use --output-dir <path> instead of --format directory --output <file>.",
+                nameof(format));
+
         var exporter = ResultExporterFactory.Create(exportFormat);
 
         if (outputFile is not null)

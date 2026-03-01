@@ -55,7 +55,7 @@ public sealed class DirectoryExporter : IResultExporter
     /// <summary>Well-known file name for run metadata.</summary>
     public const string RunFileName = "run.json";
     
-    /// <summary>Well-known file name for config copy.</summary>
+    /// <summary>Default file name for config copy (used when original name cannot be determined).</summary>
     public const string ConfigFileName = "config.json";
 
     private static readonly JsonSerializerOptions s_jsonOptions = new()
@@ -134,10 +134,11 @@ public sealed class DirectoryExporter : IResultExporter
         // 3. run.json — run metadata
         await WriteRunJsonAsync(report, directoryPath, ct);
 
-        // 4. config.json — original config copy (if provided)
+        // 4. config copy — preserve original filename and extension for reproducibility
         if (configFilePath is not null && File.Exists(configFilePath))
         {
-            var destPath = Path.Combine(directoryPath, ConfigFileName);
+            var configDestName = Path.GetFileName(configFilePath);
+            var destPath = Path.Combine(directoryPath, configDestName);
             File.Copy(configFilePath, destPath, overwrite: true);
         }
     }

@@ -137,8 +137,6 @@ public class EvalCommandTests
     [InlineData("md")]
     [InlineData("trx")]
     [InlineData("csv")]
-    [InlineData("directory")]
-    [InlineData("dir")]
     public async Task ExportHandler_AllFormats_WriteToFile(string format)
     {
         // Arrange
@@ -289,6 +287,27 @@ public class EvalCommandTests
         // Should throw FileNotFoundException for dataset, NOT for the system prompt file
         await Assert.ThrowsAsync<FileNotFoundException>(
             () => EvalCommand.ExecuteAsync(opts, CancellationToken.None));
+    }
+
+    [Theory]
+    [InlineData("directory")]
+    [InlineData("dir")]
+    public async Task ExportHandler_DirectoryFormat_ThrowsWithHelpfulMessage(string format)
+    {
+        var report = new EvaluationReport
+        {
+            Name = "test",
+            TotalTests = 1,
+            PassedTests = 1,
+            OverallScore = 100,
+            StartTime = DateTimeOffset.UtcNow,
+            EndTime = DateTimeOffset.UtcNow,
+            TestResults = new List<TestResultSummary>()
+        };
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(
+            () => ExportHandler.ExportAsync(report, format, null, CancellationToken.None));
+        Assert.Contains("--output-dir", ex.Message);
     }
 
     [Fact]

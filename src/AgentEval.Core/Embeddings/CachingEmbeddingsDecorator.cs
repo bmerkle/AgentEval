@@ -17,8 +17,10 @@ namespace AgentEval.Embeddings;
 /// </para>
 /// <para>
 /// Thread-safe: uses <see cref="ConcurrentDictionary{TKey,TValue}"/> for concurrent access.
-/// When the cache reaches <c>maxCacheSize</c>, new entries are silently skipped
-/// (cache serves as a best-effort optimization, not a guarantee).
+/// The <c>maxCacheSize</c> limit is approximate — under high concurrency the cache may
+/// briefly exceed the limit by the number of concurrent writers before stabilizing.
+/// New entries are silently skipped once the limit is reached
+/// (cache serves as a best-effort optimization, not a strict bound).
 /// </para>
 /// </remarks>
 public class CachingEmbeddingsDecorator : IAgentEvalEmbeddings
@@ -107,7 +109,9 @@ public class CachingEmbeddingsDecorator : IAgentEvalEmbeddings
 
     private void TryAddToCache(string text, ReadOnlyMemory<float> embedding)
     {
-        // Best-effort: skip adding if cache is full (no eviction policy needed for eval workloads)
+        // Best-effort approximate bound: Count check is not atomic with TryAdd, so under
+        // high concurrency the cache may briefly exceed _maxCacheSize by a small margin.
+        // This is acceptable for eval workloads (no eviction policy needed).
         if (_cache.Count < _maxCacheSize)
         {
             _cache.TryAdd(text, embedding);
