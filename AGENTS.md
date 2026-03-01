@@ -27,7 +27,6 @@ dotnet run --project samples/AgentEval.Samples
 - `src/AgentEval.DataLoaders/` - Data loaders, exporters, output formatting
 - `src/AgentEval.MAF/` - Microsoft Agent Framework integration
 - `src/AgentEval.RedTeam/` - Security scanning, attack types, compliance
-- `src/AgentEval.Cli/` - CLI tool (`dotnet tool install AgentEval.Cli`)
 - `tests/AgentEval.Tests/` - Unit tests (mirrors src structure)
 - `samples/AgentEval.Samples/` - 27 runnable samples
 - `docs/` - Documentation
