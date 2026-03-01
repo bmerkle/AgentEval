@@ -9,6 +9,9 @@ using AgentEval.Cli.Commands;
 var root = new RootCommand("AgentEval — evaluate AI agents from the command line")
 {
     EvalCommand.Create(),
+    InitCommand.Create(),
+    ListCommand.Create(),
+    RedTeamCommand.Create(),
 };
 
 var parseResult = root.Parse(args);

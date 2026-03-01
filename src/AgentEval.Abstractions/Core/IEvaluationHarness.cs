@@ -85,6 +85,17 @@ public class EvaluationOptions
     
     /// <summary>Model name for cost estimation.</summary>
     public string? ModelName { get; init; }
+
+    /// <summary>
+    /// Optional list of metric names to run. When set, only these metrics are evaluated.
+    /// When null or empty, all applicable metrics run (default behavior).
+    /// </summary>
+    /// <remarks>
+    /// Metric names are case-insensitive. Use the naming convention prefixes:
+    /// <c>llm_</c> (LLM-evaluated), <c>code_</c> (code-computed), <c>embed_</c> (embedding-based).
+    /// Example: <c>["llm_relevance", "code_tool_success"]</c>.
+    /// </remarks>
+    public IReadOnlyList<string>? SelectedMetrics { get; set; }
 }
 
 /// <summary>

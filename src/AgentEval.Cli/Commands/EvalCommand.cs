@@ -6,11 +6,13 @@ using System.CommandLine;
 using System.CommandLine.Parsing;
 using AgentEval.Cli.Infrastructure;
 using AgentEval.Cli.Output;
+using AgentEval.Comparison;
 using AgentEval.Core;
 using AgentEval.DataLoaders;
 using AgentEval.Exporters;
 using AgentEval.MAF;
 using AgentEval.Models;
+using AgentEval.Output;
 using Microsoft.Extensions.AI;
 
 namespace AgentEval.Cli.Commands;
@@ -48,11 +50,21 @@ internal static class EvalCommand
             { DefaultValueFactory = _ => 0f, Description = "Sampling temperature (0 = deterministic)" };
         var maxTokensOpt = new Option<int?>("--max-tokens") { Description = "Maximum output tokens" };
 
+        // Metric selection
+        var metricsOpt = new Option<string?>("--metrics")
+            { Description = "Comma-separated metric names to run (e.g., llm_relevance,code_tool_success). Default: all" };
+
         // Judge (LLM-as-judge for scoring)
         var judgeEndpointOpt = new Option<string?>("--judge")
             { Description = "Separate endpoint for LLM-as-judge evaluation" };
         var judgeModelOpt = new Option<string?>("--judge-model")
             { Description = "Model for judge (default: same as --model)" };
+
+        // Stochastic evaluation
+        var runsOpt = new Option<int>("--runs")
+            { DefaultValueFactory = _ => 1, Description = "Number of evaluation runs for stochastic analysis (default: 1)" };
+        var thresholdOpt = new Option<double>("--success-threshold")
+            { DefaultValueFactory = _ => 0.8, Description = "Success rate threshold for stochastic evaluation (default: 0.8)" };
 
         // Output
         var formatOpt = new Option<string>("--format")
@@ -74,6 +86,9 @@ internal static class EvalCommand
         command.Options.Add(systemPromptFileOpt);
         command.Options.Add(temperatureOpt);
         command.Options.Add(maxTokensOpt);
+        command.Options.Add(metricsOpt);
+        command.Options.Add(runsOpt);
+        command.Options.Add(thresholdOpt);
         command.Options.Add(judgeEndpointOpt);
         command.Options.Add(judgeModelOpt);
         command.Options.Add(formatOpt);
@@ -95,6 +110,9 @@ internal static class EvalCommand
                 SystemPromptFile = parseResult.GetValue(systemPromptFileOpt),
                 Temperature = parseResult.GetValue(temperatureOpt),
                 MaxTokens = parseResult.GetValue(maxTokensOpt),
+                Metrics = parseResult.GetValue(metricsOpt),
+                Runs = parseResult.GetValue(runsOpt),
+                SuccessThreshold = parseResult.GetValue(thresholdOpt),
                 JudgeEndpoint = parseResult.GetValue(judgeEndpointOpt),
                 JudgeModel = parseResult.GetValue(judgeModelOpt),
                 Format = parseResult.GetValue(formatOpt)!,
@@ -167,13 +185,33 @@ internal static class EvalCommand
         if (!opts.Quiet)
             ConsoleReporter.WriteHeader(opts.Model, opts.Dataset.Name, testCases.Count);
 
-        var summary = await harness.RunBatchAsync(agent, testCases, new EvaluationOptions
+        // Parse --metrics flag
+        IReadOnlyList<string>? selectedMetrics = null;
+        if (opts.Metrics is not null)
+        {
+            selectedMetrics = opts.Metrics
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList();
+
+            if (selectedMetrics.Count == 0)
+                throw new ArgumentException("--metrics was specified but no metric names were provided.");
+        }
+
+        var evalOptions = new EvaluationOptions
         {
             TrackTools = true,
             TrackPerformance = true,
             ModelName = opts.Model,
             Verbose = opts.Verbose && !opts.Quiet,
-        }, ct);
+            SelectedMetrics = selectedMetrics,
+        };
+
+        // 6b. Stochastic evaluation path (--runs > 1)
+        if (opts.Runs > 1)
+            return await ExecuteStochasticAsync(opts, harness, agent, testCases, evalOptions, ct);
+
+        // 6c. Standard single-run evaluation path
+        var summary = await harness.RunBatchAsync(agent, testCases, evalOptions, ct);
 
         // 7. Export
         var report = summary.ToEvaluationReport(
@@ -211,6 +249,61 @@ internal static class EvalCommand
         // 9. Exit code: 0 = all passed, 1 = any failure
         return summary.AllPassed ? ExitCodes.Success : ExitCodes.TestFailure;
     }
+
+    /// <summary>
+    /// Stochastic evaluation path — runs each test case N times and reports statistics.
+    /// </summary>
+    private static async Task<int> ExecuteStochasticAsync(
+        EvalOptions opts,
+        MAFEvaluationHarness harness,
+        IEvaluableAgent agent,
+        IReadOnlyList<DatasetTestCase> datasetTestCases,
+        EvaluationOptions evalOptions,
+        CancellationToken ct)
+    {
+        var runner = new StochasticRunner(harness, statisticsCalculator: null, evalOptions);
+        var stochasticOptions = new StochasticOptions(
+            Runs: opts.Runs,
+            SuccessRateThreshold: opts.SuccessThreshold);
+
+        if (!opts.Quiet)
+            Console.Error.WriteLine($"  🔁 Stochastic mode: {opts.Runs} runs per test case, threshold={opts.SuccessThreshold:P0}");
+
+        var allPassed = true;
+        var results = new List<StochasticResult>();
+
+        foreach (var datasetTestCase in datasetTestCases)
+        {
+            var testCase = datasetTestCase.ToTestCase();
+
+            if (!opts.Quiet)
+                Console.Error.WriteLine($"\n  ▶ Test: {testCase.Name ?? "unnamed"}");
+
+            var result = await runner.RunStochasticTestAsync(agent, testCase, stochasticOptions, ct);
+            results.Add(result);
+
+            if (!opts.Quiet)
+            {
+                result.PrintTable(testCase.Name ?? "Test");
+                Console.Error.WriteLine($"    {result.Summary}");
+            }
+
+            if (!result.Passed)
+                allPassed = false;
+        }
+
+        // Summary
+        if (!opts.Quiet)
+        {
+            Console.Error.WriteLine();
+            Console.Error.WriteLine($"  ═══ Stochastic Summary ═══");
+            Console.Error.WriteLine($"  Test cases: {datasetTestCases.Count}");
+            Console.Error.WriteLine($"  Passed: {results.Count(r => r.Passed)}/{results.Count}");
+            Console.Error.WriteLine($"  Threshold: {opts.SuccessThreshold:P0}");
+        }
+
+        return allPassed ? ExitCodes.Success : ExitCodes.TestFailure;
+    }
 }
 
 /// <summary>Parsed options for the eval command.</summary>
@@ -221,6 +314,9 @@ internal sealed class EvalOptions
     public bool Azure { get; init; }
     public required string Model { get; init; }
     public string? ApiKey { get; init; }
+    public string? Metrics { get; init; }
+    public int Runs { get; init; } = 1;
+    public double SuccessThreshold { get; init; } = 0.8;
     public string? SystemPrompt { get; init; }
     public FileInfo? SystemPromptFile { get; init; }
     public float Temperature { get; init; }

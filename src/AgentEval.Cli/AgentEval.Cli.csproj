@@ -20,6 +20,7 @@
     <ProjectReference Include="../AgentEval.Core/AgentEval.Core.csproj" />
     <ProjectReference Include="../AgentEval.DataLoaders/AgentEval.DataLoaders.csproj" />
     <ProjectReference Include="../AgentEval.MAF/AgentEval.MAF.csproj" />
+    <ProjectReference Include="../AgentEval.RedTeam/AgentEval.RedTeam.csproj" />
   </ItemGroup>
 
   <ItemGroup>
