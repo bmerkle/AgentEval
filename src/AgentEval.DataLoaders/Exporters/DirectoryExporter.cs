@@ -20,7 +20,7 @@ namespace AgentEval.Exporters;
 ///   <item><c>results.jsonl</c> — One JSON line per test result (streaming-friendly, append-friendly)</item>
 ///   <item><c>summary.json</c> — Aggregate statistics, per-metric distribution stats</item>
 ///   <item><c>run.json</c> — Run metadata: agent info, environment, timestamp, duration</item>
-///   <item><c>config.json</c> — Copy of original config file (when provided)</item>
+///   <item><i>(original filename)</i> — Copy of original config/dataset file with original filename preserved (when provided)</item>
 /// </list>
 /// </para>
 /// </summary>

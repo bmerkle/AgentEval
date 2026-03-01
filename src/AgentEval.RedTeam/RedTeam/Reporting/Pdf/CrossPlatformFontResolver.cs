@@ -71,20 +71,28 @@ public sealed class CrossPlatformFontResolver : IFontResolver
         {
             // faceName is a Windows TTF base name, e.g. "cour", "arialbd"
             var winFonts = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
-            foreach (var ext in new[] { ".ttf", ".otf", ".TTF", ".OTF" })
+
+            // Fallback: derive %WINDIR%\Fonts from System directory (portable across drive letters)
+            if (string.IsNullOrEmpty(winFonts))
             {
-                var path = Path.Combine(winFonts, faceName + ext);
-                if (File.Exists(path)) return File.ReadAllBytes(path);
+                var systemDir = Environment.GetFolderPath(Environment.SpecialFolder.System);
+                if (!string.IsNullOrEmpty(systemDir))
+                    winFonts = Path.GetFullPath(Path.Combine(systemDir, "..", "Fonts"));
             }
-            // Fallback: try C:\Windows\Fonts directly (in case SpecialFolder returns empty)
-            foreach (var ext in new[] { ".ttf", ".otf" })
+
+            if (!string.IsNullOrEmpty(winFonts))
             {
-                var path = Path.Combine(@"C:\Windows\Fonts", faceName + ext);
-                if (File.Exists(path)) return File.ReadAllBytes(path);
+                foreach (var ext in new[] { ".ttf", ".otf", ".TTF", ".OTF" })
+                {
+                    var path = Path.Combine(winFonts, faceName + ext);
+                    if (File.Exists(path)) return File.ReadAllBytes(path);
+                }
+
+                // Last resort: use Arial as an emergency fallback
+                var arialPath = Path.Combine(winFonts, "arial.ttf");
+                if (File.Exists(arialPath)) return File.ReadAllBytes(arialPath);
             }
-            // Last resort: use Arial as an emergency fallback
-            var arialPath = Path.Combine(@"C:\Windows\Fonts", "arial.ttf");
-            if (File.Exists(arialPath)) return File.ReadAllBytes(arialPath);
+
             return null;
         }
 
