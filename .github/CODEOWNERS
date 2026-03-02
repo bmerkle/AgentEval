@@ -1,0 +1,10 @@
+# Default: Owner reviews everything
+* @joslat
+
+# Critical paths require explicit owner review
+/src/AgentEval.Abstractions/ @joslat
+/src/AgentEval.MAF/ @joslat
+/src/AgentEval.Core/ @joslat
+/src/AgentEval.RedTean/ @joslat
+/src/AgentEval/ @joslat
+/.github/ @joslat
