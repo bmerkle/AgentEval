@@ -1042,8 +1042,8 @@ See [Tracing](tracing.md) for complete Record & Replay documentation.
 - [Performance & Cost](benchmarks.md) - Workflow performance optimization
 
 **Live Examples:**
-- [Sample 09: Real MAF Workflow Evaluation](../samples/AgentEval.Samples/Sample09_WorkflowEvaluationReal.cs) - Sequential content pipeline (Planner → Researcher → Writer → Editor)
-- [Sample 10: Workflow with Tools](../samples/AgentEval.Samples/Sample10_WorkflowWithTools.cs) - Tool-enabled trip planning workflow with function calling
+- [Sample 09: Real MAF Workflow Evaluation](samples/AgentEval.Samples/Sample09_WorkflowEvaluationReal.cs) - Sequential content pipeline (Planner → Researcher → Writer → Editor)
+- [Sample 10: Workflow with Tools](samples/AgentEval.Samples/Sample10_WorkflowWithTools.cs) - Tool-enabled trip planning workflow with function calling
 
 **Microsoft Agent Framework:**
 - [MAF Official Documentation](https://github.com/microsoft/agent-framework) - Microsoft Agent Framework docs
