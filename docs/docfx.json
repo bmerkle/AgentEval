@@ -28,7 +28,7 @@
         "src": "../samples",
         "files": ["**/*.cs"],
         "exclude": ["**/bin/**", "**/obj/**"],
-        "dest": "samples"
+        "dest": "../samples"
       }
     ],
     "output": "_site",
